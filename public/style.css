@@ -18,6 +18,10 @@ body {
     padding: 0;
 }
 
+.note-container img {
+    width: 100%;
+}
+
 .absolute {
     position: absolute;
 }

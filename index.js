@@ -5,6 +5,19 @@ const express = require('express');
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv');
 
+const multer = require('multer');
+const { diskStorage } = multer;
+
+const storagePhoto = diskStorage({
+    destination: 'uploads',
+    filename: (req, file, cb) => {
+        console.log("file: ");
+        console.log(file);
+        cb(null, generateId(8) + path.extname(file.originalname));
+    }
+});
+const uploadPhoto = multer({ storage: storagePhoto });
+
 dotenv.configDotenv();
 
 const sqlite3 = require('sqlite3').verbose();
@@ -278,6 +291,12 @@ app.post('/room/:roomId/note', checkEditToken, function (req, res) {
     );
 });
 
+app.post('/upload', uploadPhoto.single('file'), function (req, res) {
+    console.log(req.file.filename);
+
+    res.json({ msg: req.file });
+});
+
 app.delete('/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
     // Delete note
     const { noteId } = req.params;
@@ -353,6 +372,7 @@ app.put('/room/:roomId', checkEditToken, function (req, res) {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.listen(PORT, () => {
     console.log("listening on http://localhost:" + PORT);

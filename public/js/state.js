@@ -3,5 +3,7 @@ export const state = {
     roomId: undefined,
     editMode: false,
     notes: {},
-    lastZIndex: 0
+    lastZIndex: 0,
+    scrollX: 0,
+    scrollY: 0,
 };

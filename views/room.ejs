@@ -33,8 +33,15 @@
         <div id="edit-toolbar">
             <button id="bold">B</button>
             <button id="italic">I</button>
+            <!-- <button id="image-upload">Add image</button> -->
+            <form action="/upload" id="image-upload-form" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" id="imgupload" style="display:none" accept="image/*" />
+            </form>
+            <button id="image-upload">Image Upload</button>
+
         </div>
         <button id="new-note">new note...</button> <input type="checkbox" name="edit-mode" id="edit-mode">
+        <script src="/js/editButtons.js" defer type="module"></script>
         <% } %>
             <div id="notes"></div>
 </body>

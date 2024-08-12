@@ -33,8 +33,8 @@ function split(fragment, vertical, newNote, hRect) {
     const mainAxisN = vertical ? "left" : "top";
     const mainAxisP = vertical ? "right" : "bottom";
     const crossAxisN = vertical ? "top" : "left";
-    const scrollMainAxis = vertical ? scrollX : scrollY;
-    const scrollCrossAxis = vertical ? scrollY : scrollX;
+    const scrollMainAxis = vertical ? state.scrollX : state.scrollY;
+    const scrollCrossAxis = vertical ? state.scrollY : state.scrollX;
     const mainDim = vertical ? "width" : "height";
     const crossDim = vertical ? "height" : "width";
     const offset = newNote.getSize()[mainDim];
@@ -42,7 +42,7 @@ function split(fragment, vertical, newNote, hRect) {
     const crossCartesian = vertical ? "y" : "x";
     const crossOffset = vertical ? "offsetTop" : "offsetLeft";
 
-    const cut = hRect[mainCartesian] - pos[mainAxisN];
+    const cut = hRect[mainCartesian] - pos[mainAxisN] + scrollMainAxis;
 
     const html = fragment.getHTML();
     const areaRect = fragment.noteContainer.getBoundingClientRect();
@@ -51,16 +51,18 @@ function split(fragment, vertical, newNote, hRect) {
     const fragmentLeft = new Split(fragment.noteId, fragment, html);
     const fragmentRight = new Split(fragment.noteId, fragment, html);
 
+    // Size the two fragments...
     const sizeL = {};
     sizeL[mainDim] = cut;
     sizeL[crossDim] = size[crossDim];
     fragmentLeft.setSize(sizeL);
 
     const sizeR = {};
-    sizeR[mainDim] = areaRect[mainDim] - cut;
-    sizeR[crossDim] = areaRect[crossDim];
+    sizeR[mainDim] = size[mainDim] - cut;
+    sizeR[crossDim] = size[crossDim];
     fragmentRight.setSize(sizeR);
 
+    // Position the fragments
     const posL = {};
     posL[mainAxisN] = pos[mainAxisN] - offset / 2;
     posL[crossAxisN] = pos[crossAxisN];
@@ -71,24 +73,22 @@ function split(fragment, vertical, newNote, hRect) {
     posR[crossAxisN] = pos[crossAxisN];
     fragmentRight.setPosition(posR);
 
-    // seems cross-axis alignment of content gets reset?
+    // Adjust the inner content within the fragments
     fragmentLeft.noteContents.style[mainAxisN] = contentRect[mainAxisN] - areaRect[mainAxisN] + "px";
     fragmentLeft.noteContents.style[mainAxisP] = null;
     fragmentLeft.noteContents.style[crossAxisN] = fragment.noteContents[crossOffset] + "px";
 
-
-    // console.log(`fragmentRight.noteContents.style[${mainAxisP}] = ${areaRect[mainAxisP]} - ${contentRect[mainAxisP]}px (${areaRect[mainAxisP] - contentRect[mainAxisP]})`);
     fragmentRight.noteContents.style[mainAxisP] = areaRect[mainAxisP] - contentRect[mainAxisP] + "px";
     fragmentRight.noteContents.style[mainAxisN] = null;
     fragmentRight.noteContents.style[crossAxisN] = fragment.noteContents[crossOffset] + "px";
 
-
     fragment.children.push(fragmentLeft);
     fragment.children.push(fragmentRight);
 
+    // Calculate the position of the new Note
     const newNotePos = {}
-    newNotePos[mainAxisN] = hRect[mainCartesian] - offset / 2;
-    newNotePos[crossAxisN] = hRect[crossCartesian];
+    newNotePos[mainAxisN] = hRect[mainCartesian] + scrollMainAxis - offset / 2;
+    newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
     newNote.setPosition(newNotePos);
     fragment.close(false);
 }
@@ -247,6 +247,7 @@ class Note extends Fragment {
                 'list',
                 'indent',
                 'annotate',
+                'image',
             ]
         });
         this.noteEditor.enable(false);
