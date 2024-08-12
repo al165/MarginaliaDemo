@@ -1,0 +1,95 @@
+:root {
+    --background-color: #FFFFFF;
+    --note-bg-color: #E8E8E8;
+    --menu-bg-color: #E8E8E8;
+    --glow-color: #C2C1FF;
+    --text-color: #000000;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: larger;
+    background-color: var(--background-color);
+}
+
+.note-container {
+    position: absolute;
+    background-color: var(--menu-bg-color);
+    padding: 0;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.drop-shadow {
+    /* filter: drop-shadow(var(--glow-color) 0px 0px 5px 3px); */
+    box-shadow: var(--glow-color) 0px 0px 5px 3px;
+    /* background: radial-gradient(circle, rgba(63, 94, 251, 1) 0%, rgba(252, 70, 107, 0) 100%); */
+}
+
+.split {
+    overflow: hidden;
+}
+
+.note {
+    border: 1px solid black;
+    width: 22em;
+    padding-right: 1em;
+    /* padding-left: 0.5em; */
+    height: fit-content;
+    box-shadow: var(--glow-color) 0px 0px 5px 3px;
+}
+
+.ql-container {
+    font-size: larger;
+}
+
+.ql-editor {
+    padding-right: 1em;
+}
+
+.note-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: right;
+    gap: .5em;
+    position: absolute;
+    padding: 0.5em;
+    top: 0;
+    right: 0;
+    border-radius: 0 0 0 0.5em;
+    filter: drop-shadow(grey 0px 0px 4px);
+    background-color: var(--menu-bg-color);
+    z-index: inherit;
+    width: 1em;
+}
+
+.close,
+.restore,
+.edit,
+.btn {
+    cursor: pointer;
+    width: 1em;
+    height: 1em;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.close {
+    background-image: url('icons/close.png');
+}
+
+.restore {
+    background-image: url('icons/06_undo.svg');
+}
+
+.edit {
+    background-image: url('icons/02_pencil.svg');
+}
+
+mark {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    cursor: pointer;
+}

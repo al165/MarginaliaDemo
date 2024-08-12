@@ -1,0 +1,1 @@
+This directory contains the main database of all notes.

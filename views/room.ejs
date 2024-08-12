@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= room.name %>
+    </title>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.core.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css">
+    <script>
+        const roomId = '<%= room.roomId %>';
+        const roomName = '<%= room.name %>'
+        const rootNote = '<%= room.rootNote %>';
+        const theme = '<%= room.theme || "none" %>';
+        const createdOn = '<%= room.createdOn %>';
+        const params = new URLSearchParams(window.location.search);
+        const editToken = params.get("editToken");
+        const canEdit = '<%= room.canEdit %>' === 'true';
+        let editMode = false;
+    </script>
+    <script src="/js/room.js" defer type="module"></script>
+</head>
+
+<body>
+    <a href="/">back</a>
+    <h1 id="room-title">
+        <%= room.name %>
+    </h1>
+    <% if(room.canEdit) { %>
+        <div id="edit-toolbar">
+            <button id="bold">B</button>
+            <button id="italic">I</button>
+        </div>
+        <button id="new-note">new note...</button> <input type="checkbox" name="edit-mode" id="edit-mode">
+        <% } %>
+            <div id="notes"></div>
+</body>
+
+</html>
