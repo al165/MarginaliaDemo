@@ -140,8 +140,6 @@ function calculateBoundingBox() {
         rect.bottom = Math.max(rect.bottom, boundingRect.bottom + state.scrollY);
     }
 
-    console.log(rect);
-
     const b = document.querySelector("#bounding");
     b.style.left = rect.left + "px";
     b.style.top = rect.top + "px";
@@ -283,6 +281,8 @@ class Note extends Fragment {
                 'indent',
                 'annotate',
                 'image',
+                'link',
+                'size',
             ]
         });
         this.noteEditor.enable(false);

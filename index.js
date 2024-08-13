@@ -6,6 +6,7 @@ const bodyParser = require('body-parser')
 const dotenv = require('dotenv');
 
 const multer = require('multer');
+const { error } = require('console');
 const { diskStorage } = multer;
 
 const storagePhoto = diskStorage({
@@ -84,33 +85,20 @@ function generateId(length) {
     return id;
 }
 
-const DEFAULT_NOTE = `
-{
-    "ops": [
-      {
-        "insert": "Welcome to Marginalia"
-      },
-      {
-        "attributes": {
-          "header": 2
-        },
-        "insert": "\\n"
-      },
-      {
-        "insert": "This is a test of the api "
-      },
-      {
-        "attributes": {
-          "italic": true
-        },
-        "insert": "have fun!"
-      },
-      {
-        "insert": "\\n"
-      }
-    ]
-  }
-`;
+const DEFAULT_NOTE = JSON.stringify(
+    {
+        "ops": [
+            { "insert": "Welcome to your room!" },
+            {
+                "attributes": { "header": 2 },
+                "insert": "\n"
+            },
+            {
+                "insert": "This is a room for you to start creating and editing notes.\n\nHover over this note and click on the pencil icon to enter edit mode where you can change the text. Clicking outside the note will save it automatically.\n\nYou can change the formatting by selecting some the format options below.\n\nTo make an annotation while in edit mode, highlight the text you want and click the highlighter on the right!\n\nTo publish, click on the envelope icon to be redirected to a public URL that you can share with the world! Users will not be able to edit the notes, only view them. You can share this URL if you want others to be able to edit your notes too! \n"
+            }
+        ]
+    }
+);
 
 async function createRoom() {
 
@@ -371,6 +359,10 @@ app.put('/room/:roomId', checkEditToken, function (req, res) {
     )
 });
 
+app.get('/', function (req, res) {
+    res.redirect(302, '/room/welcome');
+})
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -437,6 +429,220 @@ app.listen(PORT, () => {
                 console.log("Created table Users");
         });
 
+        // sql = "SELECT name FROM Rooms WHERE id = ?"
+        // db.get(sql, ['welcome'], function (err, row) {
+        //     if (err) {
+        //         console.error("Error checking if home room exists: " + err.message);
+        //         return;
+        //     }
+
+        //     if (!row)
+        createHomeNote();
+        // })
+
     });
 });
 
+function createHomeNote() {
+    console.log("Creating Homepage note");
+    const roomEditToken = generateId(16);
+    console.log(`Homepage editToken (keep it secret!): ${roomEditToken}`);
+
+    const createdOn = new Date();
+
+    const roomData = {
+        id: 'welcome',
+        name: 'home',
+        createdOn,
+        editToken: roomEditToken,
+        rootNote: 'welcomeNote'
+    }
+
+    const welcomeNoteData = {
+        id: 'welcomeNote',
+        createdOn,
+        noteContent: JSON.stringify(
+            {
+                "ops": [
+                    {
+                        "insert": "Welcome to "
+                    },
+                    {
+                        "attributes": {
+                            "annotate": {
+                                "color": "oklch(0.65 0.4 312)",
+                                "id": "about"
+                            },
+                            "italic": true
+                        },
+                        "insert": "Marginalia"
+                    },
+                    {
+                        "attributes": {
+                            "header": 2
+                        },
+                        "insert": "\n"
+                    },
+                    {
+                        "insert": "The annotation and publishing platform that encourages writing in the margins. \n\nThis is a space for you to create notes, comment, annotate and elaborate your thoughts, and publish them for anyone else to see (or optionally edit!).\n\nWe believe that the "
+                    },
+                    {
+                        "attributes": {
+                            "annotate": {
+                                "color": "oklch(0.65 0.4 95",
+                                "id": "marginquote"
+                            }
+                        },
+                        "insert": "margins"
+                    },
+                    {
+                        "insert":
+                            ", the footnotes and asides are as important as the main text, and we aim to foster a discourse within the messy organisation of thoughts and ideas in a free and open space.\n\n"
+                    },
+                    {
+                        "attributes": {
+                            "annotate": {
+                                "color": "oklch(0.65 0.4 193)",
+                                "id": "howtouse"
+                            }
+                        },
+                        "insert": "Take a look around"
+                    },
+                    {
+                        "insert": "! Or, "
+                    },
+                    {
+                        "attributes": {
+                            "link": "/create.html"
+                        },
+                        "insert": "create a room"
+                    },
+                    {
+                        "insert": " of ones own....\n\n"
+                    },
+                    {
+                        "attributes": {
+                            "italic": true
+                        },
+                        "insert": "Marginalia is still in early development and will be updated soon!"
+                    },
+                    {
+                        "insert": "\n"
+                    }
+                ]
+            }
+        )
+
+    }
+
+    const aboutNoteData = {
+        id: 'about',
+        createdOn,
+        noteContent: JSON.stringify(
+            {
+                "ops": [
+                    {
+                        "insert": "Marginalia is an open source project designed, created and developed by Senka and Arran.\n\nSupport from "
+                    },
+                    {
+                        "attributes": {
+                            "link": "https://www.stimuleringsfonds.nl/"
+                        },
+                        "insert": "Stimulerings Fonds"
+                    },
+                    {
+                        "insert": ".\n"
+                    }
+                ]
+            }
+        )
+    }
+
+    const marginNote = {
+        id: 'marginquote',
+        createdOn,
+        noteContent: JSON.stringify(
+            {
+                "ops": [
+                    {
+                        "insert": "Marginality as a site of resistance"
+                    },
+                    {
+                        "attributes": {
+                            "blockquote": true
+                        },
+                        "insert": "\n"
+                    },
+                    {
+                        "attributes": {
+                            "italic": true,
+                        },
+                        "insert": "bell hooks"
+                    },
+                    {
+                        "attributes": {
+                            "align": "right"
+                        },
+                        "insert": "\n"
+                    }
+                ]
+            }
+        )
+    }
+
+    const howToUseNote = {
+        id: 'howtouse',
+        createdOn,
+        noteContent: JSON.stringify(
+            {
+                "ops": [
+                    {
+                        "insert": "Clicking on highlighted text opens the annotation, and deliberately disrupts the main flow of text.\n\n"
+                    },
+                    {
+                        "attributes": {
+                            "size": "small"
+                        },
+                        "insert": "("
+                    },
+                    {
+                        "attributes": {
+                            "italic": true,
+                            "size": "small"
+                        },
+                        "insert": "don't worry, you can close a note by hovering over it and clicking the little X icon. You can also restore a split note by clicking the arrow icon on the upper right of any segment"
+                    },
+                    {
+                        "attributes": {
+                            "size": "small"
+                        },
+                        "insert": ")"
+                    },
+                    {
+                        "insert": "\n"
+                    }
+                ]
+            }
+        )
+    }
+
+    const notes = [welcomeNoteData, aboutNoteData, marginNote, howToUseNote];
+
+    notes.map(noteData => {
+        db.run(
+            "INSERT INTO Notes (id, createdOn, noteContent) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET noteContent = ?",
+            [noteData.id, noteData.createdOn, noteData.noteContent, noteData.noteContent],
+            function (err) {
+                if (err)
+                    console.error(err);
+            });
+    });
+
+    db.run(
+        "INSERT INTO Rooms(id, name, editToken, createdOn, rootNote) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+        [roomData.id, roomData.name, roomData.editToken, roomData.createdOn, roomData.rootNote],
+        function (err) {
+            if (err)
+                console.error(err);
+        });
+}

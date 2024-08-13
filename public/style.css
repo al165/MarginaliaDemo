@@ -119,6 +119,7 @@ body {
     cursor: pointer;
     width: 1em;
     height: 1em;
+    margin: 0.1em;
     background-repeat: no-repeat;
     background-size: contain;
 }

@@ -1,0 +1,74 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>welcome to margi-nalia</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #create {
+            position: absolute;
+            top: 50vh;
+            left: 50vw;
+            transform: translate(-50%, -50%);
+            border: solid black 1px;
+            box-shadow: #C2C1FF 0px 0px 5px 3px;
+            padding: 2em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="create">
+        <input type="text" name="roomname" id="room-name" placeholder="room name...">
+        <button disabled id="create-room-btn">
+            Create Room
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const roomNameField = document.querySelector("#room-name");
+            const createRoomBtn = document.querySelector("#create-room-btn");
+
+            roomNameField.addEventListener('input', function (ev) {
+                if (roomNameField.value)
+                    createRoomBtn.disabled = false;
+                else
+                    createRoomBtn.disabled = true;
+            });
+
+            roomNameField.addEventListener('keydown', function (ev) {
+                if (event.key == 'Enter') {
+                    createRoom();
+                }
+            })
+
+            function createRoom() {
+                fetch("/room", {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        roomName: roomNameField.value
+                    }),
+                    headers: {
+                        "Content-type": "application/json"
+                    }
+                }).then((res) => res.json()
+                ).then((json) => {
+                    console.log(json);
+                    console.log(window.location);
+                    window.location.replace("/room/" + json.roomId + "?editToken=" + json.editToken);
+                });
+            }
+
+            createRoomBtn.addEventListener('click', createRoom);
+        });
+    </script>
+</body>
+
+</html>
