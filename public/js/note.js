@@ -160,6 +160,8 @@ class Fragment {
         this.noteContainer = document.createElement('div');
         this.noteContainer.classList.add('note-container');
 
+        new ResizeObserver(calculateBoundingBox).observe(this.noteContainer);
+
         this.noteContents = document.createElement('div');
         this.noteContents.classList.add('note');
         this.noteContents.classList.add('note-content');
@@ -259,9 +261,6 @@ class Note extends Fragment {
 
         this.lastContent = "";
         this.lastHighlight;
-
-        // this.noteElement = document.createElement('div');
-        // this.noteElement.classList.add("note");
 
         this.closeBtn = document.createElement('div');
         this.closeBtn.classList.add('close');

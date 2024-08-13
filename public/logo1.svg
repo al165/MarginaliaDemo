@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="14.109319mm"
+   height="43.211674mm"
+   viewBox="0 0 14.109319 43.211674"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-33.182148,-61.153591)">
+    <g
+       id="g7">
+      <text
+         xml:space="preserve"
+         style="font-size:8.46667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:0.264583"
+         x="-95.417107"
+         y="42.121616"
+         id="text3"
+         transform="rotate(-90)"><tspan
+           id="tspan3"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Monospace;-inkscape-font-specification:Monospace;stroke-width:0.264583"
+           x="-95.417107"
+           y="42.121616">margi</tspan></text>
+      <rect
+         style="fill:none;stroke:none;stroke-width:0.264583;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+         id="rect6"
+         width="14.10932"
+         height="43.211674"
+         x="33.182148"
+         y="61.153591" />
+    </g>
+  </g>
+</svg>

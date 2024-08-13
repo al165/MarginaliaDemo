@@ -23,28 +23,32 @@ document.addEventListener('DOMContentLoaded', () => {
         newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + parentPos.top });
     });
 
-    const boldBtn = document.querySelector("#bold");
+    function toggleFormat(btn, value) {
+        btn.addEventListener('click', function (ev) {
+            if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+                return;
 
-    boldBtn.addEventListener('click', function (ev) {
-        if (state.currentEditingNote.noteEditor) {
-            const { bold } = state.currentEditingNote.noteEditor.getFormat();
-            state.currentEditingNote.noteEditor.format('bold', bold ? false : true, 'user');
-        }
-    });
+            const format = state.currentEditingNote.noteEditor.getFormat();
+            state.currentEditingNote.noteEditor.format(value, format[value] ? false : true, 'user');
+
+        });
+    }
+
+    const boldBtn = document.querySelector("#bold");
+    toggleFormat(boldBtn, 'bold');
 
     const italicBtn = document.querySelector("#italic");
+    toggleFormat(italicBtn, 'italic');
 
-    italicBtn.addEventListener('click', function (ev) {
-        if (state.currentEditingNote && state.currentEditingNote.noteEditor) {
-            const { italic } = state.currentEditingNote.noteEditor.getFormat();
-            state.currentEditingNote.noteEditor.format('italic', italic ? false : true, 'user');
-        }
-    });
+    const underlineBtn = document.querySelector("#underline");
+    toggleFormat(underlineBtn, 'underline');
 
-    const editMode = document.querySelector("#edit-mode");
-    editMode.addEventListener('change', function (ev) {
-        state.editMode = ev.target.checked;
-    });
+    const strikethroughBtn = document.querySelector("#strikethrough");
+    toggleFormat(strikethroughBtn, 'strike');
+
+    const blockquoteBtn = document.querySelector("#citation");
+    toggleFormat(blockquoteBtn, 'blockquote');
+
 
     // Image uploads...
     const imageUploadBtn = document.querySelector("#image-upload");
@@ -52,8 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageUploadForm = document.querySelector("#image-upload-form");
 
     imageUploadBtn.addEventListener('click', function (ev) {
-        // if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
-        //     return;
+        if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+            return;
 
         imageUploadInput.click();
     });
@@ -103,31 +107,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const unavailableTooltip = document.querySelector("#unavailable");
+
+    for (const unavailable of document.querySelectorAll(".coming-soon")) {
+        unavailable.addEventListener('mousemove', ev => {
+            unavailableTooltip.style.visibility = 'visible';
+            unavailableTooltip.style.top = ev.clientY + 'px';
+            unavailableTooltip.style.left = ev.clientX + 'px';
+        });
+
+        unavailable.addEventListener('mouseleave', ev => {
+            unavailableTooltip.style.visibility = 'hidden';
+        });
+    }
 
 
-    const roomTitle = document.querySelector('#room-title');
-    roomTitle.setAttribute('contenteditable', true);
-    roomTitle.addEventListener('blur', function (ev) {
-        const newName = roomTitle.innerText.trim();
-        if (newName) {
-            fetch(`/room/${roomId}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    name: newName,
-                    editToken
-                }),
-                headers: {
-                    "Content-type": "application/json"
-                }
-            }).then(res => {
-                if (res.msg) {
-                    console.log(res.msg);
-                }
-            }).catch(error => {
-                console.log("Error editing room: " + error);
-            });
-        } else {
-            roomTitle.innerText = roomName;
-        }
-    });
+    // const editMode = document.querySelector("#edit-mode");
+    // editMode.addEventListener('change', function (ev) {
+    //     state.editMode = ev.target.checked;
+    // });
+
+
+    // const roomTitle = document.querySelector('#room-title');
+    // roomTitle.setAttribute('contenteditable', true);
+    // roomTitle.addEventListener('blur', function (ev) {
+    //     const newName = roomTitle.innerText.trim();
+    //     if (newName) {
+    //         fetch(`/room/${roomId}`, {
+    //             method: 'PUT',
+    //             body: JSON.stringify({
+    //                 name: newName,
+    //                 editToken
+    //             }),
+    //             headers: {
+    //                 "Content-type": "application/json"
+    //             }
+    //         }).then(res => {
+    //             if (res.msg) {
+    //                 console.log(res.msg);
+    //             }
+    //         }).catch(error => {
+    //             console.log("Error editing room: " + error);
+    //         });
+    //     } else {
+    //         roomTitle.innerText = roomName;
+    //     }
+    // });
 });

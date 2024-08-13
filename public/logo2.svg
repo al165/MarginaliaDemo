@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="43.211674mm"
+   height="14.10932mm"
+   viewBox="0 0 43.211674 14.10932"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <rect
+       x="64.464699"
+       y="295.55228"
+       width="133.70174"
+       height="51.084225"
+       id="rect4" />
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-33.182148,-61.153591)">
+    <g
+       id="g8">
+      <text
+         xml:space="preserve"
+         transform="matrix(0.26458333,0,0,0.26458333,26.462293,-15.461517)"
+         id="text4"
+         style="font-size:32px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;white-space:pre;shape-inside:url(#rect4)"><tspan
+           x="64.464844"
+           y="324.66874"
+           id="tspan2"><tspan
+             style="font-family:Monospace;-inkscape-font-specification:Monospace"
+             id="tspan1">nalia</tspan></tspan></text>
+      <rect
+         style="fill:none;stroke:none;stroke-width:0.264583;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+         id="rect7"
+         width="14.10932"
+         height="43.211674"
+         x="61.153591"
+         y="-76.393822"
+         transform="rotate(90)" />
+    </g>
+  </g>
+</svg>

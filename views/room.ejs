@@ -26,22 +26,57 @@
 
 <body>
     <a href="/">back</a>
-    <h1 id="room-title">
-        <%= room.name %>
-    </h1>
+
+    <div class="logo" id="logo1"></div>
+    <div class="logo" id="logo2"></div>
+    <a href="/"><img src="/logo1.svg" alt="logo" class="logo-text"></a>
+    <a href="/"><img src="/logo2.svg" alt="logo" class="logo-text"></a>
+
     <% if(room.canEdit) { %>
-        <div id="edit-toolbar">
-            <button id="bold">B</button>
-            <button id="italic">I</button>
-            <!-- <button id="image-upload">Add image</button> -->
-            <form action="/upload" id="image-upload-form" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" id="imgupload" style="display:none" accept="image/*" />
-            </form>
-            <button id="image-upload">Image Upload</button>
+        <div id="room-toolbar">
+            <!-- <button id="new-note">new note...</button> -->
+            <!-- <input type="checkbox" name="edit-mode" id="edit-mode"> -->
+
+            <img src="/icons/01_highlight.svg" class="tool" id="new-note">
+            <img src="/icons/02_pencil.svg" class="tool coming-soon" id="pencil">
+            <img src="/icons/03_themes.svg" class="tool coming-soon" id="themes">
+            <img src="/icons/04_viewmode.svg" class="tool coming-soon" id="viewmode">
+            <img src="/icons/05_trash.svg" class="tool coming-soon" id="trash">
+            <img src="/icons/06_undo.svg" class="tool coming-soon" id="undo">
+            <img src="/icons/07_info.svg" class="tool coming-soon" id="info">
+            <img src="/icons/08_page.svg" class="tool coming-soon" id="page">
+            <img src="/icons/09_publish.svg" class="tool" id="publish">
 
         </div>
-        <button id="new-note">new note...</button> <input type="checkbox" name="edit-mode" id="edit-mode">
+
+        <form action="/upload" id="image-upload-form" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="imgupload" style="display:none" accept="image/*" />
+        </form>
+
+        <div id="edit-toolbar">
+            <img src="/icons/25_fontsize.svg" class="tool" id="font-size">
+            <img src="/icons/24_bold.svg" class="tool" id="bold">
+            <img src="/icons/23_italic.svg" class="tool" id="italic">
+            <img src="/icons/22_underline.svg" class="tool" id="underline">
+            <img src="/icons/21_strikethrough.svg" class="tool" id="strikethrough">
+            <img src="/icons/20_heading.svg" class="tool coming-soon" id="heading">
+            <img src="/icons/19_writingdirection_leftright.svg" class="tool coming-soon" id="writingdirection">
+            <img src="/icons/18_justification_left.svg" class="tool coming-soon" id="justification">
+            <img src="/icons/17_bulletnumbers.svg" class="tool coming-soon" id="bulletnumbers">
+            <img src="/icons/16_bulletpoints.svg" class="tool coming-soon" id="bulletpoints">
+            <img src="/icons/15_citation.svg" class="tool" id="citation">
+            <img src="/icons/14_font.svg" class="tool coming-soon" id="font">
+            <img src="/icons/13_audio.svg" class="tool coming-soon" id="audio">
+            <img src="/icons/12_video.svg" class="tool coming-soon" id="video">
+            <img src="/icons/11_image.svg" class="tool" id="image-upload">
+            <img src="/icons/10_links.svg" class="tool coming-soon" id="links">
+
+        </div>
+
         <script src="/js/editButtons.js" defer type="module"></script>
+
+        <div id="unavailable" class="drop-shadow">coming soon!</div>
+
         <% } %>
             <div id="bounding"></div>
             <div id="notes"></div>

@@ -20,6 +20,41 @@ body {
     pointer-events: none;
 }
 
+.logo {
+    box-sizing: border-box;
+    background-color: var(--menu-bg-color);
+    font-family: monospace;
+    font-size: 2em;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 0.3em;
+    z-index: 1000;
+    border-radius: 0 0 2em 0;
+}
+
+#logo1 {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    width: 2em;
+    height: 6.5em;
+}
+
+#logo2 {
+    padding-left: 1em;
+    padding-right: 2em;
+    height: 2em;
+    width: 6.5em;
+}
+
+.logo-text {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1001;
+}
+
+
 .note-container {
     position: absolute;
     background-color: var(--menu-bg-color);
@@ -50,7 +85,7 @@ body {
     padding-right: 1em;
     /* padding-left: 0.5em; */
     height: fit-content;
-    box-shadow: var(--glow-color) 0px 0px 5px 3px;
+    box-shadow: var(--glow-color) 0px 0px 12px 5px;
 }
 
 .ql-container {
@@ -100,8 +135,58 @@ body {
     background-image: url('icons/02_pencil.svg');
 }
 
-mark {
+.ql-editor mark {
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
     cursor: pointer;
+}
+
+.ql-editor blockquote {
+    border-left: var(--glow-color) 3px solid;
+    padding: 0.3em;
+    font-style: italic;
+    margin: 0.7em;
+}
+
+.tool {
+    width: 2em;
+    height: 2em;
+    object-fit: contain;
+    cursor: pointer;
+    margin: 0.8em;
+}
+
+#edit-toolbar,
+#room-toolbar {
+    position: fixed;
+    display: flex;
+    bottom: 0;
+    right: 0;
+    padding: 0.5em;
+    background-color: var(--menu-bg-color);
+    z-index: 1000;
+    border-radius: 4em 0 0 0;
+}
+
+#room-toolbar {
+    flex-direction: column;
+    height: fit-content;
+    padding-top: 2em;
+    z-index: 1001;
+}
+
+#edit-toolbar {
+    flex-direction: row;
+    width: fit-content;
+    padding-left: 2em;
+    padding-right: calc(2em + 2*0.8em + 0.5em);
+}
+
+#unavailable {
+    position: fixed;
+    visibility: hidden;
+    pointer-events: none;
+    background-color: var(--glow-color);
+    z-index: 2000;
+    transform: translate(-50%, -50%);
 }
