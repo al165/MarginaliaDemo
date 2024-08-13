@@ -91,6 +91,8 @@ function split(fragment, vertical, newNote, hRect) {
     newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
     newNote.setPosition(newNotePos);
     fragment.close(false);
+
+    calculateBoundingBox();
 }
 
 function updateHighlights(note) {
@@ -119,6 +121,32 @@ function updateHighlights(note) {
             split(note, lastVertical, state.notes[targetId], hRect);
         };
     }
+}
+
+function calculateBoundingBox() {
+    let rect = {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0
+    };
+
+    for (const container of document.querySelectorAll(".note-container")) {
+        const boundingRect = container.getBoundingClientRect();
+        rect.left = Math.min(rect.left, boundingRect.left + state.scrollX);
+        rect.right = Math.max(rect.right, boundingRect.right + state.scrollX);
+
+        rect.top = Math.min(rect.top, boundingRect.top + state.scrollY);
+        rect.bottom = Math.max(rect.bottom, boundingRect.bottom + state.scrollY);
+    }
+
+    console.log(rect);
+
+    const b = document.querySelector("#bounding");
+    b.style.left = rect.left + "px";
+    b.style.top = rect.top + "px";
+    b.style.width = (rect.right - rect.left + 200) + "px";
+    b.style.height = (rect.bottom - rect.top + 200) + "px";
 }
 
 class Fragment {
@@ -162,6 +190,8 @@ class Fragment {
     show() {
         this.open = true;
         document.querySelector("#notes").appendChild(this.noteContainer);
+
+        calculateBoundingBox();
     }
 
     close(recurse = false) {
@@ -171,6 +201,8 @@ class Fragment {
     setPosition(pos) {
         this.noteContainer.style.left = pos.left + "px";
         this.noteContainer.style.top = pos.top + "px";
+
+        calculateBoundingBox();
     }
 
     getPosition() {
@@ -183,6 +215,8 @@ class Fragment {
     setSize(size) {
         this.noteContainer.style.width = size.width + "px";
         this.noteContainer.style.height = size.height + "px";
+
+        calculateBoundingBox();
     }
 
     getSize() {
@@ -201,6 +235,8 @@ class Fragment {
             this.close(false);
         }
         document.querySelector("#notes").appendChild(this.noteContainer);
+        calculateBoundingBox();
+
     }
 
     restore() {
@@ -295,7 +331,6 @@ class Note extends Fragment {
 
     setContents(contents) {
         this.noteEditor.setContents(contents);
-        // this.noteContents.innerHTML = this.getHTML();
         this.lastContent = JSON.stringify(contents);
         updateHighlights(this);
     }
@@ -305,8 +340,6 @@ class Note extends Fragment {
         this.noteEditor.enable(true);
         this.noteEditor.focus();
         this.editBtn.classList.add('drop-shadow');
-        // this.noteContents.remove();
-        // this.noteContainer.appendChild(this.noteElement);
     }
 
     exitEditMode() {
@@ -314,9 +347,6 @@ class Note extends Fragment {
         this.editBtn.classList.remove('drop-shadow');
         if (this.noteEditor)
             this.noteEditor.enable(false);
-        // this.noteElement.remove();
-        // this.noteContainer.appendChild(this.noteContents);
-        // this.setContents(this.noteEditor.getContents());
     }
 
     delete() {

@@ -12,6 +12,14 @@ body {
     background-color: var(--background-color);
 }
 
+#bounding {
+    /* border: 1px red solid; */
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
 .note-container {
     position: absolute;
     background-color: var(--menu-bg-color);
