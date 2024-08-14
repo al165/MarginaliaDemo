@@ -174,6 +174,7 @@ class Fragment {
         this.noteContainer.appendChild(this.noteContents);
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
+            console.log("fragment onmouseenter");
             this.noteContainer.appendChild(noteButtons);
 
             // noteButtons.style.left = this.noteContainer.offsetLeft + "px";
@@ -302,19 +303,9 @@ class Note extends Fragment {
         this.show();
         state.notes[this.noteId] = this;
 
-        if (!canEdit)
-            return;
-
-        // this.editBtn = document.createElement('div');
-        // this.editBtn.classList.add('edit');
-        // this.editBtn.classList.add('btn');
-        // // this.buttonContainer.appendChild(this.editBtn);
-        // this.editBtn.addEventListener('click', (ev) => {
-        //     state.currentEditingNote = this;
-        //     this.enterEditMode()
-        // });
-
         this.noteContainer.addEventListener('mouseenter', (ev) => {
+            console.log("note mouseentered");
+
             if (editBtn) {
                 editBtn.style.display = "block";
                 editBtn.onclick = () => {
@@ -324,13 +315,20 @@ class Note extends Fragment {
             }
 
             restoreBtn.style.display = "none";
-
+            closeBtn.onclick = () => this.close();
             if (this.closable) {
                 closeBtn.style.display = "block";
             } else {
                 closeBtn.style.display = "none";
             }
+
+            if (!editBtn && !this.closable) {
+                noteButtons.style.visibility = "hidden";
+            }
         });
+
+        if (!canEdit)
+            return;
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
             if (!range) {
@@ -510,6 +508,8 @@ class Split extends Fragment {
                 editBtn.style.display = "none";
                 // editBtn.onclick = () => this.enterEditMode();
             }
+
+            restoreBtn.onclick = () => this.restore();
 
             restoreBtn.style.display = "block";
             closeBtn.style.display = "none";
