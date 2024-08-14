@@ -83,6 +83,14 @@
         <% } %>
             <div id="bounding"></div>
             <div id="notes"></div>
+
+            <div id="note-buttons">
+                <img src="/icons/close.svg" class="btn" alt="close button" id="close-note">
+                <img src="/icons/06_undo.svg" class="btn" alt="restore button" id="restore-note">
+                <% if(room.canEdit) { %>
+                    <img src="/icons/02_pencil.svg" class="btn" alt="edit button" id="edit-note">
+                    <% } %>
+            </div>
 </body>
 
 </html>

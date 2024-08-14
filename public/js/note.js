@@ -23,6 +23,12 @@ function getNextColor() {
     return `oklch(0.65 0.4 ${lastHue})`
 }
 
+const noteButtons = document.querySelector("#note-buttons");
+
+const closeBtn = noteButtons.querySelector("#close-note");
+const restoreBtn = noteButtons.querySelector("#restore-note");
+const editBtn = noteButtons.querySelector("#edit-note");
+
 function split(fragment, vertical, newNote, hRect) {
     console.log("split");
     newNote.toFront();
@@ -167,17 +173,28 @@ class Fragment {
 
         this.noteContainer.appendChild(this.noteContents);
 
-        this.buttonContainer = document.createElement('div');
-        this.buttonContainer.classList.add('note-buttons');
-        this.buttonContainer.style.display = "none";
-        this.noteContainer.appendChild(this.buttonContainer);
+        this.noteContainer.addEventListener('mouseenter', (ev) => {
+            this.noteContainer.appendChild(noteButtons);
 
-        this.noteContainer.onmouseenter = (ev) => {
-            this.buttonContainer.style.display = "block";
-        };
+            // noteButtons.style.left = this.noteContainer.offsetLeft + "px";
+            // noteButtons.style.top = this.noteContainer.offsetTop + "px";
+
+            if (editBtn)
+                editBtn.style.display = "none";
+
+            closeBtn.onclick = () => {
+                this.close(true);
+                console.log("close note");
+            }
+            restoreBtn.onclick = () => {
+                this.restore();
+                console.log("restore note")
+            };
+            noteButtons.style.visibility = "visible";
+        });
 
         this.noteContainer.onmouseleave = (ev) => {
-            this.buttonContainer.style.display = "none";
+            noteButtons.style.visibility = "hidden";
         };
 
         this.noteContainer.onclick = () => {
@@ -259,12 +276,7 @@ class Note extends Fragment {
 
         this.lastContent = "";
         this.lastHighlight;
-
-        this.closeBtn = document.createElement('div');
-        this.closeBtn.classList.add('close');
-        this.closeBtn.classList.add('btn');
-        this.buttonContainer.appendChild(this.closeBtn);
-        this.closeBtn.addEventListener('click', (ev) => this.close(true));
+        this.closable = true;
 
         this.noteEditor = new Quill(this.noteContents, {
             placeholder: 'Write your note here...',
@@ -293,13 +305,31 @@ class Note extends Fragment {
         if (!canEdit)
             return;
 
-        this.editBtn = document.createElement('div');
-        this.editBtn.classList.add('edit');
-        this.editBtn.classList.add('btn');
-        this.buttonContainer.appendChild(this.editBtn);
-        this.editBtn.addEventListener('click', (ev) => {
-            state.currentEditingNote = this;
-            this.enterEditMode()
+        // this.editBtn = document.createElement('div');
+        // this.editBtn.classList.add('edit');
+        // this.editBtn.classList.add('btn');
+        // // this.buttonContainer.appendChild(this.editBtn);
+        // this.editBtn.addEventListener('click', (ev) => {
+        //     state.currentEditingNote = this;
+        //     this.enterEditMode()
+        // });
+
+        this.noteContainer.addEventListener('mouseenter', (ev) => {
+            if (editBtn) {
+                editBtn.style.display = "block";
+                editBtn.onclick = () => {
+                    this.enterEditMode();
+                    state.currentEditingNote = this;
+                }
+            }
+
+            restoreBtn.style.display = "none";
+
+            if (this.closable) {
+                closeBtn.style.display = "block";
+            } else {
+                closeBtn.style.display = "none";
+            }
         });
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
@@ -320,14 +350,7 @@ class Note extends Fragment {
     }
 
     setCloseable(closable) {
-        if (!closable) {
-            this.closeBtn.remove();
-            if (this.buttonContainer.childNodes.length == 0)
-                this.buttonContainer.remove();
-        }
-        else {
-            this.buttonContainer.appendChild(this.closeBtn);
-        }
+        this.closable = closable;
     }
 
     setContents(contents) {
@@ -340,12 +363,14 @@ class Note extends Fragment {
         this.editing = true;
         this.noteEditor.enable(true);
         this.noteEditor.focus();
-        this.editBtn.classList.add('drop-shadow');
+        this.noteContainer.classList.add('note-editing');
+        // this.editBtn.classList.add('drop-shadow');
     }
 
     exitEditMode() {
         this.editing = false;
-        this.editBtn.classList.remove('drop-shadow');
+        this.noteContainer.classList.remove('note-editing');
+        // this.editBtn.classList.remove('drop-shadow');
         if (this.noteEditor)
             this.noteEditor.enable(false);
     }
@@ -473,12 +498,22 @@ class Split extends Fragment {
         updateHighlights(this);
 
         // Restore button...
-        this.restoreBtn = document.createElement('div');
-        this.restoreBtn.classList.add('restore');
-        this.restoreBtn.classList.add('btn');
-        this.buttonContainer.appendChild(this.restoreBtn);
+        // this.restoreBtn = document.createElement('div');
+        // this.restoreBtn.classList.add('restore');
+        // this.restoreBtn.classList.add('btn');
+        // // this.buttonContainer.appendChild(this.restoreBtn);
 
-        this.restoreBtn.addEventListener('click', (ev) => this.restore());
+        // this.restoreBtn.addEventListener('click', (ev) => this.restore());
+
+        this.noteContainer.addEventListener('mouseenter', (ev) => {
+            if (editBtn) {
+                editBtn.style.display = "none";
+                // editBtn.onclick = () => this.enterEditMode();
+            }
+
+            restoreBtn.style.display = "block";
+            closeBtn.style.display = "none";
+        });
 
     }
 

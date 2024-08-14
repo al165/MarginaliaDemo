@@ -8,7 +8,7 @@
 
 body {
     font-family: Arial, Helvetica, sans-serif;
-    font-size: larger;
+    font-size: large;
     background-color: var(--background-color);
 }
 
@@ -58,6 +58,7 @@ body {
 .note-container {
     position: absolute;
     background-color: var(--note-bg-color);
+    box-shadow: var(--glow-color) 0px 0px 16px 7px;
     padding: 0;
 }
 
@@ -70,9 +71,12 @@ body {
 }
 
 .drop-shadow {
-    /* filter: drop-shadow(var(--glow-color) 0px 0px 5px 3px); */
     box-shadow: var(--glow-color) 0px 0px 5px 3px;
-    /* background: radial-gradient(circle, rgba(63, 94, 251, 1) 0%, rgba(252, 70, 107, 0) 100%); */
+}
+
+.note-editing {
+    /* border: 3px white solid; */
+    box-shadow: var(--glow-color) 0px 0px 30px 15px;
 }
 
 .split {
@@ -83,13 +87,11 @@ body {
     border: 1px solid black;
     width: 22em;
     padding-right: 1em;
-    /* padding-left: 0.5em; */
     height: fit-content;
-    box-shadow: var(--glow-color) 0px 0px 12px 5px;
 }
 
 .ql-container {
-    font-size: larger;
+    font-size: large;
     color: var(--text-color);
 }
 
@@ -97,45 +99,30 @@ body {
     padding-right: 1em;
 }
 
-.note-buttons {
+#note-buttons {
     display: flex;
     flex-direction: column;
     justify-content: right;
     gap: .5em;
     position: absolute;
-    padding: 0.5em;
+    padding: 0.2em;
     top: 0;
     right: 0;
     border-radius: 0 0 0 0.5em;
-    filter: drop-shadow(grey 0px 0px 4px);
-    background-color: grey;
-    z-index: inherit;
-    width: 1em;
+    filter: drop-shadow(var(--glow-color) 0px 0px 4px);
+    background-color: var(--glow-color);
+    z-index: 1010;
+    visibility: hidden;
+    width: fit-content;
 }
 
-.close,
-.restore,
-.edit,
 .btn {
     cursor: pointer;
     width: 1em;
     height: 1em;
     margin: 0.1em;
-    background-repeat: no-repeat;
-    background-size: contain;
 }
 
-.close {
-    background-image: url('icons/close.png');
-}
-
-.restore {
-    background-image: url('icons/06_undo.svg');
-}
-
-.edit {
-    background-image: url('icons/02_pencil.svg');
-}
 
 .ql-editor mark {
     -webkit-box-decoration-break: clone;
