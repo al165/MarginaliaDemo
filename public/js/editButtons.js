@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(imageUploadForm);
         console.log(formData);
 
-        fetch('/upload', {
+        fetch(`${baseURL}/upload`, {
             method: 'POST',
             body: formData
         }).then(
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { noteEditor } = state.currentEditingNote;
             const range = noteEditor.getSelection(true);
             noteEditor.insertText(range.index, '\n', 'user');
-            noteEditor.insertEmbed(range.index + 1, 'image', '/' + path, 'user');
+            noteEditor.insertEmbed(range.index + 1, 'image', baseURL + '/' + path, 'user');
             noteEditor.setSelection(range.index + 2, 'silent');
         });
     });
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
 
         console.log("updating theme...");
-        fetch(`/room/${state.roomId}`, {
+        fetch(`${baseURL}/room/${state.roomId}`, {
             method: 'PUT',
             body: JSON.stringify({
                 name: roomName,

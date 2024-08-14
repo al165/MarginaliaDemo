@@ -9,7 +9,7 @@
     </title>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.core.css" rel="stylesheet" />
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="<%= room.baseURL %>/style.css">
     <script>
         const roomId = '<%= room.roomId %>';
         const roomName = '<%= room.name %>'
@@ -19,64 +19,64 @@
         const params = new URLSearchParams(window.location.search);
         const editToken = params.get("editToken");
         const canEdit = '<%= room.canEdit %>' === 'true';
+        const baseURL = '<%= room.baseURL %>';
         let editMode = false;
 
         console.log("theme: " + theme);
     </script>
-    <script src="/js/room.js" defer type="module"></script>
+    <script src="<%= room.baseURL %>/js/room.js" defer type="module"></script>
 </head>
 
 <body>
-    <a href="/">back</a>
-
     <div class="logo" id="logo1"></div>
     <div class="logo" id="logo2"></div>
-    <a href="/"><img src="/logo1.svg" alt="logo" class="logo-text"></a>
-    <a href="/"><img src="/logo2.svg" alt="logo" class="logo-text"></a>
+    <a href="<%= room.baseURL %>/"><img src="<%= room.baseURL %>/logo1.svg" alt="logo" class="logo-text"></a>
+    <a href="<%= room.baseURL %>/"><img src="<%= room.baseURL %>/logo2.svg" alt="logo" class="logo-text"></a>
 
     <% if(room.canEdit) { %>
         <div id="room-toolbar">
             <!-- <button id="new-note">new note...</button> -->
             <!-- <input type="checkbox" name="edit-mode" id="edit-mode"> -->
 
-            <img src="/icons/01_highlight.svg" class="tool" id="new-note">
-            <img src="/icons/02_pencil.svg" class="tool coming-soon" id="pencil">
-            <img src="/icons/03_themes.svg" class="tool" id="themes">
-            <img src="/icons/04_viewmode.svg" class="tool coming-soon" id="viewmode">
-            <img src="/icons/05_trash.svg" class="tool coming-soon" id="trash">
-            <img src="/icons/06_undo.svg" class="tool coming-soon" id="undo">
-            <img src="/icons/07_info.svg" class="tool coming-soon" id="info">
-            <img src="/icons/08_page.svg" class="tool coming-soon" id="page">
-            <a href="/room/<%= room.roomId %>" target="_blank" rel="noopener noreferrer"><img
-                    src="/icons/09_publish.svg" class="tool" id="publish"></a>
+            <img src="<%= room.baseURL %>/icons/01_highlight.svg" class="tool" id="new-note">
+            <img src="<%= room.baseURL %>/icons/02_pencil.svg" class="tool coming-soon" id="pencil">
+            <img src="<%= room.baseURL %>/icons/03_themes.svg" class="tool" id="themes">
+            <img src="<%= room.baseURL %>/icons/04_viewmode.svg" class="tool coming-soon" id="viewmode">
+            <img src="<%= room.baseURL %>/icons/05_trash.svg" class="tool coming-soon" id="trash">
+            <img src="<%= room.baseURL %>/icons/06_undo.svg" class="tool coming-soon" id="undo">
+            <img src="<%= room.baseURL %>/icons/07_info.svg" class="tool coming-soon" id="info">
+            <img src="<%= room.baseURL %>/icons/08_page.svg" class="tool coming-soon" id="page">
+            <a href="<%= room.baseURL %>/room/<%= room.roomId %>" target="_blank" rel="noopener noreferrer"><img
+                    src="<%= room.baseURL %>/icons/09_publish.svg" class="tool" id="publish"></a>
 
         </div>
 
-        <form action="/upload" id="image-upload-form" method="post" enctype="multipart/form-data">
+        <form action="<%= room.baseURL %>/upload" id="image-upload-form" method="post" enctype="multipart/form-data">
             <input type="file" name="file" id="imgupload" style="display:none" accept="image/*" />
         </form>
 
         <div id="edit-toolbar">
-            <img src="/icons/25_fontsize.svg" class="tool coming-soon" id="font-size">
-            <img src="/icons/24_bold.svg" class="tool" id="bold">
-            <img src="/icons/23_italic.svg" class="tool" id="italic">
-            <img src="/icons/22_underline.svg" class="tool" id="underline">
-            <img src="/icons/21_strikethrough.svg" class="tool" id="strikethrough">
-            <img src="/icons/20_heading.svg" class="tool coming-soon" id="heading">
-            <img src="/icons/19_writingdirection_leftright.svg" class="tool coming-soon" id="writingdirection">
-            <img src="/icons/18_justification_left.svg" class="tool coming-soon" id="justification">
-            <img src="/icons/17_bulletnumbers.svg" class="tool coming-soon" id="bulletnumbers">
-            <img src="/icons/16_bulletpoints.svg" class="tool coming-soon" id="bulletpoints">
-            <img src="/icons/15_citation.svg" class="tool" id="citation">
-            <img src="/icons/14_font.svg" class="tool coming-soon" id="font">
-            <img src="/icons/13_audio.svg" class="tool coming-soon" id="audio">
-            <img src="/icons/12_video.svg" class="tool coming-soon" id="video">
-            <img src="/icons/11_image.svg" class="tool" id="image-upload">
-            <img src="/icons/10_links.svg" class="tool coming-soon" id="links">
+            <img src="<%= room.baseURL %>/icons/25_fontsize.svg" class="tool coming-soon" id="font-size">
+            <img src="<%= room.baseURL %>/icons/24_bold.svg" class="tool" id="bold">
+            <img src="<%= room.baseURL %>/icons/23_italic.svg" class="tool" id="italic">
+            <img src="<%= room.baseURL %>/icons/22_underline.svg" class="tool" id="underline">
+            <img src="<%= room.baseURL %>/icons/21_strikethrough.svg" class="tool" id="strikethrough">
+            <img src="<%= room.baseURL %>/icons/20_heading.svg" class="tool coming-soon" id="heading">
+            <img src="<%= room.baseURL %>/icons/19_writingdirection_leftright.svg" class="tool coming-soon"
+                id="writingdirection">
+            <img src="<%= room.baseURL %>/icons/18_justification_left.svg" class="tool coming-soon" id="justification">
+            <img src="<%= room.baseURL %>/icons/17_bulletnumbers.svg" class="tool coming-soon" id="bulletnumbers">
+            <img src="<%= room.baseURL %>/icons/16_bulletpoints.svg" class="tool coming-soon" id="bulletpoints">
+            <img src="<%= room.baseURL %>/icons/15_citation.svg" class="tool" id="citation">
+            <img src="<%= room.baseURL %>/icons/14_font.svg" class="tool coming-soon" id="font">
+            <img src="<%= room.baseURL %>/icons/13_audio.svg" class="tool coming-soon" id="audio">
+            <img src="<%= room.baseURL %>/icons/12_video.svg" class="tool coming-soon" id="video">
+            <img src="<%= room.baseURL %>/icons/11_image.svg" class="tool" id="image-upload">
+            <img src="<%= room.baseURL %>/icons/10_links.svg" class="tool coming-soon" id="links">
 
         </div>
 
-        <script src="/js/editButtons.js" defer type="module"></script>
+        <script src="<%= room.baseURL %>/js/editButtons.js" defer type="module"></script>
 
         <div id="unavailable" class="drop-shadow">coming soon!</div>
 
@@ -85,10 +85,10 @@
             <div id="notes"></div>
 
             <div id="note-buttons">
-                <img src="/icons/close.svg" class="btn" alt="close button" id="close-note">
-                <img src="/icons/06_undo.svg" class="btn" alt="restore button" id="restore-note">
+                <img src="<%= room.baseURL %>/icons/close.svg" class="btn" alt="close button" id="close-note">
+                <img src="<%= room.baseURL %>/icons/06_undo.svg" class="btn" alt="restore button" id="restore-note">
                 <% if(room.canEdit) { %>
-                    <img src="/icons/02_pencil.svg" class="btn" alt="edit button" id="edit-note">
+                    <img src="<%= room.baseURL %>/icons/02_pencil.svg" class="btn" alt="edit button" id="edit-note">
                     <% } %>
             </div>
 </body>

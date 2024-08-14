@@ -4,7 +4,7 @@ import { state } from './state.js';
 async function fetchNote(noteId) {
     try {
         const response = await fetch(
-            `/room/${state.roomId}/note/${noteId}`
+            `${baseURL}/room/${state.roomId}/note/${noteId}`
         );
         const data = await response.json();
         const newNote = new Note(noteId);
@@ -395,7 +395,7 @@ class Note extends Fragment {
 
         if (this.noteId) {
             // note already saved, update it
-            fetch(`/room/${state.roomId}/note/${this.noteId}`, {
+            fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     editToken,
@@ -428,7 +428,7 @@ class Note extends Fragment {
             // get the lastHighlight of the parent note
             // to set the annotation format...
 
-            fetch(`/room/${state.roomId}/note/`, {
+            fetch(`${baseURL}/room/${state.roomId}/note/`, {
                 method: 'POST',
                 body: JSON.stringify({
                     editToken,

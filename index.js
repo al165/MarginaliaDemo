@@ -21,6 +21,9 @@ const uploadPhoto = multer({ storage: storagePhoto });
 
 dotenv.configDotenv();
 
+const BASE_URL = process.env.BASE_URL ?? '';
+console.log("BaseURL: " + BASE_URL);
+
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./db/marginalia.db', (err) => {
     if (err)
@@ -104,7 +107,7 @@ async function createRoom() {
 
 }
 
-app.get('/room', function (req, res) {
+app.get(BASE_URL + '/room', function (req, res) {
     db.all("SELECT id roomId, name, editToken FROM Rooms", [], function (err, rows) {
         if (err) {
             console.err("Error getting all rooms: " + err.message);
@@ -116,7 +119,7 @@ app.get('/room', function (req, res) {
     })
 })
 
-app.get('/room/:roomId', function (req, res) {
+app.get(BASE_URL + '/room/:roomId', function (req, res) {
     const { roomId } = req.params;
     const { editToken } = req.query;
 
@@ -138,12 +141,20 @@ app.get('/room/:roomId', function (req, res) {
         row.roomId = roomId;
         row.canEdit = row.editToken == editToken;
         row.editToken = undefined;
-        console.log(row);
+        row.baseURL = BASE_URL;
         res.render('room', { room: row });
     });
 });
 
-app.get('/room/:roomId/note/:noteId', function (req, res) {
+app.get(BASE_URL + '/create', function (req, res) {
+    res.render('create', { baseURL: BASE_URL });
+});
+
+app.get(BASE_URL + '/roomlist', function (req, res) {
+    res.render('roomlist', { baseURL: BASE_URL });
+});
+
+app.get(BASE_URL + '/room/:roomId/note/:noteId', function (req, res) {
     const { roomId, noteId } = req.params;
     db.get("SELECT noteContent, noteOptions FROM Notes WHERE id = ?", [noteId], function (err, row) {
         if (err) {
@@ -161,7 +172,7 @@ app.get('/room/:roomId/note/:noteId', function (req, res) {
     });
 });
 
-app.post('/room', function (req, res) {
+app.post(BASE_URL + '/room', function (req, res) {
     // Create new room
     // TODO: tidy-up new rooms that are not edited after some timeout
 
@@ -209,7 +220,7 @@ app.post('/room', function (req, res) {
 
 });
 
-app.delete('/room/:roomId', checkEditToken, function (req, res) {
+app.delete(BASE_URL + '/room/:roomId', checkEditToken, function (req, res) {
     // Delete room
     const { roomId } = req.params;
     db.run("DELETE FROM Rooms WHERE id = ?", [roomId], function (err) {
@@ -223,7 +234,7 @@ app.delete('/room/:roomId', checkEditToken, function (req, res) {
     })
 });
 
-app.post('/room/:roomId/note', checkEditToken, function (req, res) {
+app.post(BASE_URL + '/room/:roomId/note', checkEditToken, function (req, res) {
     // Create a new note in the room
 
     const { roomId } = req.params;
@@ -279,13 +290,13 @@ app.post('/room/:roomId/note', checkEditToken, function (req, res) {
     );
 });
 
-app.post('/upload', uploadPhoto.single('file'), function (req, res) {
+app.post(BASE_URL + '/upload', uploadPhoto.single('file'), function (req, res) {
     console.log(req.file.filename);
 
     res.json({ msg: req.file });
 });
 
-app.delete('/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
+app.delete(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
     // Delete note
     const { noteId } = req.params;
 
@@ -300,7 +311,7 @@ app.delete('/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
     });
 });
 
-app.put('/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
+app.put(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
     // Edit a note in the room
     const { noteId } = req.params;
     console.log(`Updating note ${noteId}`);
@@ -338,7 +349,7 @@ app.put('/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
     );
 });
 
-app.put('/room/:roomId', checkEditToken, function (req, res) {
+app.put(BASE_URL + '/room/:roomId', checkEditToken, function (req, res) {
     const { roomId } = req.params;
     console.log(`Updating room ${roomId}`);
 
@@ -359,15 +370,15 @@ app.put('/room/:roomId', checkEditToken, function (req, res) {
     )
 });
 
-app.get('/', function (req, res) {
-    res.redirect(302, '/room/welcome');
+app.get(BASE_URL + '/', function (req, res) {
+    res.redirect(302, BASE_URL + '/room/welcome');
 })
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(BASE_URL, express.static(path.join(__dirname, 'public')));
+app.use(BASE_URL + '/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.listen(PORT, () => {
-    console.log("listening on http://localhost:" + PORT);
+    console.log("listening on http://localhost:" + PORT + BASE_URL);
 
     db.serialize(() => {
 
@@ -513,7 +524,7 @@ function createHomeNote() {
                     },
                     {
                         "attributes": {
-                            "link": "/create.html"
+                            "link": BASE_URL + "/create"
                         },
                         "insert": "create a room"
                     },

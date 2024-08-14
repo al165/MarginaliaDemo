@@ -7,28 +7,19 @@
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        #create {
-            position: absolute;
-            top: 50vh;
-            left: 50vw;
-            transform: translate(-50%, -50%);
-            border: solid black 1px;
-            box-shadow: #C2C1FF 0px 0px 5px 3px;
-            padding: 2em;
         }
     </style>
 </head>
 
 <body>
-    <div id="create">
+    <div>
+        <h1>Welcome to Marginalia</h1>
         <input type="text" name="roomname" id="room-name" placeholder="room name...">
         <button disabled id="create-room-btn">
             Create Room
         </button>
+        <h3>Current rooms:</h3>
+        <ul id="rooms"></ul>
     </div>
 
     <script>
@@ -50,7 +41,7 @@
             })
 
             function createRoom() {
-                fetch("/room", {
+                fetch("<%= baseURL %>/room", {
                     method: 'POST',
                     body: JSON.stringify({
                         roomName: roomNameField.value
@@ -62,11 +53,28 @@
                 ).then((json) => {
                     console.log(json);
                     console.log(window.location);
-                    window.location.replace("/room/" + json.roomId + "?editToken=" + json.editToken);
+                    window.location.replace("<%= baseURL %>/room/" + json.roomId + "?editToken=" + json.editToken);
                 });
             }
 
             createRoomBtn.addEventListener('click', createRoom);
+
+            const roomList = document.querySelector("#rooms");
+
+            fetch("<%= baseURL %>/room"
+            ).then(res => {
+                if (res.status != 200)
+                    throw new Error('Room list not avaliable');
+                return res.json()
+            }).then(json => {
+                for (const room of json) {
+                    const el = document.createElement('li');
+                    el.innerHTML = `<a href="<%= baseURL %>/room/${room.roomId}">${room.name}</a> [<a href="<%= baseURL %>/room/${room.roomId}?editToken=${room.editToken}">edit</a>]`;
+                    roomList.appendChild(el);
+                }
+            }).catch(err => {
+                console.error(err);
+            });
         });
     </script>
 </body>
