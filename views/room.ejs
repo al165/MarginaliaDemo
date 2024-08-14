@@ -14,12 +14,14 @@
         const roomId = '<%= room.roomId %>';
         const roomName = '<%= room.name %>'
         const rootNote = '<%= room.rootNote %>';
-        const theme = '<%= room.theme || "none" %>';
+        const theme = '<%= room.theme || "light" %>';
         const createdOn = '<%= room.createdOn %>';
         const params = new URLSearchParams(window.location.search);
         const editToken = params.get("editToken");
         const canEdit = '<%= room.canEdit %>' === 'true';
         let editMode = false;
+
+        console.log("theme: " + theme);
     </script>
     <script src="/js/room.js" defer type="module"></script>
 </head>
@@ -39,7 +41,7 @@
 
             <img src="/icons/01_highlight.svg" class="tool" id="new-note">
             <img src="/icons/02_pencil.svg" class="tool coming-soon" id="pencil">
-            <img src="/icons/03_themes.svg" class="tool coming-soon" id="themes">
+            <img src="/icons/03_themes.svg" class="tool" id="themes">
             <img src="/icons/04_viewmode.svg" class="tool coming-soon" id="viewmode">
             <img src="/icons/05_trash.svg" class="tool coming-soon" id="trash">
             <img src="/icons/06_undo.svg" class="tool coming-soon" id="undo">

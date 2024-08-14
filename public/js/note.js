@@ -262,6 +262,7 @@ class Note extends Fragment {
 
         this.closeBtn = document.createElement('div');
         this.closeBtn.classList.add('close');
+        this.closeBtn.classList.add('btn');
         this.buttonContainer.appendChild(this.closeBtn);
         this.closeBtn.addEventListener('click', (ev) => this.close(true));
 
@@ -294,6 +295,7 @@ class Note extends Fragment {
 
         this.editBtn = document.createElement('div');
         this.editBtn.classList.add('edit');
+        this.editBtn.classList.add('btn');
         this.buttonContainer.appendChild(this.editBtn);
         this.editBtn.addEventListener('click', (ev) => {
             state.currentEditingNote = this;
@@ -473,6 +475,7 @@ class Split extends Fragment {
         // Restore button...
         this.restoreBtn = document.createElement('div');
         this.restoreBtn.classList.add('restore');
+        this.restoreBtn.classList.add('btn');
         this.buttonContainer.appendChild(this.restoreBtn);
 
         this.restoreBtn.addEventListener('click', (ev) => this.restore());

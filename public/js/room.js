@@ -1,9 +1,9 @@
 import './formats/annotateBlot.js';
 import './formats/annotatePBlot.js';
+import { THEME_LIST, setTheme } from './colourschemes.js'
 
 import { fetchNote } from './note.js';
 import { state } from './state.js';
-
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
         newNote.setPosition({ left: x, top: y });
     });
 
+    for (const colourTheme of THEME_LIST) {
+        if (colourTheme.name !== theme)
+            continue;
+        setTheme(colourTheme);
+    }
 });
 
 document.addEventListener("scroll", () => {

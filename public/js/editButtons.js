@@ -1,6 +1,9 @@
 import { Note } from './note.js';
 import { state } from './state.js';
 
+import './colourschemes.js';
+import { THEME_LIST, setTheme } from './colourschemes.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const newNoteBtn = document.querySelector("#new-note");
@@ -107,6 +110,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Themes
+    function updateTheme(colourTheme) {
+        setTheme(colourTheme);
+
+        if (colourTheme.name === theme)
+            return;
+
+        console.log("updating theme...");
+        fetch(`/room/${state.roomId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                name: roomName,
+                theme: colourTheme['name'],
+                editToken: editToken
+            }),
+            headers: {
+                "Content-type": "application/json"
+            }
+        }).then(res => {
+            if (res.status != 200)
+                return res.json();
+            else
+                return {}
+        }).then(json => {
+            if (json.msg)
+                console.log(json.msg);
+        }).catch(error => {
+            console.log("Error editing room: " + error);
+        });
+    }
+
+    let currentThemeIndex = 0;
+    const themesBtn = document.querySelector("#themes");
+    themesBtn.addEventListener('click', function (ev) {
+        currentThemeIndex = (currentThemeIndex + 1) % THEME_LIST.length;
+        updateTheme(THEME_LIST[currentThemeIndex]);
+    });
+
+    // Tooltips
     const unavailableTooltip = document.querySelector("#unavailable");
 
     for (const unavailable of document.querySelectorAll(".coming-soon")) {

@@ -57,7 +57,7 @@ body {
 
 .note-container {
     position: absolute;
-    background-color: var(--menu-bg-color);
+    background-color: var(--note-bg-color);
     padding: 0;
 }
 
@@ -90,6 +90,7 @@ body {
 
 .ql-container {
     font-size: larger;
+    color: var(--text-color);
 }
 
 .ql-editor {
@@ -107,7 +108,7 @@ body {
     right: 0;
     border-radius: 0 0 0 0.5em;
     filter: drop-shadow(grey 0px 0px 4px);
-    background-color: var(--menu-bg-color);
+    background-color: grey;
     z-index: inherit;
     width: 1em;
 }
