@@ -18,9 +18,22 @@ async function fetchNote(noteId) {
 let lastHue = Math.floor(Math.random() * 360);
 let lastVertical = false;
 
+const highlightColors = [
+    '#ff0063',
+    '#ff87ff',
+    '#b26bfe',
+    '#6c9aff',
+    '#dfffcd',
+    '#00dfba',
+    '#ffffb9',
+];
+let currentColor = 0;
+
 function getNextColor() {
-    lastHue = (lastHue + 25) % 360;
-    return `oklch(0.65 0.4 ${lastHue})`
+    //lastHue = (lastHue + 25) % 360;
+    //return `oklch(0.65 0.4 ${lastHue})`
+    currentColor = (currentColor + 1) % highlightColors.length;
+    return highlightColors[currentColor];
 }
 
 const noteButtons = document.querySelector("#note-buttons");

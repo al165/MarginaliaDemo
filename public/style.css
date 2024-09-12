@@ -84,7 +84,7 @@ body {
 }
 
 .note {
-    border: 1px solid black;
+    /* border: 1px solid black; */
     width: 22em;
     padding-right: 1em;
     height: fit-content;
@@ -118,8 +118,8 @@ body {
 
 .btn {
     cursor: pointer;
-    width: 1em;
-    height: 1em;
+    width: 1.5em;
+    height: 1.5em;
     margin: 0.1em;
 }
 
@@ -127,6 +127,7 @@ body {
 .ql-editor mark {
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
+    border-radius: 3px;
     cursor: pointer;
 }
 
@@ -135,6 +136,10 @@ body {
     padding: 0.3em;
     font-style: italic;
     margin: 0.7em;
+}
+
+.ql-container h1 {
+    font-family: Calibri, sans-serif;
 }
 
 .tool {
