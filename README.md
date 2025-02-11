@@ -1,6 +1,8 @@
 # Marginalia
 *The flat-hierarchy annotation platform*
 
+<p align="center">💫✨ <a href="https://margi-nalia.site"><b>LIVE DEMO</b></a> ✨💫</p>
+
 Developed by Senka and Arran.
 
 Support from [Stimulerings Fonds](https://www.stimuleringsfonds.nl/);
