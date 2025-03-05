@@ -15,7 +15,6 @@ async function fetchNote(noteId) {
     }
 }
 
-let lastHue = Math.floor(Math.random() * 360);
 let lastVertical = false;
 
 const highlightColors = [
@@ -314,11 +313,10 @@ class Note extends Fragment {
         });
         this.noteEditor.enable(false);
         this.show();
-        state.notes[this.noteId] = this;
+        // state.notes[this.noteId] = this;
+        state.addNote(this);
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
-            console.log("note mouseentered");
-
             if (editBtn) {
                 editBtn.style.display = "block";
                 editBtn.onclick = () => {
@@ -345,7 +343,6 @@ class Note extends Fragment {
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
             if (!range) {
-                console.log(`blur, saving note ${noteId}`);
                 this.save();
                 this.exitEditMode();
                 return;
@@ -376,6 +373,7 @@ class Note extends Fragment {
         this.noteEditor.focus();
         this.noteContainer.classList.add('note-editing');
         // this.editBtn.classList.add('drop-shadow');
+        state.editMode = true;
     }
 
     exitEditMode() {
@@ -384,6 +382,7 @@ class Note extends Fragment {
         // this.editBtn.classList.remove('drop-shadow');
         if (this.noteEditor)
             this.noteEditor.enable(false);
+        state.editMode = false;
     }
 
     delete() {

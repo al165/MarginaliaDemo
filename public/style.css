@@ -151,7 +151,8 @@ body {
 }
 
 #edit-toolbar,
-#room-toolbar {
+#room-toolbar,
+#text-toolbar {
     position: fixed;
     display: flex;
     bottom: 0;
@@ -169,11 +170,20 @@ body {
     z-index: 1001;
 }
 
-#edit-toolbar {
+#edit-toolbar,
+#text-toolbar {
     flex-direction: row;
     width: fit-content;
     padding-left: 2em;
-    padding-right: calc(2em + 2*0.8em + 0.5em);
+    padding-right: calc(2em + 2 * 0.8em + 0.5em);
+}
+
+#text-toolbar {
+    filter: brightness(90%);
+    overflow: hidden;
+    transition: right 0.3s ease-out;
+    right: -100vw;
+    padding-right: calc(2em + 2 * 0.8em + 0.5em + 2em);
 }
 
 #tooltip {

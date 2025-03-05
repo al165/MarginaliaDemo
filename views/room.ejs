@@ -53,7 +53,7 @@
     <input type="file" name="file" id="imgupload" style="display:none" accept="image/*" />
   </form>
 
-  <div id="edit-toolbar">
+  <div id="text-toolbar">
     <img src="<%= room.baseURL %>/icons/25_fontsize.svg" class="tool coming-soon" id="font-size">
     <img src="<%= room.baseURL %>/icons/24_bold.svg" class="tool" id="bold">
     <img src="<%= room.baseURL %>/icons/23_italic.svg" class="tool" id="italic">
@@ -66,12 +66,14 @@
     <img src="<%= room.baseURL %>/icons/16_bulletpoints.svg" class="tool coming-soon" id="bulletpoints">
     <img src="<%= room.baseURL %>/icons/15_citation.svg" class="tool" id="citation">
     <img src="<%= room.baseURL %>/icons/14_font.svg" class="tool coming-soon" id="font">
+  </div>
+  <div id="edit-toolbar">
     <img src="<%= room.baseURL %>/icons/13_audio.svg" class="tool coming-soon" id="audio">
     <img src="<%= room.baseURL %>/icons/12_video.svg" class="tool coming-soon" id="video">
     <img src="<%= room.baseURL %>/icons/11_image.svg" class="tool" id="image-upload">
     <img src="<%= room.baseURL %>/icons/10_links.svg" class="tool coming-soon" id="links">
-
   </div>
+
 
   <script src="<%= room.baseURL %>/js/editButtons.js" defer type="module"></script>
 
