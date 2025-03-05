@@ -176,11 +176,13 @@ body {
     padding-right: calc(2em + 2*0.8em + 0.5em);
 }
 
-#unavailable {
+#tooltip {
     position: fixed;
     visibility: hidden;
     pointer-events: none;
+    padding: 0.5em;
+    max-width: 10em;
     background-color: var(--glow-color);
     z-index: 2000;
-    transform: translate(-50%, -50%);
+    /* transform: translate(-50%, -50%); */
 }

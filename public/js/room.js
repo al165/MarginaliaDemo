@@ -1,6 +1,6 @@
 import './formats/annotateBlot.js';
 import './formats/annotatePBlot.js';
-import { THEME_LIST, setTheme } from './colourschemes.js'
+import { THEME_LIST, setTheme } from './data/colourschemes.js'
 
 import { fetchNote } from './note.js';
 import { state } from './state.js';

@@ -1,8 +1,12 @@
 import { Note } from './note.js';
 import { state } from './state.js';
 
-import './colourschemes.js';
-import { THEME_LIST, setTheme } from './colourschemes.js';
+import { THEME_LIST, setTheme } from './data/colourschemes.js';
+import { TOOLTIPS } from './data/tooltips.js';
+
+window.addEventListener('resize', () => {
+
+});
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -149,50 +153,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Tooltips
-    const unavailableTooltip = document.querySelector("#unavailable");
+    const tools = document.querySelectorAll(".tool");
+    const tooltip = document.querySelector("#tooltip");
 
-    for (const unavailable of document.querySelectorAll(".coming-soon")) {
-        unavailable.addEventListener('mousemove', ev => {
-            unavailableTooltip.style.visibility = 'visible';
-            unavailableTooltip.style.top = ev.clientY + 'px';
-            unavailableTooltip.style.left = ev.clientX + 'px';
+    for (const tool of tools) {
+        const toolId = tool.id;
+        if (!toolId || !TOOLTIPS["en"][toolId])
+            continue;
+
+        let toolTipText = TOOLTIPS["en"][toolId];
+        if (tool.classList.contains('coming-soon')) {
+            toolTipText = "<b>Coming soon!</b><br>" + toolTipText;
+        }
+
+        tool.addEventListener('mousemove', ev => {
+            tooltip.innerHTML = toolTipText;
+            tooltip.style.visibility = 'visible';
+
+            const toolTipMaxX = document.getElementById("room-toolbar").getBoundingClientRect().left;
+            const toolTipMaxY = document.getElementById("edit-toolbar").getBoundingClientRect().top;
+
+            tooltip.style.left = Math.min(ev.clientX, toolTipMaxX - tooltip.getBoundingClientRect().width) + "px";
+            tooltip.style.top = Math.min(ev.clientY, toolTipMaxY - tooltip.getBoundingClientRect().height) + "px";
+
         });
 
-        unavailable.addEventListener('mouseleave', ev => {
-            unavailableTooltip.style.visibility = 'hidden';
+        tool.addEventListener('mouseleave', ev => {
+            tooltip.style.visibility = 'hidden';
         });
     }
-
-
-    // const editMode = document.querySelector("#edit-mode");
-    // editMode.addEventListener('change', function (ev) {
-    //     state.editMode = ev.target.checked;
-    // });
-
-
-    // const roomTitle = document.querySelector('#room-title');
-    // roomTitle.setAttribute('contenteditable', true);
-    // roomTitle.addEventListener('blur', function (ev) {
-    //     const newName = roomTitle.innerText.trim();
-    //     if (newName) {
-    //         fetch(`/room/${roomId}`, {
-    //             method: 'PUT',
-    //             body: JSON.stringify({
-    //                 name: newName,
-    //                 editToken
-    //             }),
-    //             headers: {
-    //                 "Content-type": "application/json"
-    //             }
-    //         }).then(res => {
-    //             if (res.msg) {
-    //                 console.log(res.msg);
-    //             }
-    //         }).catch(error => {
-    //             console.log("Error editing room: " + error);
-    //         });
-    //     } else {
-    //         roomTitle.innerText = roomName;
-    //     }
-    // });
 });
