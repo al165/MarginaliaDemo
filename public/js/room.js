@@ -5,6 +5,23 @@ import { THEME_LIST, setTheme } from './data/colourschemes.js'
 import { fetchNote } from './note.js';
 import { state } from './state.js';
 
+const socket = io();
+
+socket.on('connect', function () {
+    socket.emit('roomId', roomId);
+});
+
+socket.on('noteUpdated', function (noteId) {
+    console.log("noteUpdated: " + noteId);
+    fetchNote(noteId, state.notes[noteId]);
+});
+
+socket.on('noteEditing', function (data) {
+    state.notes[data.noteId].setLocked(data.lock);
+});
+
+state.socket = socket;
+
 document.addEventListener('DOMContentLoaded', () => {
 
     state.roomId = roomId;

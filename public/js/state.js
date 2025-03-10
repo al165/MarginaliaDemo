@@ -8,6 +8,7 @@ class MarginaliaRoomState {
     scrollY = 0;
     #language = 'en';
     callbacks = [];
+    socket = undefined;
 
     constructor() {
 
@@ -20,6 +21,14 @@ class MarginaliaRoomState {
     }
 
     set currentEditingNote(val) {
+        if (this.socket) {
+            if (val) {
+                this.socket.emit('editingNote', { roomId: this.roomId, noteId: val.noteId, lock: val != undefined });
+            } else if (this.#currentEditingNote) {
+                this.socket.emit('editingNote', { roomId: this.roomId, noteId: this.#currentEditingNote.noteId, lock: val != undefined });
+            }
+        }
+
         this.#currentEditingNote = val;
         for (const callback of this.callbacks) {
             if (callback.event === 'currentEditingNote')

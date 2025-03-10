@@ -60,6 +60,7 @@ body {
     background-color: var(--note-bg-color);
     box-shadow: var(--glow-color) 0px 0px 16px 7px;
     padding: 0;
+    transition: filter 0.5s, opacity 0.5s;
 }
 
 .note-container img {
@@ -77,6 +78,11 @@ body {
 .note-editing {
     /* border: 3px white solid; */
     box-shadow: var(--glow-color) 0px 0px 30px 15px;
+}
+
+.note-locked {
+    /* filter: brightness(50%); */
+    opacity: 50%;
 }
 
 .split {

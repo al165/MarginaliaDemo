@@ -2,12 +2,14 @@ const path = require('path');
 const crypto = require("crypto");
 
 const express = require('express');
+const { createServer } = require('http');
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv');
 
 const multer = require('multer');
-const { error } = require('console');
 const { diskStorage } = multer;
+
+const { Server } = require('socket.io');
 
 const storagePhoto = diskStorage({
     destination: 'uploads',
@@ -34,7 +36,10 @@ const db = new sqlite3.Database('./db/marginalia.db', (err) => {
 
 
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 3000;
+
+const io = new Server(server);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -102,10 +107,6 @@ const DEFAULT_NOTE = JSON.stringify(
         ]
     }
 );
-
-async function createRoom() {
-
-}
 
 app.get(BASE_URL + '/room', function (req, res) {
     db.all("SELECT id roomId, name, editToken FROM Rooms", [], function (err, rows) {
@@ -313,7 +314,7 @@ app.delete(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (re
 
 app.put(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
     // Edit a note in the room
-    const { noteId } = req.params;
+    const { roomId, noteId } = req.params;
     console.log(`Updating note ${noteId}`);
     const { noteContent, noteOptions } = req.body;
 
@@ -344,6 +345,7 @@ app.put(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (req, 
 
             console.log(`UPDATED NOTE: id ${noteId}`);
 
+            io.in(roomId).emit('noteUpdated', noteId);
             res.sendStatus(200);
         }
     );
@@ -360,7 +362,7 @@ app.put(BASE_URL + '/room/:roomId', checkEditToken, function (req, res) {
         [name, theme, roomId],
         function (err) {
             if (err) {
-                console.err("Errorediting room: " + err.message);
+                console.err("Error editing room: " + err.message);
                 res.status(500).json({ msg: err.message });
                 return;
             }
@@ -377,7 +379,24 @@ app.get(BASE_URL + '/', function (req, res) {
 app.use(BASE_URL, express.static(path.join(__dirname, 'public')));
 app.use(BASE_URL + '/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.listen(PORT, () => {
+io.on('connection', (socket) => {
+    console.log('a user connected');
+
+    socket.on('roomId', function (roomId) {
+        console.log("user in room " + roomId);
+        socket.join(roomId);
+    });
+
+    socket.on('editingNote', function (data) {
+        socket.broadcast.to(data.roomId).emit('noteEditing', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+});
+
+server.listen(PORT, () => {
     console.log("listening on http://localhost:" + PORT + BASE_URL);
 
     db.serialize(() => {

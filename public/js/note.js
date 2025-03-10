@@ -1,7 +1,6 @@
-
 import { state } from './state.js';
 
-async function fetchNote(noteId) {
+async function fetchNote(noteId, note) {
     try {
         const response = await fetch(
             `${baseURL}/room/${state.roomId}/note/${noteId}`
@@ -11,9 +10,14 @@ async function fetchNote(noteId) {
             throw (data.msg);
         }
 
-        const newNote = new Note(noteId);
-        newNote.setContents(JSON.parse(data.noteContent));
-        return newNote;
+        if (!note) {
+            const newNote = new Note(noteId);
+            newNote.setContents(JSON.parse(data.noteContent));
+            return newNote;
+        } else {
+            note.setContents(JSON.parse(data.noteContent));
+            return note;
+        }
     } catch (error) {
         console.log('Error fetching note:', error);
     }
@@ -306,6 +310,7 @@ class Note extends Fragment {
         this.lastContent = "";
         this.lastHighlight;
         this.closable = true;
+        this.locked = false;
 
         this.noteEditor = new Quill(this.noteContents, {
             placeholder: 'Write your note here...',
@@ -332,7 +337,7 @@ class Note extends Fragment {
         state.addNote(this);
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
-            if (editBtn) {
+            if (editBtn && !this.locked) {
                 editBtn.style.display = "block";
                 editBtn.onclick = () => {
                     this.enterEditMode();
@@ -340,12 +345,11 @@ class Note extends Fragment {
             }
 
             if (removeBtn) {
-                if (this.closable) {
+                if (this.closable && !this.locked) {
                     removeBtn.style.display = "block";
                     removeBtn.onclick = () => {
                         this.delete();
                     }
-
                 } else {
                     removeBtn.style.display = "none";
                 }
@@ -396,6 +400,9 @@ class Note extends Fragment {
     }
 
     enterEditMode() {
+        if (this.locked)
+            return;
+
         if (state.currentEditingNote)
             state.currentEditingNote.exitEditMode();
 
@@ -414,6 +421,18 @@ class Note extends Fragment {
             this.noteEditor.enable(false);
         if (state.currentEditingNote == this)
             state.editMode = false;
+        state.currentEditingNote = undefined;
+    }
+
+    setLocked(lock) {
+        console.log(`note ${this.noteId} is ${lock ? "locked" : "unlocked"}`);
+
+        this.locked = lock;
+
+        if (lock && canEdit)
+            this.noteContainer.classList.add('note-locked');
+        else
+            this.noteContainer.classList.remove('note-locked');
     }
 
     delete() {
@@ -463,8 +482,8 @@ class Note extends Fragment {
     }
 
     save() {
-        if (!canEdit || !editToken) {
-            console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken})`);
+        if (!canEdit || !editToken || this.locked) {
+            console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
             return;
         }
 
@@ -554,6 +573,10 @@ class Note extends Fragment {
         let html = this.noteEditor.getSemanticHTML();
         html = html.replaceAll('<p></p>', '<p><br></p>');
         return html;
+    }
+
+    reload() {
+
     }
 
     restore() {
