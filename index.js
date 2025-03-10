@@ -307,7 +307,7 @@ app.delete(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (re
             return;
         }
 
-        res.status(204);
+        res.sendStatus(204);
     });
 });
 

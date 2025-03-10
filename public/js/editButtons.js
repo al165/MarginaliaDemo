@@ -12,10 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const newNoteBtn = document.querySelector("#new-note");
     newNoteBtn.addEventListener('click', function (ev) {
-        console.log("new note");
-        console.log(state.currentEditingNote);
         if (!state.currentEditingNote)
             return;
+        console.log("new note");
         const parentNote = state.currentEditingNote;
         const selection = parentNote.noteEditor.getSelection();
         const bounds = parentNote.noteEditor.getBounds(selection);
@@ -187,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.addCallback('editMode', (editMode) => {
         const editToolbar = document.getElementById("edit-toolbar");
         const textToolbar = document.getElementById("text-toolbar");
+        console.log('editMode: ' + editMode);
         if (editMode) {
             textToolbar.style.right = editToolbar.clientWidth - editToolbar.clientHeight + "px";
         } else {

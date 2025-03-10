@@ -7,11 +7,15 @@ async function fetchNote(noteId) {
             `${baseURL}/room/${state.roomId}/note/${noteId}`
         );
         const data = await response.json();
+        if (data.msg) {
+            throw (data.msg);
+        }
+
         const newNote = new Note(noteId);
         newNote.setContents(JSON.parse(data.noteContent));
         return newNote;
     } catch (error) {
-        console.error('Error fetching note:', error);
+        console.log('Error fetching note:', error);
     }
 }
 
@@ -40,9 +44,9 @@ const noteButtons = document.querySelector("#note-buttons");
 const closeBtn = noteButtons.querySelector("#close-note");
 const restoreBtn = noteButtons.querySelector("#restore-note");
 const editBtn = noteButtons.querySelector("#edit-note");
+const removeBtn = noteButtons.querySelector("#remove-note");
 
 function split(fragment, vertical, newNote, hRect) {
-    console.log("split");
     newNote.toFront();
 
     const pos = fragment.getPosition();
@@ -129,6 +133,9 @@ function updateHighlights(note) {
 
             if (typeof state.notes[targetId] === 'undefined') {
                 fetchNote(targetId).then(newNote => {
+                    if (!newNote)
+                        return;
+
                     newNote.parent = note;
                     split(note, lastVertical, newNote, hRect);
                 });
@@ -186,11 +193,7 @@ class Fragment {
         this.noteContainer.appendChild(this.noteContents);
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
-            console.log("fragment onmouseenter");
             this.noteContainer.appendChild(noteButtons);
-
-            // noteButtons.style.left = this.noteContainer.offsetLeft + "px";
-            // noteButtons.style.top = this.noteContainer.offsetTop + "px";
 
             if (editBtn)
                 editBtn.style.display = "none";
@@ -313,7 +316,6 @@ class Note extends Fragment {
         });
         this.noteEditor.enable(false);
         this.show();
-        // state.notes[this.noteId] = this;
         state.addNote(this);
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
@@ -321,12 +323,24 @@ class Note extends Fragment {
                 editBtn.style.display = "block";
                 editBtn.onclick = () => {
                     this.enterEditMode();
-                    state.currentEditingNote = this;
+                }
+            }
+
+            if (removeBtn) {
+                if (this.closable) {
+                    removeBtn.style.display = "block";
+                    removeBtn.onclick = () => {
+                        this.delete();
+                    }
+
+                } else {
+                    removeBtn.style.display = "none";
                 }
             }
 
             restoreBtn.style.display = "none";
             closeBtn.onclick = () => this.close();
+
             if (this.closable) {
                 closeBtn.style.display = "block";
             } else {
@@ -342,6 +356,7 @@ class Note extends Fragment {
             return;
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
+            console.log("selection-change");
             if (!range) {
                 this.save();
                 this.exitEditMode();
@@ -368,27 +383,72 @@ class Note extends Fragment {
     }
 
     enterEditMode() {
+        if (state.currentEditingNote)
+            state.currentEditingNote.exitEditMode();
+
         this.editing = true;
         this.noteEditor.enable(true);
         this.noteEditor.focus();
         this.noteContainer.classList.add('note-editing');
-        // this.editBtn.classList.add('drop-shadow');
         state.editMode = true;
+        state.currentEditingNote = this;
     }
 
     exitEditMode() {
         this.editing = false;
         this.noteContainer.classList.remove('note-editing');
-        // this.editBtn.classList.remove('drop-shadow');
         if (this.noteEditor)
             this.noteEditor.enable(false);
-        state.editMode = false;
+        if (state.currentEditingNote == this)
+            state.editMode = false;
     }
 
     delete() {
-        this.close(false);
-        delete this.noteEditor;
-        delete state[this.noteId];
+        fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
+            method: 'DELETE',
+            body: JSON.stringify({
+                editToken
+            }),
+            headers: {
+                "Content-type": "application/json"
+            }
+        }).then(res => {
+            this.exitEditMode();
+            this.close(false);
+
+            if (!res.ok) {
+                console.log(res.statusText);
+                return;
+            }
+
+            // remove annotation from parent
+            if (this.parent) {
+                let parentContents = this.parent.noteEditor.getContents();
+                const parentId = parent.noteId;
+
+                for (const format of parentContents.ops) {
+                    if (format.attributes && format.attributes.annotate && format.attributes.annotate.id == this.noteId) {
+                        console.log("removing format:")
+                        console.log(format);
+                        // parentContents.remove(format);
+                        delete format.attributes.annotate;
+                        break;
+                    }
+                }
+
+                console.log(parentContents);
+
+                this.parent.noteEditor.setContents(parentContents.ops, 'api');
+                this.parent.restore();
+
+                updateHighlights(this.parent);
+                this.parent.save();
+            }
+
+            delete this.noteEditor;
+            delete state.deleteNote(this);
+        });
+
     }
 
     save() {
