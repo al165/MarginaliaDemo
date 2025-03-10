@@ -19,8 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const selection = parentNote.noteEditor.getSelection();
         const bounds = parentNote.noteEditor.getBounds(selection);
         const parentPos = parentNote.getPosition();
-        console.log(parentPos);
-        console.log(bounds);
 
         const newNote = new Note();
         newNote.enterEditMode();
@@ -30,13 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function toggleFormat(btn, value) {
-        btn.addEventListener('click', function (ev) {
+        btn.addEventListener('click', function () {
             if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
                 return;
 
             const format = state.currentEditingNote.noteEditor.getFormat();
             state.currentEditingNote.noteEditor.format(value, format[value] ? false : true, 'user');
-
         });
     }
 

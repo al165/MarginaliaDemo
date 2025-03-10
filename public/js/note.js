@@ -85,15 +85,17 @@ function split(fragment, vertical, newNote, hRect) {
     fragmentRight.setSize(sizeR);
 
     // Position the fragments
-    const posL = {};
+    let posL = {};
     posL[mainAxisN] = pos[mainAxisN] - offset / 2;
     posL[crossAxisN] = pos[crossAxisN];
     fragmentLeft.setPosition(posL);
+    posL = fragmentLeft.getPosition();  // incase the new position was bounded
 
-    const posR = {};
-    posR[mainAxisN] = pos[mainAxisN] + cut + offset / 2;
+    let posR = {};
+    posR[mainAxisN] = posL[mainAxisN] + sizeL[mainDim] + offset;
     posR[crossAxisN] = pos[crossAxisN];
     fragmentRight.setPosition(posR);
+    posR = fragmentRight.getPosition();  // incase the new position was bounded
 
     // Adjust the inner content within the fragments
     fragmentLeft.noteContents.style[mainAxisN] = contentRect[mainAxisN] - areaRect[mainAxisN] + "px";
@@ -109,7 +111,7 @@ function split(fragment, vertical, newNote, hRect) {
 
     // Calculate the position of the new Note
     const newNotePos = {}
-    newNotePos[mainAxisN] = hRect[mainCartesian] + scrollMainAxis - offset / 2;
+    newNotePos[mainAxisN] = posL[mainAxisN] + sizeL[mainDim];
     newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
     newNote.setPosition(newNotePos);
     fragment.close(false);
@@ -158,11 +160,11 @@ function calculateBoundingBox() {
 
     for (const container of document.querySelectorAll(".note-container")) {
         const boundingRect = container.getBoundingClientRect();
-        rect.left = Math.min(rect.left, boundingRect.left + state.scrollX);
-        rect.right = Math.max(rect.right, boundingRect.right + state.scrollX);
+        rect.left = Math.min(rect.left, boundingRect.left);
+        rect.right = Math.max(rect.right, boundingRect.right);
 
-        rect.top = Math.min(rect.top, boundingRect.top + state.scrollY);
-        rect.bottom = Math.max(rect.bottom, boundingRect.bottom + state.scrollY);
+        rect.top = Math.min(rect.top, boundingRect.top);
+        rect.bottom = Math.max(rect.bottom, boundingRect.bottom);
     }
 
     const b = document.querySelector("#bounding");
@@ -232,10 +234,21 @@ class Fragment {
     }
 
     setPosition(pos) {
-        this.noteContainer.style.left = pos.left + "px";
-        this.noteContainer.style.top = pos.top + "px";
+        this.noteContainer.style.left = Math.max(20, pos.left) + "px";
+        this.noteContainer.style.top = Math.max(20, pos.top) + "px";
 
         calculateBoundingBox();
+    }
+
+    addOffset(offset) {
+        let currentPos = this.getPosition();
+        currentPos.left = Math.max(20, currentPos.left + offset.left);
+        currentPos.top = Math.max(20, currentPos.top + offset.top);
+        this.setPosition(currentPos);
+
+        for (const child of this.children) {
+            child.addOffset(offset);
+        }
     }
 
     getPosition() {
@@ -438,10 +451,8 @@ class Note extends Fragment {
 
                 console.log(parentContents);
 
-                this.parent.noteEditor.setContents(parentContents.ops, 'api');
+                this.parent.setContents(parentContents.ops, 'api');
                 this.parent.restore();
-
-                updateHighlights(this.parent);
                 this.parent.save();
             }
 

@@ -83,6 +83,10 @@ class MarginaliaRoomState {
         }
     }
 
+    getAllNotes() {
+        return Object.values(this.notes);
+    }
+
 }
 
 
