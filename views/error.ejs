@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error!</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    #error {
+      position: absolute;
+      top: 50vh;
+      left: 50vw;
+      min-width: 400px;
+      transform: translate(-50%, -50%);
+      border: solid black 1px;
+      box-shadow: pink 0px 0px 5px 3px;
+      padding: 2em;
+    }
+
+    pre {
+      color: red;
+      background-color: lavenderblush;
+      padding: 1em;
+      margin: 2em 0em;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="error">
+    <h1>An error occured :(</h1>
+    <pre><%= message %></pre>
+    <a href="<%= rootURL %>"> &lt back home</a>
+  </div>
+</body>
+
+</html>

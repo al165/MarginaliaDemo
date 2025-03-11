@@ -1,15 +1,18 @@
-const path = require('path');
-const crypto = require("crypto");
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const express = require('express');
-const { createServer } = require('http');
-const bodyParser = require('body-parser')
-const dotenv = require('dotenv');
+import crypto from 'crypto';
 
-const multer = require('multer');
-const { diskStorage } = multer;
+import express from 'express';
+import { createServer } from 'http';
+import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
 
-const { Server } = require('socket.io');
+import multer, { diskStorage } from 'multer';
+
+import { Server } from 'socket.io';
 
 const storagePhoto = diskStorage({
     destination: 'uploads',
@@ -26,14 +29,10 @@ dotenv.configDotenv();
 const BASE_URL = process.env.BASE_URL ?? '';
 console.log("BaseURL: " + BASE_URL);
 
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./db/marginalia.db', (err) => {
-    if (err)
-        console.error(err.message);
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 
-    console.log('Connected to SQLite3 database');
-});
-
+const dbPromise = open({ filename: './db/marginalia.db', driver: sqlite3.Database });
 
 const app = express();
 const server = createServer(app);
@@ -46,41 +45,29 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const asyncHandler = (fn) => (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+};
 
-function checkEditToken(req, res, next) {
-    if (!req.body.editToken) {
-        res.status(401).json({ msg: 'editToken missing' });
-        return;
-    }
+// Authentication middleware
+async function checkEditToken(req, res, next) {
+    if (!req.body.editToken)
+        throw new Error("editToken missing!");
 
     const { roomId } = req.params;
 
-    if (!roomId) {
-        res.sendStatus(401).json({ msg: 'roomId missing' });
-        return;
-    }
+    if (!roomId)
+        throw new Error("roomId missing!");
 
-    db.get("SELECT editToken FROM Rooms WHERE id = ?", [roomId], (err, row) => {
-        if (err) {
-            console.error("Error selecting editToken: " + err.message);
-            res.status(500).json({ msg: err.message });
-            return;
-        }
+    const row = await db.get("SELECT editToken FROM Rooms WHERE id = ?", [roomId]);
 
-        if (!row || !row.editToken) {
-            console.error(`Error: roomId ${roomId} not found`);
-            res.status(500).json({ msg: `Error: roomId ${roomId} not found` });
-            return;
-        }
+    if (!row || !row.editToken)
+        throw new Error(`Error: roomId ${roomId} not found.`);
 
-        if (row.editToken != req.body.editToken) {
-            console.error(`Edit tokens (req: ${req.body.editToken}, db: ${row.editToken}) do not match.`);
-            res.status(401).json({ msg: 'incorrect editToken' });
-            return;
-        }
+    if (row.editToken != req.body.editToken)
+        throw new Error("incorrect editToken");
 
-        next();
-    })
+    next();
 }
 
 function generateId(length) {
@@ -108,72 +95,51 @@ const DEFAULT_NOTE = JSON.stringify(
     }
 );
 
-app.get(BASE_URL + '/room', function (req, res) {
-    db.all("SELECT id roomId, name, editToken FROM Rooms", [], function (err, rows) {
-        if (err) {
-            console.err("Error getting all rooms: " + err.message);
-            res.sendStatus(500);
-            return;
-        }
+app.get(BASE_URL + '/room', asyncHandler(async (req, res) => {
+    const rows = await db.all("SELECT id roomId, name, editToken FROM Rooms", []);
 
-        res.json(rows);
-    })
-})
+    res.json(rows);
+}));
 
-app.get(BASE_URL + '/room/:roomId', function (req, res) {
+app.get(BASE_URL + '/room/:roomId', asyncHandler(async (req, res) => {
     const { roomId } = req.params;
     const { editToken } = req.query;
 
-    db.get("SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?", [roomId], function (err, row) {
-        if (err) {
-            console.error("Error getting room " + roomId + ": " + err.message);
-            res.status(500).json({ msg: err.message });
-            return;
-        }
+    const row = await db.get(
+        "SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?",
+        [roomId]
+    );
 
-        if (!row) {
-            // not found, create a new room?
-            // res.status(404).json({ msg: "Room not found" });
-            res.render('notfound', { room: { roomId } })
-            return;
-        }
+    if (!row)
+        throw new Error(`room ${roomId} not found`);
 
-        // res.json(row);
-        row.roomId = roomId;
-        row.canEdit = row.editToken == editToken;
-        row.editToken = undefined;
-        row.baseURL = BASE_URL;
-        res.render('room', { room: row });
-    });
-});
+    row.roomId = roomId;
+    row.canEdit = row.editToken == editToken;
+    row.editToken = undefined;
+    row.baseURL = BASE_URL;
+    res.render('room', { room: row });
+}));
 
-app.get(BASE_URL + '/create', function (req, res) {
+app.get(BASE_URL + '/create', asyncHandler(async (req, res) => {
     res.render('create', { baseURL: BASE_URL });
-});
+}));
 
-app.get(BASE_URL + '/roomlist', function (req, res) {
+app.get(BASE_URL + '/roomlist', asyncHandler(async (req, res) => {
     res.render('roomlist', { baseURL: BASE_URL });
-});
+}));
 
-app.get(BASE_URL + '/room/:roomId/note/:noteId', function (req, res) {
+app.get(BASE_URL + '/room/:roomId/note/:noteId', asyncHandler(async (req, res) => {
     const { roomId, noteId } = req.params;
-    db.get("SELECT noteContent, noteOptions FROM Notes WHERE id = ?", [noteId], function (err, row) {
-        if (err) {
-            console.log("Error getting note " + noteId + ": " + err.message);
-            res.status(500).json({ msg: err.message });
-            return;
-        }
 
-        if (!row || !row.noteContent) {
-            res.status(404).json({ msg: "Note not found" });
-            return;
-        }
+    const row = await db.get("SELECT noteContent, noteOptions FROM Notes WHERE id = ?", [noteId]);
 
-        res.json(row);
-    });
-});
+    if (!row || !row.noteContent)
+        throw new Error(`Note ${noteId} not found`);
 
-app.post(BASE_URL + '/room', function (req, res) {
+    res.json(row);
+}));
+
+app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
     // Create new room
     // TODO: tidy-up new rooms that are not edited after some timeout
 
@@ -182,137 +148,85 @@ app.post(BASE_URL + '/room', function (req, res) {
     const { roomName } = req.body;
     const createdOn = new Date();
 
-    db.run("INSERT INTO Rooms(id, name, editToken, createdOn) VALUES (?, ?, ?, ?)", [roomId, roomName, editToken, createdOn], function (err) {
-        if (err) {
-            console.error("Error creating new room: " + err.message);
-            res.status(500).json({ msg: err.message });
-            return;
-        }
+    await db.run(
+        "INSERT INTO Rooms(id, name, editToken, createdOn) VALUES (?, ?, ?, ?)",
+        [roomId, roomName, editToken, createdOn]
+    );
 
-        console.log(`NEW ROOM: id ${roomId} editToken ${editToken}`);
+    console.log(`NEW ROOM: id ${roomId} editToken ${editToken}`);
 
-        // Create a default note to get started:
-        const noteId = generateId(16);
-        const createdOn = new Date();
+    // Create a default note to get started:
+    const noteId = generateId(16);
 
-        db.run(
-            "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
-            [noteId, createdOn, DEFAULT_NOTE, null],
-            function (err) {
-                if (err) {
-                    console.error("Error creating new note: " + err.message);
-                    res.status(500).json({ msg: err.message });
-                    return;
-                }
+    await db.run(
+        "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
+        [noteId, createdOn, DEFAULT_NOTE, null]
+    );
 
-                console.log(`NEW NOTE: id ${noteId}`);
-            }
-        );
+    await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId]);
 
-        db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId], function (err) {
-            if (err) {
-                console.error("Error when setting rootNote: " + err.message);
-                return;
-            }
-        });
+    res.status(201).json({ roomId, editToken });
+}));
 
-        res.status(201).json({ roomId, editToken });
-    });
-
-});
-
-app.delete(BASE_URL + '/room/:roomId', checkEditToken, function (req, res) {
+app.delete(BASE_URL + '/room/:roomId', checkEditToken, asyncHandler(async (req, res) => {
     // Delete room
     const { roomId } = req.params;
-    db.run("DELETE FROM Rooms WHERE id = ?", [roomId], function (err) {
-        if (err) {
-            console.error(`Error deleting roomId = ${roomId}: ${err.message}`);
-            res.status(500).json({ msg: err.message });
-            return;
-        }
+    await db.run("DELETE FROM Rooms WHERE id = ?", [roomId]);
 
-        res.status(204);
-    })
-});
+    res.status(204);
+}));
 
-app.post(BASE_URL + '/room/:roomId/note', checkEditToken, function (req, res) {
+app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (req, res) => {
     // Create a new note in the room
 
     const { roomId } = req.params;
     const { noteContent, noteOptions } = req.body;
 
     if (!noteContent) {
-        console.log("Creating new but empty note, discarding");
-        res.status(204).json({ msg: 'not creating empty note' });
-        return;
+        throw new Error("noteContent is empty");
+        // console.log("Creating new but empty note, discarding");
+        // res.status(204).json({ msg: 'not creating empty note' });
+        // return;
     }
 
     const noteId = generateId(16);
     const createdOn = new Date();
 
-    db.run(
+    await db.run(
         "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
-        [noteId, createdOn, JSON.stringify(noteContent), JSON.stringify(noteOptions)],
-        function (err) {
-            if (err) {
-                console.error("Error creating new note: " + err.message);
-                res.status(500).json({ msg: err.message });
-                return;
-            }
-
-            console.log(`NEW NOTE: id ${noteId}`);
-
-            // Todo: check if roomId has a rootNote, and if not then update to this...
-            db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId], function (err, row) {
-                if (err) {
-                    console.error("Error checking rootNote" + err.message);
-                    return;
-                }
-
-                if (!row) {
-                    console.error("Error when checking rootNote: row is empty");
-                    return;
-                }
-
-                if (row.rootNote) {
-                    return;
-                }
-
-                db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId], function (err) {
-                    if (err) {
-                        console.error("Error when setting rootNote: " + err.message);
-                        return;
-                    }
-                    console.log(`Set rootNote to ${noteId}`);
-                });
-            })
-            res.status(201).json({ noteId });
-        }
+        [noteId, createdOn, JSON.stringify(noteContent), JSON.stringify(noteOptions)]
     );
-});
 
-app.post(BASE_URL + '/upload', uploadPhoto.single('file'), function (req, res) {
+    console.log(`NEW NOTE: id ${noteId}`);
+
+    // Todo: check if roomId has a rootNote, and if not then update to this...
+    const row = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
+
+    if (!row)
+        throw new Error("Error when checking rootNote: row is empty");
+
+    await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId]);
+
+    console.log(`Set rootNote to ${noteId}`);
+    res.status(201).json({ noteId });
+}));
+
+app.post(BASE_URL + '/upload', uploadPhoto.single('file'), asyncHandler(async (req, res) => {
     console.log(req.file.filename);
 
     res.json({ msg: req.file });
-});
+}));
 
-app.delete(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
+app.delete(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, asyncHandler(async (req, res) => {
     // Delete note
     const { noteId } = req.params;
 
-    db.run("DELETE FROM Notes WHERE id = ?", [noteId], function (err) {
-        if (err) {
-            console.error(`Error deleting noteId = ${noteId}: ${err.message}`);
-            res.status(500).json({ msg: err.message });
-            return;
-        }
+    await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
 
-        res.sendStatus(204);
-    });
-});
+    res.sendStatus(204);
+}));
 
-app.put(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (req, res) {
+app.put(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, asyncHandler(async (req, res) => {
     // Edit a note in the room
     const { roomId, noteId } = req.params;
     console.log(`Updating note ${noteId}`);
@@ -321,63 +235,50 @@ app.put(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, function (req, 
     if (!noteContent) {
         console.log("Note is empty, deleting");
 
-        db.run("DELETE FROM Notes WHERE id = ?", [noteId], function (err) {
-            if (err) {
-                console.error(`Error deleting noteId = ${noteId}: ${err.message}`);
-                res.status(500).json({ msg: err.message });
-                return;
-            }
-
-            res.status(204);
-        });
+        await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
+        res.status(204);
         return;
     }
 
-    db.run(
+    await db.run(
         "UPDATE Notes SET noteContent = ?, noteOptions = ? WHERE id = ?",
-        [JSON.stringify(noteContent), JSON.stringify(noteOptions), noteId],
-        function (err) {
-            if (err) {
-                console.error("Error editing note: " + err.message);
-                res.status(500).json({ msg: err.message });
-                return;
-            }
-
-            console.log(`UPDATED NOTE: id ${noteId}`);
-
-            io.in(roomId).emit('noteUpdated', noteId);
-            res.sendStatus(200);
-        }
+        [JSON.stringify(noteContent), JSON.stringify(noteOptions), noteId]
     );
-});
 
-app.put(BASE_URL + '/room/:roomId', checkEditToken, function (req, res) {
+    console.log(`UPDATED NOTE: id ${noteId}`);
+
+    io.in(roomId).emit('noteUpdated', noteId);
+    res.sendStatus(200);
+}));
+
+app.put(BASE_URL + '/room/:roomId', checkEditToken, asyncHandler(async (req, res) => {
     const { roomId } = req.params;
     console.log(`Updating room ${roomId}`);
 
     const { name, theme } = req.body;
 
-    db.run(
+    await db.run(
         "UPDATE Rooms SET name = ?, theme = ? WHERE id = ?",
-        [name, theme, roomId],
-        function (err) {
-            if (err) {
-                console.err("Error editing room: " + err.message);
-                res.status(500).json({ msg: err.message });
-                return;
-            }
+        [name, theme, roomId]
+    );
 
-            res.sendStatus(200);
-        }
-    )
-});
+    res.sendStatus(200);
+}));
 
-app.get(BASE_URL + '/', function (req, res) {
+app.get(BASE_URL + '/', asyncHandler(async (req, res) => {
     res.redirect(302, BASE_URL + '/room/welcome');
-})
+}));
 
 app.use(BASE_URL, express.static(path.join(__dirname, 'public')));
 app.use(BASE_URL + '/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Error handling middlewares
+app.use((err, req, res, next) => {
+    console.error("Unhandled Error:", err.message);
+    console.error("Stack trace:", err.stack);
+    res.status(500).render('error', { message: err.message || "Internal Server Error", rootURL: BASE_URL });
+});
+
 
 io.on('connection', (socket) => {
     console.log('a user connected');
@@ -396,84 +297,20 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(PORT, () => {
-    console.log("listening on http://localhost:" + PORT + BASE_URL);
+let db = undefined;
 
-    db.serialize(() => {
+async function setup() {
+    db = await dbPromise;
+    await db.migrate();
+    await createHomeNote();
 
-        let sql = "CREATE TABLE IF NOT EXISTS Notes (" +
-            "id TEXT PRIMARY KEY UNIQUE, " +
-            "userId INTEGER, " +
-            "createdOn INTEGER, " +
-            "noteContent TEXT, " +
-            "noteOptions TEXT" +
-            ")";
-
-        db.run(sql, (err) => {
-            if (err)
-                console.error("Error creating Notes table: " + err.message);
-            else
-                console.log("Created table Notes");
-        });
-
-        sql = "CREATE TABLE IF NOT EXISTS Rooms (" +
-            "id TEXT PRIMARY KEY UNIQUE, " +
-            "name TEXT, " +
-            "userId INTEGER, " +
-            "createdOn INTEGER, " +
-            "theme TEXT, " +
-            "editToken TEXT, " +
-            "rootNote TEXT" +
-            ")";
-
-        db.run(sql, (err) => {
-            if (err)
-                console.error("Error creating Rooms table: " + err.message);
-            else
-                console.log("Created table Rooms");
-        });
-
-        sql = "CREATE TABLE IF NOT EXISTS Rooms_Notes_XRef (" +
-            "roomId TEXT, " +
-            "noteId TEXT, " +
-            "FOREIGN KEY (roomId) REFERENCES Rooms (id), " +
-            "FOREIGN KEY (noteId) REFERENCES Notes (id)" +
-            ")";
-
-        db.run(sql, (err) => {
-            if (err)
-                console.error("Error creating Rooms_Notes_XRef table: " + err.message);
-            else
-                console.log("Created table Rooms_Notes_XRef");
-        });
-
-        sql = "CREATE TABLE IF NOT EXISTS Users (" +
-            "id INTEGER, " +
-            "name TEXT" +
-            ")";
-
-        db.run(sql, (err) => {
-            if (err)
-                console.error("Error creating Users table: " + err.message);
-            else
-                console.log("Created table Users");
-        });
-
-        // sql = "SELECT name FROM Rooms WHERE id = ?"
-        // db.get(sql, ['welcome'], function (err, row) {
-        //     if (err) {
-        //         console.error("Error checking if home room exists: " + err.message);
-        //         return;
-        //     }
-
-        //     if (!row)
-        createHomeNote();
-        // })
-
+    server.listen(PORT, () => {
+        console.log("listening on http://localhost:" + PORT + BASE_URL);
     });
-});
+}
 
-function createHomeNote() {
+
+async function createHomeNote() {
     console.log("Creating Homepage note");
     const roomEditToken = generateId(16);
     console.log(`Homepage editToken (keep it secret!): ${roomEditToken}`);
@@ -657,22 +494,33 @@ function createHomeNote() {
     }
 
     const notes = [welcomeNoteData, aboutNoteData, marginNote, howToUseNote];
+    const db = await dbPromise;
+    await db.run("BEGIN TRANSACTION;");
 
-    notes.map(noteData => {
-        db.run(
-            "INSERT INTO Notes (id, createdOn, noteContent) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET noteContent = ?",
+    notes.map(async (noteData) => {
+        await db.run(
+            "INSERT INTO Notes (id, createdOn, noteContent) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET noteContent = ?;",
             [noteData.id, noteData.createdOn, noteData.noteContent, noteData.noteContent],
             function (err) {
                 if (err)
                     console.error(err);
+                console.log("added note");
             });
     });
 
-    db.run(
-        "INSERT INTO Rooms(id, name, editToken, createdOn, rootNote) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+    await db.run(
+        "INSERT INTO Rooms(id, name, editToken, createdOn, rootNote) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING;",
         [roomData.id, roomData.name, roomData.editToken, roomData.createdOn, roomData.rootNote],
         function (err) {
             if (err)
                 console.error(err);
-        });
+            console.log("Homepage finished");
+        }
+
+    );
+
+    await db.run("COMMIT;");
+    console.log("finished making homepage");
 }
+
+setup();

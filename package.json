@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Experiemnts for Marginalia backend",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js"
@@ -17,6 +18,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.4",
     "socket.io": "^4.8.1",
+    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   }
 }
