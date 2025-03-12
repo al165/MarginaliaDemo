@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("new note");
         const parentNote = state.currentEditingNote;
         const selection = parentNote.noteEditor.getSelection();
+        if (!selection || selection.length == 0)
+            return;
         const bounds = parentNote.noteEditor.getBounds(selection);
         const parentPos = parentNote.getPosition();
 
