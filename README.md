@@ -10,7 +10,8 @@ Support from [Stimulerings Fonds](https://www.stimuleringsfonds.nl/);
 
 ## To install and run
 
-Requires [node.js](https://nodejs.org/), then in a terminal run the following lines:
+Requires [node.js](https://nodejs.org/), and [imagemagick](https://imagemagick.org/index.php) (for image conversion).
+In a terminal run the following lines:
 
 ```bash
 cd /somewhere/you/keep/projects/
@@ -30,6 +31,7 @@ Create a file named `.env` in the root of the repo with the following content:
 ```properties
 PORT=3001
 BASE_URL=/
+UPLOADS_DIR=./uploads
 ```
 
 These are the default values.
@@ -37,14 +39,15 @@ The key/values are as follows:
 
 - `PORT`: which port to listen on
 - `BASE_URL`: is the root path of the URL, e.g. the api to get a room will become `<your_domain.com><BASE_URL>/<roomId>`. Must begin with a `/`, and if it ends in '/' it will be stripped.
+- `UPLOADS_DIR`: the destination that uploaded images are saved to and served from. It will be created if it does not already exist. Note that there will also be a `tmp/` folder created in here that is used as a working directory when converting images.
 
 ## Todo
 
-- documentation
-- contribution guidelines
-- improve accessibility (shortcuts, screen-reader)
-- rotation
-- image annotation
-- other embedded media
-- dithered images
-- Room settings
+- [ ] documentation
+- [ ] contribution guidelines
+- [ ] improve accessibility (shortcuts, screen-reader)
+- [ ] rotation
+- [ ] image annotation
+- [ ] other embedded media
+- [x] dithered images
+- [ ] Room settings
