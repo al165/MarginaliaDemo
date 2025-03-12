@@ -26,7 +26,7 @@ const uploadPhoto = multer({ storage: storagePhoto });
 
 dotenv.configDotenv();
 
-const BASE_URL = process.env.BASE_URL ?? '';
+const BASE_URL = process.env.BASE_URL ?? '/';
 console.log("BaseURL: " + BASE_URL);
 
 import sqlite3 from 'sqlite3';
@@ -36,7 +36,7 @@ const dbPromise = open({ filename: './db/marginalia.db', driver: sqlite3.Databas
 
 const app = express();
 const server = createServer(app);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 const io = new Server(server);
 

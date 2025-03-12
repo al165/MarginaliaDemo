@@ -8,7 +8,7 @@ Developed by Senka and Arran.
 
 Support from [Stimulerings Fonds](https://www.stimuleringsfonds.nl/);
 
-### To install and run
+## To install and run
 
 Requires [node.js](https://nodejs.org/), then in a terminal run the following lines:
 
@@ -21,10 +21,27 @@ echo PORT=3000 >> .env
 npm start
 ```
 
-Then navigate to `localhost:3000` in your browser.
+Then navigate to `localhost:3001` in your browser.
 
-### Todo
+### Configuration
 
+Create a file named `.env` in the root of the repo with the following content:
+
+```properties
+PORT=3001
+BASE_URL=/
+```
+
+These are the default values.
+The key/values are as follows:
+
+- `PORT`: which port to listen on
+- `BASE_URL`: is the root path of the URL, e.g. the api to get a room will become `<your_domain.com>/<BASE_URL>/<roomId>`. Must begin with a `/`.
+
+## Todo
+
+- documentation
+- contribution guidelines
 - improve accessibility (shortcuts, screen-reader)
 - rotation
 - image annotation
