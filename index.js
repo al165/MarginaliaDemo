@@ -262,7 +262,21 @@ app.put(BASE_URL + '/room/:roomId', checkEditToken, asyncHandler(async (req, res
 }));
 
 app.get(BASE_URL + '/', asyncHandler(async (req, res) => {
-    res.redirect(302, BASE_URL + '/room/welcome');
+    const roomId = 'welcome';
+
+    const row = await db.get(
+        "SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?",
+        [roomId]
+    );
+
+    if (!row)
+        throw new Error(`room ${roomId} not found`);
+
+    row.roomId = roomId;
+    row.canEdit = false;
+    row.editToken = undefined;
+    row.baseURL = BASE_URL;
+    res.render('room', { room: row });
 }));
 
 app.use(BASE_URL, express.static(path.join(__dirname, 'public')));
@@ -275,8 +289,6 @@ app.use((err, req, res, next) => {
     res.status(500).render('error', { message: err.message || "Internal Server Error", rootURL: BASE_URL });
 });
 
-let editingNotes = {}; // roomId: [list of locked noteId]
-// let roomEditingState = {};
 let usersEditingNotes = {};
 
 io.on('connection', (socket) => {
