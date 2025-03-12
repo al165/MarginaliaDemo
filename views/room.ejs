@@ -35,15 +35,15 @@
 
   <% if(room.canEdit) { %>
   <div id="room-toolbar">
-    <img src="<%= room.baseURL %>/icons/01_highlight.svg" class="tool" id="new-note">
-    <img src="<%= room.baseURL %>/icons/02_pencil.svg" class="tool coming-soon" id="pencil">
-    <img src="<%= room.baseURL %>/icons/03_themes.svg" class="tool" id="themes">
-    <img src="<%= room.baseURL %>/icons/04_viewmode.svg" class="tool coming-soon" id="viewmode">
-    <img src="<%= room.baseURL %>/icons/05_trash.svg" class="tool coming-soon" id="trash">
-    <img src="<%= room.baseURL %>/icons/06_undo.svg" class="tool coming-soon" id="undo">
-    <img src="<%= room.baseURL %>/icons/07_info.svg" class="tool coming-soon" id="info">
-    <img src="<%= room.baseURL %>/icons/08_page.svg" class="tool coming-soon" id="page">
-    <a href="<%= room.baseURL %>/room/<%= room.roomId %>" target="_blank" rel="noopener noreferrer"><img src="<%= room.baseURL %>/icons/09_publish.svg" class="tool" id="publish"></a>
+    <img src="<%= room.baseURL %>/icons/01_highlight.svg" alt="highlight" class="tool" id="new-note">
+    <img src="<%= room.baseURL %>/icons/02_pencil.svg" alt="pencil" class="tool coming-soon" id="pencil">
+    <img src="<%= room.baseURL %>/icons/03_themes.svg" alt="themes" class="tool" id="themes">
+    <img src="<%= room.baseURL %>/icons/04_viewmode.svg" alt="viewmode" class="tool coming-soon" id="viewmode">
+    <img src="<%= room.baseURL %>/icons/05_trash.svg" alt="delete" class="tool coming-soon" id="trash">
+    <img src="<%= room.baseURL %>/icons/06_undo.svg" alt="undo" class="tool coming-soon" id="undo">
+    <img src="<%= room.baseURL %>/icons/07_info.svg" alt="info" class="tool coming-soon" id="info">
+    <img src="<%= room.baseURL %>/icons/08_page.svg" alt="page" class="tool coming-soon" id="page">
+    <a href="<%= room.baseURL %>/room/<%= room.roomId %>" target="_blank" rel="noopener noreferrer"><img src="<%= room.baseURL %>/icons/09_publish.svg" alt="publish" class="tool" id="publish"></a>
   </div>
 
   <form action="<%= room.baseURL %>/upload" id="image-upload-form" method="post" enctype="multipart/form-data">
@@ -51,23 +51,23 @@
   </form>
 
   <div id="text-toolbar">
-    <img src="<%= room.baseURL %>/icons/24_bold.svg" class="tool" id="bold">
-    <img src="<%= room.baseURL %>/icons/23_italic.svg" class="tool" id="italic">
-    <img src="<%= room.baseURL %>/icons/22_underline.svg" class="tool" id="underline">
-    <img src="<%= room.baseURL %>/icons/21_strikethrough.svg" class="tool" id="strikethrough">
-    <img src="<%= room.baseURL %>/icons/20_heading.svg" class="tool coming-soon" id="heading">
-    <img src="<%= room.baseURL %>/icons/19_writingdirection_leftright.svg" class="tool coming-soon" id="writingdirection">
-    <img src="<%= room.baseURL %>/icons/18_justification_left.svg" class="tool coming-soon" id="justification">
-    <img src="<%= room.baseURL %>/icons/17_bulletnumbers.svg" class="tool coming-soon" id="bulletnumbers">
-    <img src="<%= room.baseURL %>/icons/16_bulletpoints.svg" class="tool coming-soon" id="bulletpoints">
-    <img src="<%= room.baseURL %>/icons/15_citation.svg" class="tool" id="citation">
-    <img src="<%= room.baseURL %>/icons/14_font.svg" class="tool coming-soon" id="font">
+    <img src="<%= room.baseURL %>/icons/24_bold.svg" alt="bold" class="tool" id="bold">
+    <img src="<%= room.baseURL %>/icons/23_italic.svg" alt="italic" class="tool" id="italic">
+    <img src="<%= room.baseURL %>/icons/22_underline.svg" alt="underline" class="tool" id="underline">
+    <img src="<%= room.baseURL %>/icons/21_strikethrough.svg" alt="strikethrough" class="tool" id="strikethrough">
+    <img src="<%= room.baseURL %>/icons/20_heading.svg" alt="heading" class="tool coming-soon" id="heading">
+    <img src="<%= room.baseURL %>/icons/19_writingdirection_leftright.svg" alt="writingdirection" class="tool coming-soon" id="writingdirection">
+    <img src="<%= room.baseURL %>/icons/18_justification_left.svg" alt="justification" class="tool coming-soon" id="justification">
+    <img src="<%= room.baseURL %>/icons/17_bulletnumbers.svg" alt="bullet numbers" class="tool coming-soon" id="bulletnumbers">
+    <img src="<%= room.baseURL %>/icons/16_bulletpoints.svg" alt="bullet points" class="tool coming-soon" id="bulletpoints">
+    <img src="<%= room.baseURL %>/icons/15_citation.svg" alt="quote" class="tool" id="citation">
+    <img src="<%= room.baseURL %>/icons/14_font.svg" alt="font" class="tool coming-soon" id="font">
   </div>
   <div id="edit-toolbar">
-    <img src="<%= room.baseURL %>/icons/13_audio.svg" class="tool coming-soon" id="audio">
-    <img src="<%= room.baseURL %>/icons/12_video.svg" class="tool coming-soon" id="video">
-    <img src="<%= room.baseURL %>/icons/11_image.svg" class="tool" id="image-upload">
-    <img src="<%= room.baseURL %>/icons/10_links.svg" class="tool coming-soon" id="links">
+    <img src="<%= room.baseURL %>/icons/13_audio.svg" alt="audio" class="tool coming-soon" id="audio">
+    <img src="<%= room.baseURL %>/icons/12_video.svg" alt="video" class="tool coming-soon" id="video">
+    <img src="<%= room.baseURL %>/icons/11_image.svg" alt="image" class="tool" id="image-upload">
+    <img src="<%= room.baseURL %>/icons/10_links.svg" alt="link" class="tool coming-soon" id="links">
   </div>
 
 
