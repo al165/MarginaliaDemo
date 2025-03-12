@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
         newNote.toFront();
         newNote.parent = parentNote;
         newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + parentPos.top });
+
+        ev.stopPropagation();
     });
 
     function toggleFormat(btn, value) {
@@ -54,6 +56,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const blockquoteBtn = document.querySelector("#citation");
     toggleFormat(blockquoteBtn, 'blockquote');
 
+    // Pop up related tools
+    const linkEditBtn = document.querySelector("#links");
+    const linkEditorPopup = document.querySelector("#link-editor");
+    linkEditBtn.addEventListener('click', function () {
+        if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+            return;
+
+        const selection = state.currentEditingNote.noteEditor.getSelection();
+        if (!selection || !selection.length)
+            return;
+
+        const selectionBounds = state.currentEditingNote.noteEditor.getBounds(selection.index, selection.length);
+        const noteEditorBounds = state.currentEditingNote.noteContainer.getBoundingClientRect();
+        const format = state.currentEditingNote.noteEditor.getFormat(selection.index, selection.length);
+
+        console.log(format);
+        if (format.link)
+            document.getElementById("link-editor-url").value = format.link;
+        else
+            document.getElementById("link-editor-url").value = '';
+
+        linkEditorPopup.style.visibility = 'visible';
+        linkEditorPopup.style.left = state.scrollX + noteEditorBounds.left + selectionBounds.left + "px";
+        linkEditorPopup.style.top = state.scrollY + noteEditorBounds.top + selectionBounds.top + selectionBounds.height + 2 + "px";
+
+        const addLinkBtn = document.getElementById('link-editor-add-btn');
+        const urlTextInput = document.getElementById('link-editor-url');
+        addLinkBtn.onclick = () => {
+            const newURL = urlTextInput.value;
+            if (newURL) {
+                state.currentEditingNote.noteEditor.format('link', newURL, 'user');
+            } else {
+                state.currentEditingNote.noteEditor.format('link', undefined, 'user');
+            }
+
+            linkEditorPopup.style.visibility = 'hidden';
+        };
+    });
 
     // Image uploads...
     const imageUploadBtn = document.querySelector("#image-upload");
@@ -65,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
 
         imageUploadInput.click();
+        ev.stopPropagation();
     });
 
     imageUploadInput.addEventListener('change', function (ev) {
@@ -185,11 +226,11 @@ document.addEventListener('DOMContentLoaded', () => {
     state.addCallback('editMode', (editMode) => {
         const editToolbar = document.getElementById("edit-toolbar");
         const textToolbar = document.getElementById("text-toolbar");
-        console.log('editMode: ' + editMode);
         if (editMode) {
             textToolbar.style.right = editToolbar.clientWidth - editToolbar.clientHeight + "px";
         } else {
             textToolbar.style.right = editToolbar.clientWidth - textToolbar.clientWidth + "px";
+            linkEditorPopup.style.visibility = 'hidden';
         }
     })
 });

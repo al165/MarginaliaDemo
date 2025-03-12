@@ -18,7 +18,8 @@ body {
     margin: 0;
     padding: 0;
     position: absolute;
-    pointer-events: none;
+    min-width: 100vw;
+    min-height: 100vh;
 }
 
 .logo {
@@ -206,4 +207,20 @@ a:visited {
     max-width: 10em;
     background-color: var(--glow-color);
     z-index: 2000;
+}
+
+.popup {
+    z-index: 1999;
+    position: absolute;
+    visibility: hidden;
+    padding: 1em;
+    background-color: var(--menu-bg-color);
+    box-shadow: var(--glow-color) 0px 0px 16px 7px;
+}
+
+#link-editor {
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    gap: 0.5em;
 }

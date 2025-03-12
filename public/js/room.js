@@ -47,6 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
             continue;
         setTheme(colourTheme);
     }
+
+    document.getElementById("bounding").onclick = (ev) => {
+        if (state.currentEditingNote)
+            state.currentEditingNote.exitEditMode();
+    }
 });
 
 document.addEventListener("scroll", () => {

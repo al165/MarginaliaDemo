@@ -373,10 +373,10 @@ class Note extends Fragment {
             return;
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
-            console.log("selection-change");
+            // console.log("selection-change");
             if (!range) {
-                this.save();
-                this.exitEditMode();
+                // this.save();
+                // this.exitEditMode();
                 return;
             }
 
@@ -414,9 +414,13 @@ class Note extends Fragment {
         state.currentEditingNote = this;
     }
 
-    exitEditMode() {
+    exitEditMode(skip_save = false) {
         this.editing = false;
         this.noteContainer.classList.remove('note-editing');
+
+        if (!skip_save)
+            this.save();
+
         if (this.noteEditor)
             this.noteEditor.enable(false);
         if (state.currentEditingNote == this)
@@ -445,7 +449,7 @@ class Note extends Fragment {
                 "Content-type": "application/json"
             }
         }).then(res => {
-            this.exitEditMode();
+            this.exitEditMode(true);
             this.close(false);
 
             if (!res.ok) {
