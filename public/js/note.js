@@ -425,7 +425,7 @@ class Note extends Fragment {
     }
 
     setLocked(lock) {
-        console.log(`note ${this.noteId} is ${lock ? "locked" : "unlocked"}`);
+        // console.log(`note ${this.noteId} is ${lock ? "locked" : "unlocked"}`);
 
         this.locked = lock;
 
@@ -460,15 +460,10 @@ class Note extends Fragment {
 
                 for (const format of parentContents.ops) {
                     if (format.attributes && format.attributes.annotate && format.attributes.annotate.id == this.noteId) {
-                        console.log("removing format:")
-                        console.log(format);
-                        // parentContents.remove(format);
                         delete format.attributes.annotate;
                         break;
                     }
                 }
-
-                console.log(parentContents);
 
                 this.parent.setContents(parentContents.ops, 'api');
                 this.parent.restore();
@@ -517,7 +512,6 @@ class Note extends Fragment {
             });
         } else {
             // note not saved yet, create new
-            console.log(this.noteEditor.getText().trim().length);
 
             // if empty, ignore...
             if (this.noteEditor.getText().trim().length == 0) {

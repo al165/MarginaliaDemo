@@ -20,6 +20,14 @@ socket.on('noteEditing', function (data) {
     state.notes[data.noteId].setLocked(data.lock);
 });
 
+socket.on('lockedNotes', function (lockedNotes) {
+    for (const noteId of lockedNotes) {
+        if (state.notes[noteId]) {
+            state.notes[noteId].setLocked(true);
+        }
+    }
+});
+
 state.socket = socket;
 
 document.addEventListener('DOMContentLoaded', () => {

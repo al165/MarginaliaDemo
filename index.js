@@ -182,12 +182,8 @@ app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (re
     const { roomId } = req.params;
     const { noteContent, noteOptions } = req.body;
 
-    if (!noteContent) {
+    if (!noteContent)
         throw new Error("noteContent is empty");
-        // console.log("Creating new but empty note, discarding");
-        // res.status(204).json({ msg: 'not creating empty note' });
-        // return;
-    }
 
     const noteId = generateId(16);
     const createdOn = new Date();
@@ -279,25 +275,54 @@ app.use((err, req, res, next) => {
     res.status(500).render('error', { message: err.message || "Internal Server Error", rootURL: BASE_URL });
 });
 
+let editingNotes = {}; // roomId: [list of locked noteId]
+// let roomEditingState = {};
+let usersEditingNotes = {};
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
+    console.log('a user connected, id = ' + socket.id);
 
     socket.on('roomId', function (roomId) {
         console.log("user in room " + roomId);
         socket.join(roomId);
+
+        // get currently locked notes and send list
+        let lockedNotes = [];
+        for (const data of Object.values(usersEditingNotes)) {
+            if (data.roomId !== roomId)
+                continue;
+
+            if (data.lock)
+                lockedNotes.push(data.noteId);
+        }
+
+        if (lockedNotes.length > 0) {
+            socket.emit('lockedNotes', lockedNotes);
+        }
     });
 
     socket.on('editingNote', function (data) {
+        if (data.lock) {
+            if (usersEditingNotes[socket.id])
+                console.log("User already editing a note!");
+            usersEditingNotes[socket.id] = data;
+        }
+        else
+            delete usersEditingNotes[socket.id];
+
         socket.broadcast.to(data.roomId).emit('noteEditing', data);
     });
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
+        if (usersEditingNotes[socket.id]) {
+            const { roomId, noteId } = usersEditingNotes[socket.id];
+            socket.broadcast.to(roomId).emit('noteEditing', { roomId, noteId, lock: false });
+        }
     });
 });
 
-let db = undefined;
+let db;
 
 async function setup() {
     db = await dbPromise;
