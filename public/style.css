@@ -4,6 +4,7 @@
     --menu-bg-color: #E8E8E8;
     --glow-color: #C2C1FF;
     --text-color: #000000;
+    --link-color: #6e6e7e;
 }
 
 body {
@@ -52,6 +53,11 @@ body {
     top: 0;
     left: 0;
     z-index: 1001;
+}
+
+a,
+a:visited {
+    color: var(--link-color);
 }
 
 

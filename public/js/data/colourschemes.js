@@ -6,6 +6,7 @@ export const LIGHT_THEME = {
     menuBgColor: "#E8E8E8",
     glowColor: "#C2C1FF",
     textColor: "#000000",
+    linkColor: "#6e6e7e",
     iconFilter: "",
 };
 
@@ -17,6 +18,7 @@ export const DARK_THEME = {
     menuBgColor: "#000000",
     glowColor: "#ff00ff",
     textColor: "#ffffff",
+    linkColor: "#ff00ff",
     iconFilter: "invert(100%)",
 };
 
@@ -28,6 +30,7 @@ export const SUMMER_THEME = {
     menuBgColor: "#ffd200",
     glowColor: "#ec8e6f",
     textColor: "#000000",
+    linkColor: "#de3800",
     iconFilter: "",
 };
 
@@ -39,6 +42,7 @@ export const PURPLE_THEME = {
     menuBgColor: "#210000",
     glowColor: "#b26bfe",
     textColor: "#000000",
+    linkColor: "#b26bfe",
     iconFilter: "invert(100%)",
 };
 
@@ -57,6 +61,7 @@ export function setTheme(colourTheme) {
     document.documentElement.style.setProperty('--menu-bg-color', colourTheme.menuBgColor);
     document.documentElement.style.setProperty('--glow-color', colourTheme.glowColor);
     document.documentElement.style.setProperty('--text-color', colourTheme.textColor);
+    document.documentElement.style.setProperty('--link-color', colourTheme.linkColor);
 
     for (const toolIcon of document.querySelectorAll(".tool")) {
         toolIcon.style.filter = colourTheme.iconFilter;
