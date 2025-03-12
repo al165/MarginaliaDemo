@@ -36,7 +36,7 @@ These are the default values.
 The key/values are as follows:
 
 - `PORT`: which port to listen on
-- `BASE_URL`: is the root path of the URL, e.g. the api to get a room will become `<your_domain.com>/<BASE_URL>/<roomId>`. Must begin with a `/`.
+- `BASE_URL`: is the root path of the URL, e.g. the api to get a room will become `<your_domain.com><BASE_URL>/<roomId>`. Must begin with a `/`, and if it ends in '/' it will be stripped.
 
 ## Todo
 
