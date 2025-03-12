@@ -1,9 +1,13 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import crypto from 'crypto';
+import util from 'util';
+import { exec } from 'child_process';
+const execPromise = util.promisify(exec);
 
 import express from 'express';
 import { createServer } from 'http';
@@ -11,20 +15,27 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 
 import multer, { diskStorage } from 'multer';
+// import im from 'imagemagick';
 
 import { Server } from 'socket.io';
 
+dotenv.configDotenv();
+
+let UPLOADS_DIR = process.env.UPLOADS_DIR ?? "./uploads";
 const storagePhoto = diskStorage({
-    destination: 'uploads',
+    destination: path.join(UPLOADS_DIR, "tmp"),
     filename: (req, file, cb) => {
         console.log("file: ");
         console.log(file);
+
+        if (!['image/webp', 'image/jpeg', 'image/png'].includes(file.mimetype))
+            cb(null, false);
+
         cb(null, generateId(8) + path.extname(file.originalname));
     }
 });
 const uploadPhoto = multer({ storage: storagePhoto });
 
-dotenv.configDotenv();
 
 let BASE_URL = process.env.BASE_URL;
 if (BASE_URL && BASE_URL.slice(-1) === '/')
@@ -210,9 +221,29 @@ app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (re
 }));
 
 app.post(BASE_URL + '/upload', uploadPhoto.single('file'), asyncHandler(async (req, res) => {
-    console.log(req.file.filename);
 
-    res.json({ msg: req.file });
+    // convert to new file
+
+    let newFilename = path.parse(req.file.filename).name + ".png";
+    let newFilePath = path.join(UPLOADS_DIR, newFilename);
+    let newFileURL = path.join('/uploads', newFilename);
+    console.log(newFilename);
+
+    try {
+        const { stdout, stderr } = await execPromise(`magick convert ${req.file.path} -resize 256x256 -ordered-dither o2x2 ${newFilePath}`);
+    } catch (err) {
+        throw new Error(err.message, { cause: 'Converting image' });
+    }
+
+    // delete old file
+    try {
+        fs.unlinkSync(req.file.path);
+    } catch (err) {
+        throw new Error(err.message, { cause: 'Deleting tmp image' });
+    }
+
+    // return new file name
+    res.json({ msg: { path: newFileURL } });
 }));
 
 app.delete(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, asyncHandler(async (req, res) => {
@@ -282,7 +313,7 @@ app.get(BASE_URL + '/', asyncHandler(async (req, res) => {
 }));
 
 app.use(BASE_URL, express.static(path.join(__dirname, 'public')));
-app.use(BASE_URL + '/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(BASE_URL + '/uploads', express.static(path.join(__dirname, UPLOADS_DIR)));
 
 // Error handling middlewares
 app.use((err, req, res, next) => {
@@ -342,6 +373,8 @@ async function setup() {
     db = await dbPromise;
     await db.migrate();
     await createHomeNote();
+
+    fs.mkdirSync(path.join(UPLOADS_DIR, 'tmp'), { recursive: true })
 
     server.listen(PORT, () => {
         console.log("listening on http://localhost:" + PORT + BASE_URL);

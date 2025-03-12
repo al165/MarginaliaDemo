@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { noteEditor } = state.currentEditingNote;
             const range = noteEditor.getSelection(true);
             noteEditor.insertText(range.index, '\n', 'user');
-            noteEditor.insertEmbed(range.index + 1, 'image', baseURL + '/' + path, 'user');
+            noteEditor.insertEmbed(range.index + 1, 'image', baseURL + path, 'user');
             noteEditor.setSelection(range.index + 2, 'silent');
         });
     });
