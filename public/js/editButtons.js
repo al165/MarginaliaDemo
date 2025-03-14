@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Pop up related tools
     const linkEditBtn = document.querySelector("#links");
+    const popupClose = document.querySelector("#popup-close");
     const linkEditorPopup = document.querySelector("#link-editor");
     linkEditBtn.addEventListener('click', function () {
         if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
@@ -77,9 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
         else
             document.getElementById("link-editor-url").value = '';
 
+        popupClose.style.visibility = 'visible';
         linkEditorPopup.style.visibility = 'visible';
-        linkEditorPopup.style.left = state.scrollX + noteEditorBounds.left + selectionBounds.left + "px";
-        linkEditorPopup.style.top = state.scrollY + noteEditorBounds.top + selectionBounds.top + selectionBounds.height + 2 + "px";
+
+        linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + "px";
+        linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + selectionBounds.height + 2 + "px";
 
         const addLinkBtn = document.getElementById('link-editor-add-btn');
         const urlTextInput = document.getElementById('link-editor-url');
@@ -90,9 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 state.currentEditingNote.noteEditor.format('link', undefined, 'user');
             }
-
             linkEditorPopup.style.visibility = 'hidden';
+            popupClose.style.visibility = 'hidden';
         };
+
+        popupClose.onclick = () => {
+            linkEditorPopup.style.visibility = 'hidden';
+            popupClose.style.visibility = 'hidden';
+        }
     });
 
     // Image uploads...
