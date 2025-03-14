@@ -363,6 +363,7 @@ io.on('connection', (socket) => {
         if (usersEditingNotes[socket.id]) {
             const { roomId, noteId } = usersEditingNotes[socket.id];
             socket.broadcast.to(roomId).emit('noteEditing', { roomId, noteId, lock: false });
+            delete usersEditingNotes[socket.id];
         }
     });
 });
