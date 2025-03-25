@@ -41,6 +41,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function cycleFormat(btn, format, values) {
+        btn.addEventListener('click', function () {
+            if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+                return;
+
+            const currentFormat = state.currentEditingNote.noteEditor.getFormat();
+            if (!currentFormat || !currentFormat[format]) {
+                state.currentEditingNote.noteEditor.format(format, values[0], 'user');
+            } else {
+                let nextIndex = values.indexOf(currentFormat[format]) + 1;
+                nextIndex = nextIndex % values.length;
+                state.currentEditingNote.noteEditor.format(format, values[nextIndex], 'user');
+            }
+        });
+    }
+
     const boldBtn = document.querySelector("#bold");
     toggleFormat(boldBtn, 'bold');
 
@@ -55,6 +71,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const blockquoteBtn = document.querySelector("#citation");
     toggleFormat(blockquoteBtn, 'blockquote');
+
+    const headingsBtn = document.querySelector("#heading");
+    cycleFormat(headingsBtn, 'header', [1, 2, 3, null]);
+
+    const writingDirection = document.querySelector("#writingdirection");
+    cycleFormat(writingDirection, 'direction', ['rtl', null]);
+
+    const justificationBtn = document.querySelector("#justification");
+    cycleFormat(justificationBtn, 'align', ['center', 'right', null]);
+
+    const numberedListBtn = document.querySelector("#bulletnumbers");
+    cycleFormat(numberedListBtn, 'list', ['ordered', null]);
+
+    const bulletListBtn = document.querySelector("#bulletpoints");
+    cycleFormat(bulletListBtn, 'list', ['bullet', null]);
+
+    const fontsBtn = document.querySelector("#font");
+    cycleFormat(fontsBtn, 'font', ['serif', 'monospace', null]);
 
     // Pop up related tools
     const linkEditBtn = document.querySelector("#links");
