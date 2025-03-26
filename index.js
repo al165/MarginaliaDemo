@@ -573,8 +573,8 @@ async function createHomeNote() {
 
     notes.map(async (noteData) => {
         await db.run(
-            "INSERT INTO Notes (id, createdOn, noteContent) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET noteContent = ?;",
-            [noteData.id, noteData.createdOn, noteData.noteContent, noteData.noteContent],
+            "INSERT INTO Notes (id, createdOn, noteContent) VALUES (?, ?, ?) ON CONFLICT(id) DO NOTHING;",
+            [noteData.id, noteData.createdOn, noteData.noteContent],
             function (err) {
                 if (err)
                     console.error(err);
