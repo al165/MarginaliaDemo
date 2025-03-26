@@ -119,8 +119,6 @@ function split(fragment, vertical, newNote, hRect) {
     newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
     newNote.setPosition(newNotePos);
     fragment.close(false);
-
-    calculateBoundingBox();
 }
 
 function updateHighlights(note) {
@@ -155,27 +153,27 @@ function updateHighlights(note) {
 }
 
 function calculateBoundingBox() {
-    let rect = {
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0
-    };
+    // let rect = {
+    //     left: 0,
+    //     right: 0,
+    //     top: 0,
+    //     bottom: 0
+    // };
 
-    for (const container of document.querySelectorAll(".note-container")) {
-        const boundingRect = container.getBoundingClientRect();
-        rect.left = Math.min(rect.left, boundingRect.left);
-        rect.right = Math.max(rect.right, boundingRect.right);
+    // for (const container of document.querySelectorAll(".note-container")) {
+    //     const boundingRect = container.getBoundingClientRect();
+    //     rect.left = Math.min(rect.left, boundingRect.left);
+    //     rect.right = Math.max(rect.right, boundingRect.right);
 
-        rect.top = Math.min(rect.top, boundingRect.top);
-        rect.bottom = Math.max(rect.bottom, boundingRect.bottom);
-    }
+    //     rect.top = Math.min(rect.top, boundingRect.top);
+    //     rect.bottom = Math.max(rect.bottom, boundingRect.bottom);
+    // }
 
-    const b = document.querySelector("#bounding");
-    b.style.left = rect.left + "px";
-    b.style.top = rect.top + "px";
-    b.style.width = (rect.right - rect.left + 200) + "px";
-    b.style.height = (rect.bottom - rect.top + 200) + "px";
+    // const b = document.querySelector("#bounding");
+    // b.style.left = rect.left + "px";
+    // b.style.top = rect.top + "px";
+    // b.style.width = (rect.right - rect.left + 200) + "px";
+    // b.style.height = (rect.bottom - rect.top + 200) + "px";
 }
 
 class Fragment {
@@ -188,8 +186,6 @@ class Fragment {
 
         this.noteContainer = document.createElement('div');
         this.noteContainer.classList.add('note-container');
-
-        new ResizeObserver(calculateBoundingBox).observe(this.noteContainer);
 
         this.noteContents = document.createElement('div');
         this.noteContents.classList.add('note');
@@ -229,8 +225,6 @@ class Fragment {
     show() {
         this.open = true;
         document.querySelector("#notes").appendChild(this.noteContainer);
-
-        calculateBoundingBox();
     }
 
     close(recurse = false) {
@@ -240,8 +234,6 @@ class Fragment {
     setPosition(pos) {
         this.noteContainer.style.left = Math.max(20, pos.left) + "px";
         this.noteContainer.style.top = Math.max(20, pos.top) + "px";
-
-        calculateBoundingBox();
     }
 
     addOffset(offset) {
@@ -265,8 +257,6 @@ class Fragment {
     setSize(size) {
         this.noteContainer.style.width = size.width + "px";
         this.noteContainer.style.height = size.height + "px";
-
-        calculateBoundingBox();
     }
 
     getSize() {
@@ -285,8 +275,6 @@ class Fragment {
             this.close(false);
         }
         document.querySelector("#notes").appendChild(this.noteContainer);
-        calculateBoundingBox();
-
     }
 
     restore() {
@@ -317,20 +305,19 @@ class Note extends Fragment {
             formats: [
                 'italic',
                 'bold',
-                'color',
                 'font',
                 'strike',
                 'underline',
                 'blockquote',
                 'header',
                 'align',
+                'direction',
                 'list',
                 'indent',
                 'annotate',
                 'image',
                 'video',
                 'link',
-                'size',
             ]
         });
         this.noteEditor.enable(false);
@@ -600,18 +587,9 @@ class Split extends Fragment {
         this.noteContents.innerHTML = html;
         updateHighlights(this);
 
-        // Restore button...
-        // this.restoreBtn = document.createElement('div');
-        // this.restoreBtn.classList.add('restore');
-        // this.restoreBtn.classList.add('btn');
-        // // this.buttonContainer.appendChild(this.restoreBtn);
-
-        // this.restoreBtn.addEventListener('click', (ev) => this.restore());
-
         this.noteContainer.addEventListener('mouseenter', (ev) => {
             if (editBtn) {
                 editBtn.style.display = "none";
-                // editBtn.onclick = () => this.enterEditMode();
             }
 
             restoreBtn.onclick = () => this.restore();

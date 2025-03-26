@@ -19,7 +19,7 @@ body {
     /* border: 1px red solid; */
     margin: 0;
     padding: 0;
-    position: absolute;
+    position: fixed;
     min-width: 100vw;
     min-height: 100vh;
 }
@@ -63,13 +63,13 @@ a:visited {
     color: var(--link-color);
 }
 
-
 .note-container {
     position: absolute;
     background-color: var(--note-bg-color);
     box-shadow: var(--glow-color) 0px 0px 16px 7px;
     padding: 0;
     transition: filter 0.5s, opacity 0.5s;
+    margin-bottom: 3em;
 }
 
 .note-container img {
