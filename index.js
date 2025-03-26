@@ -15,7 +15,6 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 
 import multer, { diskStorage } from 'multer';
-// import im from 'imagemagick';
 
 import { Server } from 'socket.io';
 
@@ -52,6 +51,8 @@ const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
 const io = new Server(server);
+
+let HAS_MAGICK = false;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -231,7 +232,10 @@ app.post(BASE_URL + '/upload', uploadPhoto.single('file'), asyncHandler(async (r
     console.log(newFilename);
 
     try {
-        const { stdout, stderr } = await execPromise(`magick convert ${req.file.path} -resize 256x256 -ordered-dither o2x2 ${newFilePath}`);
+        let magickCommand = `convert ${req.file.path} -resize 256x256 -ordered-dither o2x2 ${newFilePath}`;
+        if (HAS_MAGICK)
+            magickCommand = 'magick ' + magickCommand;
+        const { stdout, stderr } = await execPromise(magickCommand);
     } catch (err) {
         throw new Error(err.message, { cause: 'Converting image' });
     }
@@ -372,11 +376,22 @@ io.on('connection', (socket) => {
 let db;
 
 async function setup() {
+    // setup database
     db = await dbPromise;
     await db.migrate();
     await createHomeNote();
 
     fs.mkdirSync(path.join(UPLOADS_DIR, 'tmp'), { recursive: true })
+
+    // check if `magick` command exists
+    exec("which magick", (error, stdout) => {
+        if (error)
+            HAS_MAGICK = false;
+        else
+            HAS_MAGICK = true;
+
+        console.log(`HAS_MAGICK: ${HAS_MAGICK}`);
+    });
 
     server.listen(PORT, () => {
         console.log("listening on http://localhost:" + PORT + BASE_URL);
