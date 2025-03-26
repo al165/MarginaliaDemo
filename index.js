@@ -208,15 +208,16 @@ app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (re
 
     console.log(`NEW NOTE: id ${noteId}`);
 
-    // Todo: check if roomId has a rootNote, and if not then update to this...
     const row = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
 
     if (!row)
         throw new Error("Error when checking rootNote: row is empty");
 
-    await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId]);
+    if (!row.rootNote) {
+        await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId]);
+        console.log(`Set rootNote to ${noteId}`);
+    }
 
-    console.log(`Set rootNote to ${noteId}`);
     res.status(201).json({ noteId });
 }));
 
