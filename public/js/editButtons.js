@@ -106,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const noteEditorBounds = state.currentEditingNote.noteContainer.getBoundingClientRect();
         const format = state.currentEditingNote.noteEditor.getFormat(selection.index, selection.length);
 
-        console.log(format);
         if (format.link)
             document.getElementById("link-editor-url").value = format.link;
         else
@@ -136,6 +135,46 @@ document.addEventListener('DOMContentLoaded', () => {
             popupClose.style.visibility = 'hidden';
         }
     });
+
+    // Video embed
+    const videoEmbedBtn = document.querySelector("#video");
+    const videoEditorAddBtn = document.querySelector("#video-editor-add-btn");
+    const videoEditorPopup = document.querySelector("#video-editor");
+    videoEmbedBtn.addEventListener('click', function () {
+        if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+            return;
+
+        const selection = state.currentEditingNote.noteEditor.getSelection();
+
+        const selectionBounds = state.currentEditingNote.noteEditor.getBounds(selection.index, selection.length);
+        const noteEditorBounds = state.currentEditingNote.noteContainer.getBoundingClientRect();
+
+        console.log(selectionBounds);
+
+        popupClose.style.visibility = 'visible';
+        videoEditorPopup.style.visibility = 'visible';
+
+        videoEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + "px";
+        videoEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + selectionBounds.height + 2 + "px";
+
+        const urlTextInput = document.getElementById("video-editor-url");
+        videoEditorAddBtn.onclick = () => {
+            const newURL = urlTextInput.value;
+            if (newURL) {
+                state.currentEditingNote.noteEditor.insertEmbed(selection.index + 1, 'video', extractVideoUrl(newURL), 'user');
+                state.currentEditingNote.noteEditor.formatText(selection.index + 1, 1, { height: '170', width: '400' });
+                state.currentEditingNote.noteEditor.setSelection(selection.index + 2, Quill.sources.SILENT);
+            }
+            videoEditorPopup.style.visibility = 'hidden';
+            popupClose.style.visibility = 'hidden';
+        }
+
+        popupClose.onclick = () => {
+            videoEditorPopup.style.visibility = 'hidden';
+            popupClose.style.visibility = 'hidden';
+        }
+    });
+
 
     // Image uploads...
     const imageUploadBtn = document.querySelector("#image-upload");
@@ -276,3 +315,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })
 });
+
+function extractVideoUrl(url) {
+    let match =
+        url.match(
+            /^(?:(https?):\/\/)?(?:(?:www|m)\.)?youtube\.com\/watch.*v=([a-zA-Z0-9_-]+)/,
+        ) ||
+        url.match(/^(?:(https?):\/\/)?(?:(?:www|m)\.)?youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+        return `${match[1] || 'https'}://www.youtube.com/embed/${match[2]
+            }?showinfo=0`;
+    }
+    if ((match = url.match(/^(?:(https?):\/\/)?(?:www\.)?vimeo\.com\/(\d+)/))) {
+        return `${match[1] || 'https'}://player.vimeo.com/video/${match[2]}/`;
+    }
+    return url;
+}

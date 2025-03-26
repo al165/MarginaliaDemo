@@ -328,6 +328,7 @@ class Note extends Fragment {
                 'indent',
                 'annotate',
                 'image',
+                'video',
                 'link',
                 'size',
             ]
