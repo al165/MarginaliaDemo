@@ -68,7 +68,7 @@ function split(fragment, vertical, newNote, hRect) {
     const crossCartesian = vertical ? "y" : "x";
     const crossOffset = vertical ? "offsetTop" : "offsetLeft";
 
-    const cut = hRect[mainCartesian] - pos[mainAxisN] + scrollMainAxis;
+    const cut = hRect[mainCartesian] - pos[mainAxisN] + scrollMainAxis + hRect[mainDim] / 2;
 
     const html = fragment.getHTML();
     const areaRect = fragment.noteWindow.getBoundingClientRect();
@@ -240,8 +240,8 @@ class Fragment {
     }
 
     setPosition(pos) {
-        this.noteContainer.style.left = Math.max(20, pos.left) + "px";
-        this.noteContainer.style.top = Math.max(20, pos.top) + "px";
+        this.noteContainer.style.left = Math.max(20, pos.left - this.noteWindow.offsetLeft) + "px";
+        this.noteContainer.style.top = Math.max(20, pos.top - this.noteWindow.offsetTop) + "px";
     }
 
     addOffset(offset) {
@@ -257,8 +257,8 @@ class Fragment {
 
     getPosition() {
         return {
-            left: this.noteContainer.offsetLeft,
-            top: this.noteContainer.offsetTop
+            left: this.noteWindow.offsetLeft + this.noteContainer.offsetLeft,
+            top: this.noteWindow.offsetTop + this.noteContainer.offsetTop
         }
     }
 
