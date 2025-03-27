@@ -71,7 +71,7 @@ function split(fragment, vertical, newNote, hRect) {
     const cut = hRect[mainCartesian] - pos[mainAxisN] + scrollMainAxis;
 
     const html = fragment.getHTML();
-    const areaRect = fragment.noteContainer.getBoundingClientRect();
+    const areaRect = fragment.noteWindow.getBoundingClientRect();
     const contentRect = fragment.noteContents.getBoundingClientRect();
 
     const fragmentLeft = new Split(fragment.noteId, fragment, html);
@@ -187,15 +187,23 @@ class Fragment {
         this.noteContainer = document.createElement('div');
         this.noteContainer.classList.add('note-container');
 
+        this.noteWindow = document.createElement('div');
+        this.noteWindow.classList.add('note-window');
+
+        this.noteInternalPositioner = document.createElement('div');
+        this.noteInternalPositioner.classList.add('note-positioner');
+
         this.noteContents = document.createElement('div');
         this.noteContents.classList.add('note');
         this.noteContents.classList.add('note-content');
         this.noteContents.classList.add('ql-container');
 
-        this.noteContainer.appendChild(this.noteContents);
+        this.noteContainer.appendChild(this.noteWindow);
+        this.noteWindow.appendChild(this.noteInternalPositioner);
+        this.noteInternalPositioner.appendChild(this.noteContents);
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
-            this.noteContainer.appendChild(noteButtons);
+            this.noteWindow.appendChild(noteButtons);
 
             if (editBtn)
                 editBtn.style.display = "none";
@@ -255,14 +263,14 @@ class Fragment {
     }
 
     setSize(size) {
-        this.noteContainer.style.width = size.width + "px";
-        this.noteContainer.style.height = size.height + "px";
+        this.noteWindow.style.width = size.width + "px";
+        this.noteWindow.style.height = size.height + "px";
     }
 
     getSize() {
         return {
-            width: this.noteContainer.offsetWidth,
-            height: this.noteContainer.offsetHeight
+            width: this.noteWindow.offsetWidth,
+            height: this.noteWindow.offsetHeight
         }
     }
 
@@ -397,14 +405,14 @@ class Note extends Fragment {
         this.editing = true;
         this.noteEditor.enable(true);
         this.noteEditor.focus();
-        this.noteContainer.classList.add('note-editing');
+        this.noteWindow.classList.add('note-editing');
         state.editMode = true;
         state.currentEditingNote = this;
     }
 
     exitEditMode(skip_save = false) {
         this.editing = false;
-        this.noteContainer.classList.remove('note-editing');
+        this.noteWindow.classList.remove('note-editing');
 
         if (!skip_save)
             this.save();
@@ -577,7 +585,7 @@ class Note extends Fragment {
 class Split extends Fragment {
     constructor(noteId, note, html) {
         super(noteId);
-        this.noteContainer.classList.add("split");
+        this.noteWindow.classList.add("overflow-hidden");
         this.noteContents.classList.add('absolute');
         this.noteContents.classList.add('ql-editor');
 
