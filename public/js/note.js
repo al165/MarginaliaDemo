@@ -1,6 +1,7 @@
 import { state } from './state.js';
 
 async function fetchNote(noteId, note) {
+    console.log("fetchNote ", noteId);
     try {
         const response = await fetch(
             `${baseURL}/room/${state.roomId}/note/${noteId}`
@@ -11,10 +12,12 @@ async function fetchNote(noteId, note) {
         }
 
         if (!note) {
+            // console.log("fetchNote: `note` not provided, making new");
             const newNote = new Note(noteId);
             newNote.setContents(JSON.parse(data.noteContent));
             return newNote;
         } else {
+            // console.log("fetchNote: `note` provided, updating contents");
             note.setContents(JSON.parse(data.noteContent));
             return note;
         }
@@ -500,6 +503,7 @@ class Note extends Fragment {
                 else
                     return {}
             }).then(json => {
+                this.lastContent = JSON.stringify(noteContent);
                 if (json.msg)
                     console.log(json.msg);
             }).catch(error => {
@@ -544,6 +548,8 @@ class Note extends Fragment {
                         this.parent.save();
                     }
 
+                    state.addNote(this);
+                    this.lastContent = JSON.stringify(noteContent);
                 }
                 else
                     console.log(json);

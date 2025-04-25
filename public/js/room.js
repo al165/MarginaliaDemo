@@ -12,11 +12,12 @@ socket.on('connect', function () {
 });
 
 socket.on('noteUpdated', function (noteId) {
-    console.log("noteUpdated: " + noteId);
+    console.log("socket: noteUpdated: " + noteId);
     fetchNote(noteId, state.notes[noteId]);
 });
 
 socket.on('noteEditing', function (data) {
+    console.log("socket: noteEditing: " + data.noteId);
     state.notes[data.noteId].setLocked(data.lock);
 });
 
