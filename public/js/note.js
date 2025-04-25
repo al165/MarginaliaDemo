@@ -15,6 +15,7 @@ async function fetchNote(noteId, note) {
             // console.log("fetchNote: `note` not provided, making new");
             const newNote = new Note(noteId);
             newNote.setContents(JSON.parse(data.noteContent));
+            newNote.show();
 
             calculateBoundingBox();
             return newNote;
@@ -130,16 +131,40 @@ function split(fragment, vertical, newNote, hRect) {
 
     // Position the fragments
     let posL = {};
+    posL[mainAxisN] = pos[mainAxisN];
+    posL[crossAxisN] = pos[crossAxisN];
+    fragmentLeft.setPosition(posL);
+    // incase the new position was bounded
+    posL = fragmentLeft.getPosition();
+
+    let posR = {};
+    posR[mainAxisN] = posL[mainAxisN] + sizeL[mainDim];
+    posR[crossAxisN] = pos[crossAxisN];
+    fragmentRight.setPosition(posR);
+    posR = fragmentRight.getPosition();
+
+    const newNotePos = {};
+    newNotePos[mainAxisN] = posL[mainAxisN] + sizeL[mainDim];
+    newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
+    newNote.setPosition(newNotePos);
+
+    // now animate the positions
+    fragmentLeft.noteContainer.classList.add('slide');
+    fragmentRight.noteContainer.classList.add('slide');
+    newNote.noteContainer.classList.add('slide');
+
     posL[mainAxisN] = pos[mainAxisN] - offset / 2;
     posL[crossAxisN] = pos[crossAxisN];
     fragmentLeft.setPosition(posL);
-    posL = fragmentLeft.getPosition();  // incase the new position was bounded
 
-    let posR = {};
     posR[mainAxisN] = posL[mainAxisN] + sizeL[mainDim] + offset;
     posR[crossAxisN] = pos[crossAxisN];
     fragmentRight.setPosition(posR);
-    posR = fragmentRight.getPosition();  // incase the new position was bounded
+
+    newNotePos[mainAxisN] = posL[mainAxisN] + sizeL[mainDim];
+    newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
+    newNote.setPosition(newNotePos);
+
 
     // Adjust the inner content within the fragments
     fragmentLeft.noteContents.style[mainAxisN] = contentRect[mainAxisN] - areaRect[mainAxisN] + "px";
@@ -154,10 +179,8 @@ function split(fragment, vertical, newNote, hRect) {
     fragment.children.push(fragmentRight);
 
     // Calculate the position of the new Note
-    const newNotePos = {}
-    newNotePos[mainAxisN] = posL[mainAxisN] + sizeL[mainDim];
-    newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
-    newNote.setPosition(newNotePos);
+
+
     fragment.close(false);
 
     calculateBoundingBox();
@@ -203,6 +226,9 @@ class Fragment {
         this.splits = [];
         this.parent;
         this.open = true;
+        this.width = 10;
+        this.height = 10;
+        this.position = { left: 0, top: 0 };
 
         this.noteContainer = document.createElement('div');
         this.noteContainer.classList.add('note-container');
@@ -257,6 +283,12 @@ class Fragment {
     show() {
         this.open = true;
         document.querySelector("#notes").appendChild(this.noteContainer);
+        this.noteWindow.style.width = "0px";
+        this.noteWindow.style.height = "0px";
+        this.noteWindow.classList.add("grow");
+        this.noteWindow.offsetHeight;
+        this.noteWindow.style.width = this.width + "px";
+        this.noteWindow.style.height = this.height + "px";
     }
 
     close(recurse = false) {
@@ -264,8 +296,10 @@ class Fragment {
     }
 
     setPosition(pos) {
-        this.noteContainer.style.left = Math.max(20, pos.left - this.noteWindow.offsetLeft) + "px";
-        this.noteContainer.style.top = Math.max(20, pos.top - this.noteWindow.offsetTop) + "px";
+        this.position.left = Math.max(20, pos.left - this.noteWindow.offsetLeft);
+        this.position.top = Math.max(20, pos.top - this.noteWindow.offsetTop);
+        this.noteContainer.style.left = this.position.left + "px";
+        this.noteContainer.style.top = this.position.top + "px";
     }
 
     addOffset(offset) {
@@ -281,20 +315,28 @@ class Fragment {
 
     getPosition() {
         return {
-            left: this.noteWindow.offsetLeft + this.noteContainer.offsetLeft,
-            top: this.noteWindow.offsetTop + this.noteContainer.offsetTop
+            left: this.noteWindow.offsetLeft + this.position.left,
+            top: this.noteWindow.offsetTop + this.position.top
         }
     }
 
-    setSize(size) {
+    setSize(size, grow = true) {
+        if (grow) {
+            this.noteWindow.classList.add("grow");
+            this.noteWindow.offsetHeight;
+        } else {
+            this.noteWindow.classList.remove("grow");
+        }
+        this.width = size.width;
+        this.height = size.height;
         this.noteWindow.style.width = size.width + "px";
         this.noteWindow.style.height = size.height + "px";
     }
 
     getSize() {
         return {
-            width: this.noteWindow.offsetWidth,
-            height: this.noteWindow.offsetHeight
+            width: this.width,
+            height: this.height
         }
     }
 
@@ -353,7 +395,8 @@ class Note extends Fragment {
             ]
         });
         this.noteEditor.enable(false);
-        this.show();
+
+        // this.show();
         state.addNote(this);
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
@@ -417,6 +460,9 @@ class Note extends Fragment {
         this.noteEditor.setContents(contents);
         this.lastContent = JSON.stringify(contents);
         updateHighlights(this);
+
+        this.width = this.noteContents.offsetWidth;
+        this.height = this.noteContents.offsetHeight;
     }
 
     enterEditMode() {
@@ -614,9 +660,9 @@ class Note extends Fragment {
 class Split extends Fragment {
     constructor(noteId, note, html) {
         super(noteId);
-        this.noteWindow.classList.add("overflow-hidden");
         this.noteContents.classList.add('absolute');
         this.noteContents.classList.add('ql-editor');
+        this.noteWindow.classList.add('slide');
 
         this.note = note;
         this.html = html;
