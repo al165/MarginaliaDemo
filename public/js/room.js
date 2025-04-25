@@ -35,6 +35,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state.roomId = roomId;
 
+    const FontAttributor = Quill.import('attributors/class/font');
+    FontAttributor.whitelist = [
+        'sans-serif', 'serif', 'monospace'
+    ];
+    Quill.register(FontAttributor, true);
+    const Clipboard = Quill.import('modules/clipboard');
+    const Delta = Quill.import('delta');
+
+    class PlainClipboard extends Clipboard {
+        onPaste(range, { text, html }) {
+            const delta = new Delta()
+                .retain(range.index, { font: null })
+                .delete(range.length)
+                .insert(text);
+            this.quill.updateContents(delta, Quill.sources.USER);
+            this.quill.setSelection(
+                delta.length() - range.length,
+                Quill.sources.SILENT,
+            );
+            this.quill.scrollSelectionIntoView();
+        }
+    }
+
+    Quill.register('modules/clipboard', PlainClipboard, true);
+
     fetchNote(rootNote).then((newNote) => {
         if (!newNote) {
             console.log("Could not fetch root note " + rootNote);
