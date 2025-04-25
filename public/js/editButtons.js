@@ -114,8 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
         popupClose.style.visibility = 'visible';
         linkEditorPopup.style.visibility = 'visible';
 
-        linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + "px";
-        linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + selectionBounds.height + 2 + "px";
+        linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + state.scrollX + "px";
+        linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + "px";
 
         const addLinkBtn = document.getElementById('link-editor-add-btn');
         const urlTextInput = document.getElementById('link-editor-url');
@@ -154,8 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
         popupClose.style.visibility = 'visible';
         videoEditorPopup.style.visibility = 'visible';
 
-        videoEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + "px";
-        videoEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + selectionBounds.height + 2 + "px";
+        videoEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + state.scrollX + "px";
+        videoEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + 50 + "px";
 
         const urlTextInput = document.getElementById("video-editor-url");
         videoEditorAddBtn.onclick = () => {
