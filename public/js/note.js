@@ -284,11 +284,11 @@ class Fragment {
         this.open = true;
         document.querySelector("#notes").appendChild(this.noteContainer);
         this.noteWindow.style.width = "0px";
-        this.noteWindow.style.height = "0px";
+        // this.noteWindow.style.height = "0px";
         this.noteWindow.classList.add("grow");
         this.noteWindow.offsetHeight;
         this.noteWindow.style.width = this.width + "px";
-        this.noteWindow.style.height = this.height + "px";
+        // this.noteWindow.style.height = this.height + "px";
     }
 
     close(recurse = false) {
