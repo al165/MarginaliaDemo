@@ -194,8 +194,7 @@ class Fragment {
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
             currentHoveredNote = this;
-            this.noteWindow.appendChild(noteButtons);
-
+            this.noteContainer.appendChild(noteButtons);
             const windowRect = this.noteWindow.getBoundingClientRect();
             const windowPos = this.getPosition();
 
@@ -476,6 +475,7 @@ class Note extends Fragment {
             console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
             return;
         }
+        console.log("save()");
 
         const noteContent = this.noteEditor.getContents();
         if (JSON.stringify(noteContent) === this.lastContent) {
@@ -507,6 +507,7 @@ class Note extends Fragment {
             });
         } else {
             // note not saved yet, create new
+            console.log("note not saved, creating new");
 
             // if empty, ignore...
             if (this.noteEditor.getText().trim().length == 0) {
