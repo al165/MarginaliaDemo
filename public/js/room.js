@@ -71,3 +71,12 @@ document.addEventListener("mouseup", (ev) => {
 document.addEventListener("mousemove", (ev) => {
 
 });
+
+// debug #note resizing...
+const resizeObserver = new ResizeObserver((entries) => {
+    for (let entry of entries) {
+        console.log(entry);
+    }
+});
+
+resizeObserver.observe(document.getElementById("notes"));
