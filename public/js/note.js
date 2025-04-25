@@ -49,6 +49,20 @@ const closeBtn = noteButtons.querySelector("#close-note");
 const restoreBtn = noteButtons.querySelector("#restore-note");
 const editBtn = noteButtons.querySelector("#edit-note");
 const removeBtn = noteButtons.querySelector("#remove-note");
+const resizeHandle = document.querySelector("#resize-note");
+
+let currentHoveredNote;
+let dragStart;
+
+if (canEdit) {
+    resizeHandle.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+    });
+
+    resizeHandle.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+    });
+}
 
 function split(fragment, vertical, newNote, hRect) {
     newNote.toFront();
@@ -152,30 +166,6 @@ function updateHighlights(note) {
     }
 }
 
-function calculateBoundingBox() {
-    // let rect = {
-    //     left: 0,
-    //     right: 0,
-    //     top: 0,
-    //     bottom: 0
-    // };
-
-    // for (const container of document.querySelectorAll(".note-container")) {
-    //     const boundingRect = container.getBoundingClientRect();
-    //     rect.left = Math.min(rect.left, boundingRect.left);
-    //     rect.right = Math.max(rect.right, boundingRect.right);
-
-    //     rect.top = Math.min(rect.top, boundingRect.top);
-    //     rect.bottom = Math.max(rect.bottom, boundingRect.bottom);
-    // }
-
-    // const b = document.querySelector("#bounding");
-    // b.style.left = rect.left + "px";
-    // b.style.top = rect.top + "px";
-    // b.style.width = (rect.right - rect.left + 200) + "px";
-    // b.style.height = (rect.bottom - rect.top + 200) + "px";
-}
-
 class Fragment {
     constructor(noteId) {
         this.noteId = noteId;
@@ -203,7 +193,11 @@ class Fragment {
         this.noteInternalPositioner.appendChild(this.noteContents);
 
         this.noteContainer.addEventListener('mouseenter', (ev) => {
+            currentHoveredNote = this;
             this.noteWindow.appendChild(noteButtons);
+
+            const windowRect = this.noteWindow.getBoundingClientRect();
+            const windowPos = this.getPosition();
 
             if (editBtn)
                 editBtn.style.display = "none";
@@ -216,6 +210,7 @@ class Fragment {
                 this.restore();
                 console.log("restore note")
             };
+
             noteButtons.style.visibility = "visible";
         });
 

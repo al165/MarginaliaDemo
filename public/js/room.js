@@ -35,6 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
     state.roomId = roomId;
 
     fetchNote(rootNote).then((newNote) => {
+        if (!newNote) {
+            console.log("Could not fetch root note " + rootNote);
+            return;
+        }
         newNote.setCloseable(false);
         const size = newNote.getSize();
         const x = window.innerWidth / 2 - size.width / 2;
@@ -57,4 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener("scroll", () => {
     state.scrollY = window.scrollY;
     state.scrollX = window.scrollX;
+});
+
+document.addEventListener("mouseup", (ev) => {
+
+});
+
+document.addEventListener("mousemove", (ev) => {
+
 });
