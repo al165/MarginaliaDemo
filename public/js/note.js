@@ -14,6 +14,9 @@ async function fetchNote(noteId, note) {
         if (!note) {
             // console.log("fetchNote: `note` not provided, making new");
             const newNote = new Note(noteId);
+            const options = JSON.parse(data.noteOptions) || {};
+            // options.width = 500;
+            newNote.setOptions(options);
             newNote.setContents(JSON.parse(data.noteContent));
             newNote.show();
 
@@ -21,6 +24,7 @@ async function fetchNote(noteId, note) {
             return newNote;
         } else {
             // console.log("fetchNote: `note` provided, updating contents");
+            note.setOptions(JSON.parse(data.noteOptions));
             note.setContents(JSON.parse(data.noteContent));
 
             calculateBoundingBox();
@@ -78,13 +82,22 @@ const resizeHandle = document.querySelector("#resize-note");
 let currentHoveredNote;
 let dragStart;
 
-if (canEdit) {
+if (canEdit && resizeHandle) {
     resizeHandle.addEventListener('mousedown', (ev) => {
         ev.preventDefault();
-    });
+        console.log("resize start");
+        const noteId = noteButtons.dataset.noteid;
+        if (!noteId)
+            return;
 
-    resizeHandle.addEventListener('mousedown', (ev) => {
-        ev.preventDefault();
+        const note = state.notes[noteId];
+        if (!(note instanceof Note))
+            return;
+
+        state.resizing = noteId;
+        state.resizeStartPosition = ev.clientX;
+        note.noteWindow.classList.remove("grow");
+        state.resizeStartWidth = note.width;
     });
 }
 
@@ -114,6 +127,8 @@ function split(fragment, vertical, newNote, hRect) {
     const html = fragment.getHTML();
     const areaRect = fragment.noteWindow.getBoundingClientRect();
     const contentRect = fragment.noteContents.getBoundingClientRect();
+    console.log("contentRect: ");
+    console.log(contentRect);
 
     const fragmentLeft = new Split(fragment.noteId, fragment, html);
     const fragmentRight = new Split(fragment.noteId, fragment, html);
@@ -167,10 +182,12 @@ function split(fragment, vertical, newNote, hRect) {
 
 
     // Adjust the inner content within the fragments
+    fragmentLeft.noteContents.style["width"] = contentRect["width"] + "px";
     fragmentLeft.noteContents.style[mainAxisN] = contentRect[mainAxisN] - areaRect[mainAxisN] + "px";
     fragmentLeft.noteContents.style[mainAxisP] = null;
     fragmentLeft.noteContents.style[crossAxisN] = fragment.noteContents[crossOffset] + "px";
 
+    fragmentRight.noteContents.style["width"] = contentRect["width"] + "px";
     fragmentRight.noteContents.style[mainAxisP] = areaRect[mainAxisP] - contentRect[mainAxisP] + "px";
     fragmentRight.noteContents.style[mainAxisN] = null;
     fragmentRight.noteContents.style[crossAxisN] = fragment.noteContents[crossOffset] + "px";
@@ -251,8 +268,7 @@ class Fragment {
         this.noteContainer.addEventListener('mouseenter', (ev) => {
             currentHoveredNote = this;
             this.noteContainer.appendChild(noteButtons);
-            const windowRect = this.noteWindow.getBoundingClientRect();
-            const windowPos = this.getPosition();
+            noteButtons.dataset.noteid = this.noteId;
 
             if (editBtn)
                 editBtn.style.display = "none";
@@ -284,11 +300,9 @@ class Fragment {
         this.open = true;
         document.querySelector("#notes").appendChild(this.noteContainer);
         this.noteWindow.style.width = "0px";
-        // this.noteWindow.style.height = "0px";
         this.noteWindow.classList.add("grow");
         this.noteWindow.offsetHeight;
         this.noteWindow.style.width = this.width + "px";
-        // this.noteWindow.style.height = this.height + "px";
     }
 
     close(recurse = false) {
@@ -320,9 +334,9 @@ class Fragment {
         }
     }
 
-    setSize(size, grow = true) {
+    setSize(size, grow = false) {
         if (grow) {
-            this.noteWindow.classList.add("grow");
+            this.noteContents.classList.add("grow");
             this.noteWindow.offsetHeight;
         } else {
             this.noteWindow.classList.remove("grow");
@@ -373,6 +387,7 @@ class Note extends Fragment {
         this.lastHighlight;
         this.closable = true;
         this.locked = false;
+        this.options = {};
 
         this.noteEditor = new Quill(this.noteContents, {
             placeholder: 'Write your note here...',
@@ -407,7 +422,7 @@ class Note extends Fragment {
                 }
             }
 
-            if (removeBtn) {
+            if (removeBtn && !this.locked) {
                 if (this.closable && !this.locked) {
                     removeBtn.style.display = "block";
                     removeBtn.onclick = () => {
@@ -416,6 +431,10 @@ class Note extends Fragment {
                 } else {
                     removeBtn.style.display = "none";
                 }
+            }
+
+            if (resizeHandle && !this.locked) {
+                resizeHandle.style.display = "block";
             }
 
             restoreBtn.style.display = "none";
@@ -463,6 +482,19 @@ class Note extends Fragment {
 
         this.width = this.noteContents.offsetWidth;
         this.height = this.noteContents.offsetHeight;
+    }
+
+    setOptions(options) {
+        this.options = options;
+
+        if (!options)
+            return;
+
+        if (options.width) {
+            console.log(" - Setting width to " + options.width);
+            this.width = options.width;
+            this.noteContents.style.width = this.width + "px";
+        }
     }
 
     enterEditMode() {
@@ -546,7 +578,7 @@ class Note extends Fragment {
 
     }
 
-    save() {
+    save(force = false) {
         if (!canEdit || !editToken || this.locked) {
             console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
             return;
@@ -554,7 +586,9 @@ class Note extends Fragment {
         console.log("save()");
 
         const noteContent = this.noteEditor.getContents();
-        if (JSON.stringify(noteContent) === this.lastContent) {
+        const noteOptions = this.options;
+        // noteOptions.width = this.width;
+        if (!force && JSON.stringify(noteContent) === this.lastContent) {
             console.log("Text has not changed")
             return;
         }
@@ -565,7 +599,8 @@ class Note extends Fragment {
                 method: 'PUT',
                 body: JSON.stringify({
                     editToken,
-                    noteContent
+                    noteContent,
+                    noteOptions
                 }),
                 headers: {
                     "Content-type": "application/json"
@@ -599,7 +634,8 @@ class Note extends Fragment {
                 method: 'POST',
                 body: JSON.stringify({
                     editToken,
-                    noteContent
+                    noteContent,
+                    noteOptions
                 }),
                 headers: {
                     "Content-type": "application/json"
@@ -679,9 +715,16 @@ class Split extends Fragment {
 
             restoreBtn.style.display = "block";
             closeBtn.style.display = "none";
+            resizeHandle.style.display = "none";
+            removeBtn.style.display = "none";
         });
 
     }
+
+    // setSize(size, grow = true) {
+    //     this.noteContents.style.width = size.width + "px";
+    //     super.setSize(size, false);
+    // }
 
     close(recurse = false) {
         if (recurse)

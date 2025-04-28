@@ -165,7 +165,7 @@ a:visited {
 }
 
 .handle {
-    cursor: grab;
+    cursor: col-resize;
 }
 
 

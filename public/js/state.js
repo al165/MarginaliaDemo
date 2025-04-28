@@ -7,7 +7,11 @@ class MarginaliaRoomState {
     scrollX = 0;
     scrollY = 0;
     #language = 'en';
+    resizing = undefined;
+    resizeStartPosition = undefined;
+    resizeStartWidth = undefined;
     callbacks = [];
+
     socket = undefined;
 
     constructor() {

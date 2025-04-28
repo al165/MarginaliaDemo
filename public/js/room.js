@@ -90,18 +90,26 @@ document.addEventListener("scroll", () => {
 });
 
 document.addEventListener("mouseup", (ev) => {
+    if (state.resizing) {
 
-});
+        const note = state.notes[state.resizing];
+        note.noteWindow.classList.add("grow");
+        note.width = note.noteWindow.clientWidth;
+        note.options.width = note.width;
+        note.save(true);
 
-document.addEventListener("mousemove", (ev) => {
-
-});
-
-// debug #note resizing...
-const resizeObserver = new ResizeObserver((entries) => {
-    for (let entry of entries) {
-        console.log(entry);
+        state.resizing = undefined;
     }
 });
 
-resizeObserver.observe(document.getElementById("notes"));
+document.addEventListener("mousemove", (ev) => {
+    if (!state.resizing)
+        return;
+
+    console.log(ev.clientX - state.resizeStartPosition);
+    let newWidth = state.resizeStartWidth + (ev.clientX - state.resizeStartPosition);
+    newWidth = Math.min(800, Math.max(350, newWidth));
+    const noteId = state.resizing;
+    state.notes[noteId].noteWindow.style.width = newWidth + "px";
+    state.notes[noteId].noteContents.style.width = newWidth + "px";
+});
