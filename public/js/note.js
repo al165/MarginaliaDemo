@@ -410,6 +410,7 @@ class Note extends Fragment {
             ]
         });
         this.noteEditor.enable(false);
+        this.width = this.noteWindow.clientWidth;
 
         // this.show();
         state.addNote(this);
