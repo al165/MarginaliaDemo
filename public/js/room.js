@@ -18,6 +18,8 @@ socket.on('noteUpdated', function (noteId) {
 
 socket.on('noteEditing', function (data) {
     console.log("socket: noteEditing: " + data.noteId);
+    if (!data.noteId)
+        return;
     state.notes[data.noteId].setLocked(data.lock);
 });
 
@@ -78,10 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setTheme(colourTheme);
     }
 
-    document.getElementById("bounding").onclick = (ev) => {
-        if (state.currentEditingNote)
-            state.currentEditingNote.exitEditMode();
-    }
+    // document.getElementById("bounding").onclick = (ev) => {
+    // console.log("bounding clicked");
+    // if (state.currentEditingNote)
+    // state.currentEditingNote.exitEditMode();
+    // }
 });
 
 document.addEventListener("scroll", () => {
@@ -106,7 +109,6 @@ document.addEventListener("mousemove", (ev) => {
     if (!state.resizing)
         return;
 
-    console.log(ev.clientX - state.resizeStartPosition);
     let newWidth = state.resizeStartWidth + (ev.clientX - state.resizeStartPosition);
     newWidth = Math.min(800, Math.max(350, newWidth));
     const noteId = state.resizing;

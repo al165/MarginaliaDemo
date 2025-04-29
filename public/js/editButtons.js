@@ -1,12 +1,8 @@
-import { Note } from './note.js';
+import { EditableNote } from './noteEdit.js';
 import { state } from './state.js';
 
 import { THEME_LIST, setTheme } from './data/colourschemes.js';
 import { TOOLTIPS } from './data/tooltips.js';
-
-window.addEventListener('resize', () => {
-
-});
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -17,12 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("new note");
         const parentNote = state.currentEditingNote;
         const selection = parentNote.noteEditor.getSelection();
-        if (!selection || selection.length == 0)
+        if (!selection || selection.length == 0) {
+            console.log("selection is undefined or 0");
             return;
+        }
         const bounds = parentNote.noteEditor.getBounds(selection);
         const parentPos = parentNote.getPosition();
 
-        const newNote = new Note();
+        const newNote = new EditableNote();
         newNote.enterEditMode();
         newNote.toFront();
         newNote.parent = parentNote;

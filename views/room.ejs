@@ -84,7 +84,6 @@
     <button type="button" id="video-editor-add-btn">Add video</button>
   </div>
 
-  <script src="<%= room.baseURL %>/js/editButtons.js" defer type="module"></script>
   <% } // if(room.canEdit) %>
 
   <div id="bounding"></div>
@@ -102,6 +101,12 @@
 
 
   <script src="<%= room.baseURL %>/js/room.js" defer type="module"></script>
+
+  <% if(room.canEdit) { %>
+  <script src="<%= room.baseURL %>/js/noteEdit.js" defer type="module"></script>
+  <script src="<%= room.baseURL %>/js/editButtons.js" defer type="module"></script>
+  <% } else { %>
+  <% } %>
 </body>
 
 </html>
