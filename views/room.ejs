@@ -10,7 +10,6 @@
   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.core.css" rel="stylesheet" />
   <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-  <link rel="stylesheet" href="<%= room.baseURL %>/style.css">
   <script>
     const roomId = '<%= room.roomId %>';
     const roomName = '<%= room.name %>'
@@ -25,6 +24,17 @@
 
     console.log("theme: " + theme);
   </script>
+  <% if(room.renderStatic) { %>
+  <!-- Statically rendered data -->
+  <script>
+    window.notes = <%- JSON.stringify(notes, null, 2) %>;
+  </script>
+  <style>
+    <%- css %>
+  </style>
+  <% } else {%>
+  <link rel="stylesheet" href="<%= room.baseURL %>/style.css">
+  <% } %>
 </head>
 
 <body>

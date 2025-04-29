@@ -174,6 +174,43 @@ app.get(BASE_URL + '/export/:roomId/', checkEditToken, asyncHandler(async (req, 
     return res.json(notes);
 }));
 
+app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
+    const { roomId } = req.params;
+
+    console.log("Rendering static room " + roomId);
+
+    const notes = await db.all(`
+        SELECT Notes.* FROM Notes 
+        JOIN Rooms_Notes_XRef ON Notes.id = Rooms_Notes_XRef.noteId 
+        WHERE Rooms_Notes_XRef.roomId = ?`, roomId);
+
+    if (!notes) {
+        console.err(`No notes found in room ${roomId}`);
+        return res.sendStatus(404);
+    }
+
+    const row = await db.get(
+        "SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?",
+        [roomId]
+    );
+
+    if (!row)
+        throw new Error(`room ${roomId} not found`);
+
+    // get static resources
+    const css = fs.readFileSync('./public/style.css').toString();
+
+    row.roomId = roomId;
+    row.canEdit = false;
+    row.editToken = undefined;
+    row.baseURL = BASE_URL;
+    row.renderStatic = true;
+
+    return res.render('room', { room: row, notes, css });
+
+
+}));
+
 app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
     // Create new room
     // TODO: tidy-up new rooms that are not edited after some timeout
