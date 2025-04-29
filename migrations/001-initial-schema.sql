@@ -1,5 +1,7 @@
 -- Up
 
+PRAGMA foreign_keys = ON;
+
 CREATE TABLE Notes (
     id TEXT PRIMARY KEY UNIQUE,
     userId INTEGER,
@@ -21,8 +23,8 @@ CREATE TABLE Rooms (
 CREATE TABLE Rooms_Notes_XRef (
     roomId TEXT,
     noteId TEXT,
-    FOREIGN KEY (roomId) REFERENCES Rooms (id),
-    FOREIGN KEY (noteId) REFERENCES Notes (id)
+    FOREIGN KEY (roomId) REFERENCES Rooms (id) ON DELETE CASCADE,
+    FOREIGN KEY (noteId) REFERENCES Notes (id) ON DELETE CASCADE
 );
 
 CREATE TABLE Users (
@@ -31,6 +33,7 @@ CREATE TABLE Users (
 );
 
 -- Down
+PRAGMA foreign_keys = OFF;
 
 DROP TABLE Notes;
 DROP TABLE Rooms;

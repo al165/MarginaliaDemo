@@ -153,6 +153,14 @@ app.get(BASE_URL + '/room/:roomId/note/:noteId', asyncHandler(async (req, res) =
     res.json(row);
 }));
 
+app.get(BASE_URL + '/export/:roomId/', checkEditToken, asyncHandler(async (req, res) => {
+    const { roomId } = req.params;
+
+    console.log("Exporting room " + roomId);
+
+    const rows = await db.all("SELECT * FROM Notes WHERE ")
+}));
+
 app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
     // Create new room
     // TODO: tidy-up new rooms that are not edited after some timeout
@@ -176,6 +184,7 @@ app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
         "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
         [noteId, createdOn, DEFAULT_NOTE, null]
     );
+    await db.run("INSERT INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)", [roomId, noteId]);
 
     await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId]);
 
@@ -187,6 +196,8 @@ app.delete(BASE_URL + '/room/:roomId', checkEditToken, asyncHandler(async (req, 
     const { roomId } = req.params;
     await db.run("DELETE FROM Rooms WHERE id = ?", [roomId]);
 
+    // TODO: delete all notes from Notes and Rooms_notes_XRef...
+
     res.status(204);
 }));
 
@@ -195,6 +206,7 @@ app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (re
 
     const { roomId } = req.params;
     const { noteContent, noteOptions } = req.body;
+    console.log("Creating new note in room " + roomId);
 
     if (!noteContent)
         throw new Error("noteContent is empty");
@@ -208,6 +220,9 @@ app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (re
     );
 
     console.log(`NEW NOTE: id ${noteId}`);
+
+    // Add to cross-reference table
+    await db.run("INSERT INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)", [roomId, noteId]);
 
     const row = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
 
@@ -254,6 +269,7 @@ app.post(BASE_URL + '/upload', uploadPhoto.single('file'), asyncHandler(async (r
 app.delete(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, asyncHandler(async (req, res) => {
     // Delete note
     const { noteId } = req.params;
+    console.log("Deleting note " + noteId);
 
     await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
 
@@ -379,6 +395,7 @@ async function setup() {
     // setup database
     db = await dbPromise;
     await db.migrate();
+    await db.run("PRAGMA foreign_keys = ON;");
     await createHomeNote();
 
     fs.mkdirSync(path.join(UPLOADS_DIR, 'tmp'), { recursive: true })
