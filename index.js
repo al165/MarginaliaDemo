@@ -65,10 +65,13 @@ const asyncHandler = (fn) => (req, res, next) => {
 
 // Authentication middleware
 async function checkEditToken(req, res, next) {
-    if (!req.body.editToken)
+    if (!req.body.editToken && !req.query.editToken)
         throw new Error("editToken missing!");
 
     const { roomId } = req.params;
+
+    const editToken = req.body.editToken || req.query.editToken;
+    console.log(editToken);
 
     if (!roomId)
         throw new Error("roomId missing!");
@@ -78,7 +81,7 @@ async function checkEditToken(req, res, next) {
     if (!row || !row.editToken)
         throw new Error(`Error: roomId ${roomId} not found.`);
 
-    if (row.editToken != req.body.editToken)
+    if (row.editToken != editToken)
         throw new Error("incorrect editToken");
 
     next();
@@ -158,7 +161,17 @@ app.get(BASE_URL + '/export/:roomId/', checkEditToken, asyncHandler(async (req, 
 
     console.log("Exporting room " + roomId);
 
-    const rows = await db.all("SELECT * FROM Notes WHERE ")
+    const notes = await db.all(`
+        SELECT Notes.* FROM Notes 
+        JOIN Rooms_Notes_XRef ON Notes.id = Rooms_Notes_XRef.noteId 
+        WHERE Rooms_Notes_XRef.roomId = ?`, roomId);
+
+    if (!notes) {
+        console.err(`No notes found in room ${roomId}`);
+        return res.sendStatus(404);
+    }
+
+    return res.json(notes);
 }));
 
 app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
