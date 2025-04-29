@@ -18,6 +18,8 @@ import multer, { diskStorage } from 'multer';
 
 import { Server } from 'socket.io';
 
+import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
+
 dotenv.configDotenv();
 
 let UPLOADS_DIR = process.env.UPLOADS_DIR ?? "./uploads";
@@ -180,7 +182,7 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     console.log("Rendering static room " + roomId);
 
     const notes = await db.all(`
-        SELECT Notes.* FROM Notes 
+        SELECT Notes.id, noteContent, noteOptions FROM Notes 
         JOIN Rooms_Notes_XRef ON Notes.id = Rooms_Notes_XRef.noteId 
         WHERE Rooms_Notes_XRef.roomId = ?`, roomId);
 
@@ -197,8 +199,20 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     if (!row)
         throw new Error(`room ${roomId} not found`);
 
+    // Convert ops to HTML for easier editing
+    for (const note of notes) {
+        // console.log(note.noteContent);
+        const converter = new QuillDeltaToHtmlConverter(JSON.parse(note.noteContent)['ops'], {});
+        const html = converter.convert();
+        console.log(html);
+        note.noteHtml = html;
+        note.noteContent = undefined;
+    }
+
+
     // get static resources
     const css = fs.readFileSync('./public/style.css').toString();
+    // TODO: add icons (close/restore), scripts
 
     row.roomId = roomId;
     row.canEdit = false;
@@ -207,8 +221,6 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     row.renderStatic = true;
 
     return res.render('room', { room: row, notes, css });
-
-
 }));
 
 app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
