@@ -716,16 +716,13 @@ class Split extends Fragment {
 
             restoreBtn.style.display = "block";
             closeBtn.style.display = "none";
-            resizeHandle.style.display = "none";
-            removeBtn.style.display = "none";
+            if (resizeHandle)
+                resizeHandle.style.display = "none";
+            if (removeBtn)
+                removeBtn.style.display = "none";
         });
 
     }
-
-    // setSize(size, grow = true) {
-    //     this.noteContents.style.width = size.width + "px";
-    //     super.setSize(size, false);
-    // }
 
     close(recurse = false) {
         if (recurse)
