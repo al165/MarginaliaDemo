@@ -61,6 +61,29 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+function loadSvg(filePath, attrs = {}) {
+    let svg = fs.readFileSync(path.resolve(filePath), 'utf8');
+
+    // Strip XML/DOCTYPE headers
+    svg = svg.replace(/<\?xml.*?\?>|<!DOCTYPE.*?>|<!--.*?-->/gs, '').trim();
+
+    // Inject attributes into <svg ...>
+    svg = svg.replace(/<svg\b([^>]*)>/, (match, existingAttrs) => {
+        const attrString = Object.entries(attrs)
+            .map(([k, v]) => `${k}="${v}"`)
+            .join(' ');
+        return `<svg ${existingAttrs} ${attrString}>`;
+    });
+
+    return svg;
+}
+
+function svgToBase64(filepath, attrs = {}) {
+    const svg = loadSvg(filepath, attrs);
+    const base64 = Buffer.from(svg).toString('base64');
+    return `data:image/svg+xml;base64,${base64}`;
+}
+
 const asyncHandler = (fn) => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
 };
@@ -219,12 +242,18 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
         const html = converter.convert();
         note.noteHtml = html;
         note.noteContent = undefined;
+        note.noteOptions = JSON.parse(note.noteOptions);
     }
 
 
     // get static resources
     const css = fs.readFileSync('./public/style.css').toString();
-    // TODO: add icons (close/restore), scripts
+    const closeIcon = svgToBase64('./public/icons/close.svg');
+    const undoIcon = svgToBase64('./public/icons/06_undo.svg');
+    const logo1 = svgToBase64('./public/logo1.svg');
+    const logo2 = svgToBase64('./public/logo2.svg');
+
+    // TODO: inject scripts...
 
     row.roomId = roomId;
     row.canEdit = false;
@@ -232,7 +261,14 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     row.baseURL = BASE_URL;
     row.renderStatic = true;
 
-    return res.render('room', { room: row, notes, css });
+    return res.render(
+        'room',
+        {
+            room: row,
+            notes,
+            css,
+            icons: { close: closeIcon, undo: undoIcon, logo1, logo2 }
+        });
 }));
 
 app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
