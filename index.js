@@ -105,11 +105,6 @@ function imageToBase64(filepath) {
     return { mime, src };
 }
 
-function embedFavicon(faviconPath) {
-
-    return `<link rel="icon" type="${mime}" href="data:${mime};base64,${base64}">`;
-}
-
 const asyncHandler = (fn) => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
 };
