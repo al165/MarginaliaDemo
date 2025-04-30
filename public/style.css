@@ -168,6 +168,33 @@ a:visited {
     cursor: col-resize;
 }
 
+.ql-editor {
+    box-sizing: border-box;
+    counter-reset: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+    line-height: 1.42;
+    outline: none;
+    padding: 12px 15px;
+    padding-right: 15px;
+    tab-size: 4;
+    -moz-tab-size: 4;
+    text-align: left;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.ql-editor p,
+.ql-editor ol,
+.ql-editor pre,
+.ql-editor blockquote,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+    margin: 0;
+    padding: 0
+}
 
 .ql-editor mark {
     -webkit-box-decoration-break: clone;
@@ -181,10 +208,6 @@ a:visited {
     padding: 0.3em;
     font-style: italic;
     margin: 0.7em;
-}
-
-.ql-container h1 {
-    font-family: Calibri, sans-serif;
 }
 
 .tool {

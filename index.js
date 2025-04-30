@@ -222,6 +222,11 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     if (!row)
         throw new Error(`room ${roomId} not found`);
 
+    const noteData = {};
+    for (const note of notes) {
+        noteData[note.id] = note;
+    }
+
     // Convert ops to HTML for easier editing
     for (const note of notes) {
         const ops = JSON.parse(note.noteContent)['ops'];
@@ -233,7 +238,11 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
             },
             customTagAttributes: function (op) {
                 if (op.attributes.annotate) {
-                    return op.attributes.annotate;
+                    return {
+                        "data-id": op.attributes.annotate.id,
+                        "data-color": op.attributes.annotate.color
+                    }
+                    // return op.attributes.annotate;
                 }
             }
         };
@@ -265,7 +274,7 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
         'room',
         {
             room: row,
-            notes,
+            notes: noteData,
             css,
             icons: { close: closeIcon, undo: undoIcon, logo1, logo2 }
         });

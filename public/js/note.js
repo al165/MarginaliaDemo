@@ -85,8 +85,6 @@ function split(fragment, vertical, newNote, hRect) {
     const html = fragment.getHTML();
     const areaRect = fragment.noteWindow.getBoundingClientRect();
     const contentRect = fragment.noteContents.getBoundingClientRect();
-    console.log("contentRect: ");
-    console.log(contentRect);
 
     const fragmentLeft = new window.Split(fragment.noteId, fragment, html);
     const fragmentRight = new window.Split(fragment.noteId, fragment, html);
@@ -134,6 +132,7 @@ function split(fragment, vertical, newNote, hRect) {
     posR[crossAxisN] = pos[crossAxisN];
     fragmentRight.setPosition(posR);
 
+    // Calculate the position of the new Note
     newNotePos[mainAxisN] = posL[mainAxisN] + sizeL[mainDim];
     newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
     newNote.setPosition(newNotePos);
@@ -152,9 +151,6 @@ function split(fragment, vertical, newNote, hRect) {
 
     fragment.children.push(fragmentLeft);
     fragment.children.push(fragmentRight);
-
-    // Calculate the position of the new Note
-
 
     fragment.close(false);
 
@@ -178,7 +174,7 @@ function updateHighlights(note) {
             const hRect = highlight.getBoundingClientRect();
 
             if (typeof state.notes[targetId] === 'undefined') {
-                fetchNote(targetId).then(newNote => {
+                window.fetchNote(targetId).then(newNote => {
                     if (!newNote)
                         return;
 
@@ -211,17 +207,13 @@ class Fragment {
         this.noteWindow = document.createElement('div');
         this.noteWindow.classList.add('note-window');
 
-        this.noteInternalPositioner = document.createElement('div');
-        this.noteInternalPositioner.classList.add('note-positioner');
-
         this.noteContents = document.createElement('div');
         this.noteContents.classList.add('note');
         this.noteContents.classList.add('note-content');
         this.noteContents.classList.add('ql-container');
 
         this.noteContainer.appendChild(this.noteWindow);
-        this.noteWindow.appendChild(this.noteInternalPositioner);
-        this.noteInternalPositioner.appendChild(this.noteContents);
+        this.noteWindow.appendChild(this.noteContents);
 
         this.noteContainer.addEventListener('mouseenter', () => this.onHover());
 
@@ -337,15 +329,84 @@ class Fragment {
     }
 }
 
-class Note extends Fragment {
+class NoteStatic extends Fragment {
+    constructor(noteId) {
+        super(noteId);
+        this.options = {};
+
+        this.noteContents.classList.add('ql-editor');
+
+        this.closable = true;
+        this.width = this.noteWindow.clientWidth;
+
+        state.addNote(this);
+    }
+
+    onHover() {
+        super.onHover();
+
+        restoreBtn.style.display = "none";
+        closeBtn.onclick = () => this.close();
+
+        if (this.closable) {
+            closeBtn.style.display = "block";
+        } else {
+            closeBtn.style.display = "none";
+            noteButtons.style.visibility = "hidden";
+        }
+
+    }
+
+    setCloseable(closable) {
+        this.closable = closable;
+    }
+
+    close(recurse = false) {
+        this.open = false;
+        this.noteContainer.remove();
+    }
+
+    restore() {
+        for (const child of this.children) {
+            child.close(true);
+        }
+        this.toFront();
+        this.show();
+    }
+
+    setHTML(html) {
+        this.noteContents.innerHTML = html;
+        updateHighlights(this);
+
+        this.width = this.noteContents.offsetWidth;
+        this.height = this.noteContents.offsetHeight;
+    }
+
+    getHTML() {
+        return this.noteContents.innerHTML;
+    }
+
+    setOptions(options) {
+        this.options = options;
+
+        if (!options)
+            return;
+
+        if (options.width) {
+            this.width = options.width;
+            this.noteContents.style.width = this.width + "px";
+        }
+    }
+}
+
+class Note extends NoteStatic {
     constructor(noteId) {
         super(noteId);
 
         this.lastContent = "";
         this.lastHighlight;
-        this.closable = true;
         this.locked = false;
-        this.options = {};
+        this.noteContents.classList.remove('ql-editor');
 
         this.noteEditor = new Quill(this.noteContents, {
             placeholder: 'Write your note here...',
@@ -368,30 +429,6 @@ class Note extends Fragment {
             ]
         });
         this.noteEditor.enable(false);
-        this.width = this.noteWindow.clientWidth;
-
-        state.addNote(this);
-    }
-
-    onHover() {
-        super.onHover();
-        // console.log("Note.onHover()");
-        // console.log("closable: " + this.closable);
-
-        restoreBtn.style.display = "none";
-        closeBtn.onclick = () => this.close();
-
-        if (this.closable) {
-            closeBtn.style.display = "block";
-        } else {
-            closeBtn.style.display = "none";
-            noteButtons.style.visibility = "hidden";
-        }
-
-    }
-
-    setCloseable(closable) {
-        this.closable = closable;
     }
 
     setContents(contents) {
@@ -403,33 +440,13 @@ class Note extends Fragment {
         this.height = this.noteContents.offsetHeight;
     }
 
-    setOptions(options) {
-        this.options = options;
-
-        if (!options)
-            return;
-
-        if (options.width) {
-            console.log(" - Setting width to " + options.width);
-            this.width = options.width;
-            this.noteContents.style.width = this.width + "px";
-        }
-    }
-
     setLocked(lock) {
-        // console.log(`note ${this.noteId} is ${lock ? "locked" : "unlocked"}`);
-
         this.locked = lock;
 
         if (lock)
             this.noteContainer.classList.add('note-locked');
         else
             this.noteContainer.classList.remove('note-locked');
-    }
-
-    close(recurse = false) {
-        this.open = false;
-        this.noteContainer.remove();
     }
 
     getHTML() {
@@ -441,14 +458,6 @@ class Note extends Fragment {
 
     reload() {
 
-    }
-
-    restore() {
-        for (const child of this.children) {
-            child.close(true);
-        }
-        this.toFront();
-        this.show();
     }
 }
 
@@ -492,4 +501,4 @@ class Split extends Fragment {
 window.Note = Note;
 window.Split = Split;
 
-export { Note, Fragment, Split, fetchNote, updateHighlights }
+export { Note, NoteStatic, Fragment, Split, fetchNote, updateHighlights }

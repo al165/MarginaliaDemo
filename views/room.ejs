@@ -7,9 +7,13 @@
   <title>
     <%= room.name %>
   </title>
+
+  <% if(!room.renderStatic) { %>
   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.core.css" rel="stylesheet" />
   <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <% } %>
+
   <script>
     const roomId = '<%= room.roomId %>';
     const roomName = '<%= room.name %>'
@@ -125,8 +129,11 @@
 
   </div>
 
-
+  <% if(room.renderStatic) { %>
+  <script src="<%= room.baseURL %>/js/roomStatic.js" defer type="module"></script>
+  <% } else { %>
   <script src="<%= room.baseURL %>/js/room.js" defer type="module"></script>
+  <% } %>
 
   <% if(room.canEdit) { %>
   <script src="<%= room.baseURL %>/js/noteEdit.js" defer type="module"></script>

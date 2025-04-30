@@ -13,7 +13,7 @@ socket.on('connect', function () {
 
 socket.on('noteUpdated', function (noteId) {
     console.log("socket: noteUpdated: " + noteId);
-    fetchNote(noteId, state.notes[noteId]);
+    window.fetchNote(noteId, state.notes[noteId]);
 });
 
 socket.on('noteEditing', function (data) {
@@ -32,6 +32,8 @@ socket.on('lockedNotes', function (lockedNotes) {
 });
 
 state.socket = socket;
+
+window.fetchNote = fetchNote;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -62,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     Quill.register('modules/clipboard', PlainClipboard, true);
 
-    fetchNote(rootNote).then((newNote) => {
+    window.fetchNote(rootNote).then((newNote) => {
         if (!newNote) {
             console.log("Could not fetch root note " + rootNote);
             return;
@@ -79,12 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
             continue;
         setTheme(colourTheme);
     }
-
-    // document.getElementById("bounding").onclick = (ev) => {
-    // console.log("bounding clicked");
-    // if (state.currentEditingNote)
-    // state.currentEditingNote.exitEditMode();
-    // }
 });
 
 document.addEventListener("scroll", () => {
