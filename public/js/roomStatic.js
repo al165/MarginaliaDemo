@@ -45,6 +45,9 @@ window.fetchNote = fetchNoteStatic;
 document.addEventListener('DOMContentLoaded', () => {
     state.roomId = roomId;
 
+    // Clear any notes divs that might have been saved in the static HTML document
+    document.getElementById("notes").innerHTML = "";
+
     window.fetchNote(rootNote).then((newNote) => {
         if (!newNote) {
             console.log("Could not fetch root note " + rootNote);
