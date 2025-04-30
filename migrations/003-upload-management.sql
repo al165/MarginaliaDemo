@@ -5,6 +5,7 @@ CREATE TABLE Uploads (
     createdOn INTEGER,
     path TEXT,
     filename TEXT,
+    fileUrl TEXT,
     mimetype TEXT
 );
 

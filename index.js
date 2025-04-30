@@ -143,6 +143,28 @@ function generateId(length) {
     return id;
 }
 
+async function updateUploadsXRefTable(noteId, noteContent) {
+    const ops = noteContent.ops;
+    for (const op of ops) {
+        if (!op.insert)
+            continue;
+
+        if (!op.insert.image)
+            continue;
+
+        const row = await db.get("SELECT * FROM Uploads WHERE fileUrl = ?", [op.insert.image]);
+        if (!row) {
+            console.error(`Error: upload with URL ${op.insert.image} not found in Uploads.`)
+            continue;
+        }
+
+        const uploadId = row.id;
+        const xref = await db.get("SELECT * FROM Notes_Uploads_XRef WHERE noteId = ? AND uploadId = ?", [noteId, uploadId]);
+        if (!xref)
+            await db.run("INSERT INTO Notes_Uploads_XRef (noteId, uploadId) VALUES (?, ?)", [noteId, uploadId]);
+    }
+}
+
 const DEFAULT_NOTE = JSON.stringify(
     {
         "ops": [
@@ -326,7 +348,7 @@ app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
         "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
         [noteId, createdOn, DEFAULT_NOTE, null]
     );
-    await db.run("INSERT INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)", [roomId, noteId]);
+    await db.run("INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)", [roomId, noteId]);
 
     await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId]);
 
@@ -364,7 +386,7 @@ app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (re
     console.log(`NEW NOTE: id ${noteId}`);
 
     // Add to cross-reference table
-    await db.run("INSERT INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)", [roomId, noteId]);
+    await db.run("INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)", [roomId, noteId]);
 
     const row = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
 
@@ -376,6 +398,9 @@ app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (re
         console.log(`Set rootNote to ${noteId}`);
     }
 
+    // Check if any images are in the noteContent
+    await updateUploadsXRefTable(noteId, noteContent);
+
     res.status(201).json({ noteId });
 }));
 
@@ -383,7 +408,8 @@ app.post(BASE_URL + '/upload', uploadPhoto.single('file'), asyncHandler(async (r
 
     // convert to new file
 
-    let newFilename = path.parse(req.file.filename).name + ".png";
+    const id = path.parse(req.file.filename).name;
+    let newFilename = id + ".png";
     let newFilePath = path.join(UPLOADS_DIR, newFilename);
     let newFileURL = path.join('/uploads', newFilename);
     console.log(newFilename);
@@ -403,6 +429,10 @@ app.post(BASE_URL + '/upload', uploadPhoto.single('file'), asyncHandler(async (r
     } catch (err) {
         throw new Error(err.message, { cause: 'Deleting tmp image' });
     }
+
+    // update Uploads table
+    const createdOn = new Date();
+    await db.run("INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)", [id, createdOn, UPLOADS_DIR, newFilename, newFileURL, 'png']);
 
     // return new file name
     res.json({ msg: { path: newFileURL } });
@@ -436,6 +466,9 @@ app.put(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, asyncHandler(as
         "UPDATE Notes SET noteContent = ?, noteOptions = ? WHERE id = ?",
         [JSON.stringify(noteContent), JSON.stringify(noteOptions), noteId]
     );
+
+    // Check if any images are in the noteContent
+    await updateUploadsXRefTable(noteId, noteContent);
 
     console.log(`UPDATED NOTE: id ${noteId}`);
 

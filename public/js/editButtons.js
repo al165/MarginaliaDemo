@@ -180,9 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageUploadForm = document.querySelector("#image-upload-form");
 
     imageUploadBtn.addEventListener('click', function (ev) {
-        if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
-            return;
-
         imageUploadInput.click();
         ev.stopPropagation();
     });
@@ -208,8 +205,14 @@ document.addEventListener('DOMContentLoaded', () => {
     imageUploadForm.addEventListener('submit', function (ev) {
         ev.preventDefault();
 
+        if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+            return;
+
+        if (!state.currentEditingNote.noteId) {
+            state.currentEditingNote.save();
+        }
+
         const formData = new FormData(imageUploadForm);
-        console.log(formData);
 
         fetch(`${baseURL}/upload`, {
             method: 'POST',
@@ -217,9 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).then(
             res => res.json()
         ).then(json => {
-            console.log(json);
             const { path } = json.msg;
-            console.log(path);
 
             if (!state.currentEditingNote)
                 return; // create new note instead??
