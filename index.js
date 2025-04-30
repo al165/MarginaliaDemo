@@ -18,6 +18,8 @@ import multer, { diskStorage } from 'multer';
 
 import { Server } from 'socket.io';
 
+// For generating static marginalia
+import esbuild from 'esbuild';
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
 
 dotenv.configDotenv();
@@ -229,6 +231,7 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
 
     // Convert ops to HTML for easier editing
     for (const note of notes) {
+        // TODO: embed images as base64 strings
         const ops = JSON.parse(note.noteContent)['ops'];
         const cfg = {
             customTag: function (format, op) {
@@ -242,7 +245,6 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
                         "data-id": op.attributes.annotate.id,
                         "data-color": op.attributes.annotate.color
                     }
-                    // return op.attributes.annotate;
                 }
             }
         };
@@ -261,8 +263,6 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     const undoIcon = svgToBase64('./public/icons/06_undo.svg');
     const logo1 = svgToBase64('./public/logo1.svg');
     const logo2 = svgToBase64('./public/logo2.svg');
-
-    // TODO: inject scripts...
 
     row.roomId = roomId;
     row.canEdit = false;
@@ -527,6 +527,20 @@ async function setup() {
             HAS_MAGICK = true;
 
         console.log(`HAS_MAGICK: ${HAS_MAGICK}`);
+    });
+
+    // build static site for export
+    esbuild.build({
+        entryPoints: ['./public/js/roomStatic.js'],
+        bundle: true,
+        format: 'esm',
+        platform: 'browser',
+        write: false,
+    }).then(result => {
+        const bundledCode = result.outputFiles[0].text;
+        fs.mkdirSync('./views/partials/generated/', { recursive: true });
+        fs.writeFileSync('./views/partials/generated/roomStatic.ejs', bundledCode);
+        console.log('JS bundled to roomStatic.ejs');
     });
 
     server.listen(PORT, () => {

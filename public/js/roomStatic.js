@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { NoteStatic } from './note.js'
+import { NoteStatic } from './noteStatic.js'
 
 
 function calculateBoundingBox() {

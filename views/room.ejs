@@ -130,7 +130,10 @@
   </div>
 
   <% if(room.renderStatic) { %>
-  <script src="<%= room.baseURL %>/js/roomStatic.js" defer type="module"></script>
+  <!-- <script src="<%= room.baseURL %>/js/roomStatic.js" defer type="module"></script> -->
+  <script type="module">
+    <%- include('partials/generated/roomStatic.ejs') %>
+  </script>
   <% } else { %>
   <script src="<%= room.baseURL %>/js/room.js" defer type="module"></script>
   <% } %>

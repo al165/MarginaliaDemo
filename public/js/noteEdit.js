@@ -2,7 +2,8 @@
 // assumes note.js is already imported!
 
 import { state } from './state.js';
-import { Note, Split, updateHighlights } from './note.js';
+import { Split, updateHighlights } from './noteStatic.js';
+import { Note } from './note.js';
 
 const noteButtons = document.querySelector("#note-buttons");
 
