@@ -86,6 +86,30 @@ function svgToBase64(filepath, attrs = {}) {
     return `data:image/svg+xml;base64,${base64}`;
 }
 
+function imageToBase64(filepath) {
+    const ext = path.extname(filepath).slice(1); // 'png', 'ico', 'svg'
+    const mimeMap = {
+        jpg: 'image/jpeg',
+        png: 'image/png',
+        ico: 'image/x-icon',
+        svg: 'image/svg+xml',
+    };
+
+    const mime = mimeMap[ext];
+    if (!mime) throw new Error(`Unsupported image type: .${ext}`);
+
+    const buffer = fs.readFileSync(filepath);
+    const base64 = buffer.toString('base64');
+    const src = `data:${mime};base64,${base64}`;
+
+    return { mime, src };
+}
+
+function embedFavicon(faviconPath) {
+
+    return `<link rel="icon" type="${mime}" href="data:${mime};base64,${base64}">`;
+}
+
 const asyncHandler = (fn) => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
 };
@@ -264,6 +288,9 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     const logo1 = svgToBase64('./public/logo1.svg');
     const logo2 = svgToBase64('./public/logo2.svg');
 
+    const favicon = imageToBase64('./public/favicon.ico');
+    const faviconHtml = `<link rel="icon" type="${favicon.mime}" href="${favicon.src}">`;
+
     row.roomId = roomId;
     row.canEdit = false;
     row.editToken = undefined;
@@ -276,7 +303,8 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
             room: row,
             notes: noteData,
             css,
-            icons: { close: closeIcon, undo: undoIcon, logo1, logo2 }
+            icons: { close: closeIcon, undo: undoIcon, logo1, logo2 },
+            favicon: faviconHtml
         });
 }));
 

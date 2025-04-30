@@ -8,7 +8,10 @@
     <%= room.name %>
   </title>
 
-  <% if(!room.renderStatic) { %>
+  <% if(room.renderStatic) { %>
+  <%- favicon %>
+  <% } else { %>
+  <link rel="icon" type="ico" href="<%= room.baseURL %>/favicon.ico">
   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.core.css" rel="stylesheet" />
   <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
