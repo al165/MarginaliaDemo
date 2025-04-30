@@ -201,10 +201,22 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
 
     // Convert ops to HTML for easier editing
     for (const note of notes) {
-        // console.log(note.noteContent);
-        const converter = new QuillDeltaToHtmlConverter(JSON.parse(note.noteContent)['ops'], {});
+        const ops = JSON.parse(note.noteContent)['ops'];
+        const cfg = {
+            customTag: function (format, op) {
+                if (format === 'annotate') {
+                    return 'mark';
+                }
+            },
+            customTagAttributes: function (op) {
+                if (op.attributes.annotate) {
+                    return op.attributes.annotate;
+                }
+            }
+        };
+        const converter = new QuillDeltaToHtmlConverter(ops, cfg);
+
         const html = converter.convert();
-        console.log(html);
         note.noteHtml = html;
         note.noteContent = undefined;
     }
