@@ -91,4 +91,4 @@ await db.run(`
     END;
 `);
 
-db.close();
+await db.close();

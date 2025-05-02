@@ -25,4 +25,5 @@ for (const note of notes) {
 
 await cleanUploadsDir(db);
 
+await db.close();
 console.log("Finished");
