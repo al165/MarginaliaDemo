@@ -1,3 +1,10 @@
+import fs from 'fs';
+import path from 'path';
+
+import dotenv from 'dotenv';
+dotenv.configDotenv();
+let UPLOADS_DIR = process.env.UPLOADS_DIR ?? "./uploads";
+
 async function updateUploadsXRefTable(db, noteId, noteContent) {
     const ops = noteContent.ops;
     for (const op of ops) {
@@ -7,10 +14,28 @@ async function updateUploadsXRefTable(db, noteId, noteContent) {
         if (!op.insert.image)
             continue;
 
-        const row = await db.get("SELECT * FROM Uploads WHERE fileUrl = ?", [op.insert.image]);
+        let row = await db.get("SELECT * FROM Uploads WHERE fileUrl = ?", [op.insert.image]);
         if (!row) {
-            console.error(`Error: upload with URL ${op.insert.image} not found in Uploads.`)
-            continue;
+            console.warn(`Warning: upload with URL ${op.insert.image} not found in Uploads.`);
+            // Check if it exists in uploads dir
+            const filename = path.basename(op.insert.image);
+            const uploadPath = path.join('..', UPLOADS_DIR, filename);
+            if (fs.existsSync(uploadPath)) {
+                console.log(`- ${uploadPath} does not exist in file system, skipping`);
+                continue;
+            }
+
+            console.log(` - Adding ${filename} to Uploads`);
+            const id = path.parse(filename).name;
+            const createdOn = new Date();
+            const mimetype = path.extname(filename);
+
+            await db.run(
+                "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
+                [id, createdOn, UPLOADS_DIR, filename, op.insert.image, mimetype]
+            );
+
+            row = { id };
         }
 
         const uploadId = row.id;
