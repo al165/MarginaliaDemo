@@ -28,7 +28,7 @@ async function updateUploadsXRefTable(db, noteId, noteContent) {
             console.log(` - Adding ${filename} to Uploads`);
             const id = path.parse(filename).name;
             const createdOn = new Date();
-            const mimetype = path.extname(filename);
+            const mimetype = path.extname(filename).slice(1);
 
             await db.run(
                 "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
