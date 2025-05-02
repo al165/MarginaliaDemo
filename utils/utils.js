@@ -45,4 +45,27 @@ async function updateUploadsXRefTable(db, noteId, noteContent) {
     }
 }
 
-export { updateUploadsXRefTable };
+async function cleanUploadsDir(db) {
+    // removes any file not registered in Uploads table
+    console.log("Cleaning Uploads dir");
+
+    const files = fs.readdirSync(UPLOADS_DIR);
+    console.log(`Found ${files.length} uploads`);
+
+    for (const file of files) {
+        if (fs.lstatSync(path.join(UPLOADS_DIR, file)).isDirectory())
+            continue;
+        console.log(`Checking ${file}`);
+        const row = await db.get("SELECT * FROM Uploads WHERE filename = ?", [file]);
+        if (!row) {
+            const filepath = path.join(UPLOADS_DIR, file);
+            console.log(`- Deleting ${filepath}`);
+            fs.unlinkSync(filepath);
+        }
+        else {
+            console.log('- Found, continuing');
+        }
+    }
+}
+
+export { updateUploadsXRefTable, cleanUploadsDir };

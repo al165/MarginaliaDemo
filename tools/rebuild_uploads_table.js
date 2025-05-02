@@ -4,7 +4,7 @@
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 
-import { updateUploadsXRefTable } from '../utils/utils.js';
+import { cleanUploadsDir, updateUploadsXRefTable } from '../utils/utils.js';
 
 const dbPromise = open({ filename: './db/marginalia.db', driver: sqlite3.Database });
 const db = await dbPromise;
@@ -20,6 +20,9 @@ const notes = await db.all("SELECT * FROM Notes");
 console.log(`Number of Notes: ${notes.length}`);
 
 for (const note of notes) {
-
-    updateUploadsXRefTable(db, note.id, JSON.parse(note.noteContent));
+    await updateUploadsXRefTable(db, note.id, JSON.parse(note.noteContent));
 }
+
+await cleanUploadsDir(db);
+
+console.log("Finished");
