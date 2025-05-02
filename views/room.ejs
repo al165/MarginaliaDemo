@@ -59,13 +59,13 @@
   <% } %>
 
   <% if(room.canEdit) { %>
-  <%- include('partials/toolbar.ejs', {room}) %>
+  <%- include('partials/toolbar.ejs') %>
   <% } %>
 
   <div id="bounding"></div>
   <div id="notes"></div>
 
-  <div id="note-buttons">
+  <div id="note-buttons" class="buttons">
 
     <% if(room.renderStatic) { %>
     <img src="<%= icons.close %>" class="btn" alt="close button" id="close-note">

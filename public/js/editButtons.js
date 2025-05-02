@@ -173,6 +173,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Share/export
+    const exportBtn = document.querySelector("#publish");
+    const exportPopup = document.querySelector("#export-popup");
+    const popupCloseBtn = document.querySelector("#popup-close-btn");
+    exportBtn.addEventListener('click', function () {
+        popupClose.classList.add("transparent");
+        popupClose.style.visibility = 'visible';
+        exportPopup.classList.add("centered");
+        exportPopup.style.visibility = 'visible';
+
+        popupClose.onclick = () => {
+            exportPopup.style.visibility = 'hidden';
+            exportPopup.classList.remove("centered");
+            popupClose.style.visibility = 'hidden';
+            popupClose.classList.remove("transparent");
+        }
+
+        popupCloseBtn.onclick = popupClose.onclick;
+    });
+
 
     // Image uploads...
     const imageUploadBtn = document.querySelector("#image-upload");

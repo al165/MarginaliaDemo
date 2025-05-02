@@ -7,7 +7,7 @@
   <img src="<%= room.baseURL %>/icons/06_undo.svg" alt="undo" class="tool coming-soon" id="undo">
   <img src="<%= room.baseURL %>/icons/07_info.svg" alt="info" class="tool coming-soon" id="info">
   <img src="<%= room.baseURL %>/icons/08_page.svg" alt="page" class="tool coming-soon" id="page">
-  <a href="<%= room.baseURL %>/room/<%= room.roomId %>" target="_blank" rel="noopener noreferrer"><img src="<%= room.baseURL %>/icons/09_publish.svg" alt="publish" class="tool" id="publish"></a>
+  <img src="<%= room.baseURL %>/icons/09_publish.svg" alt="publish" class="tool" id="publish">
 </div>
 
 <form action="<%= room.baseURL %>/upload" id="image-upload-form" method="post" enctype="multipart/form-data">
@@ -46,6 +46,36 @@
 <div id="video-editor" class="popup-content">
   <input type="text" placeholder="Video URL" name="url" id="video-editor-url">
   <button type="button" id="video-editor-add-btn">Add video</button>
+</div>
+
+<div id="export-popup" class="popup-content">
+  <div class="buttons">
+    <img src="<%= room.baseURL %>/icons/close.svg" class="btn" alt="close button" id="popup-close-btn">
+  </div>
+  <h2>Share/Export this room</h2>
+  <p>Share read-only version: <br><a id="read-only-link" target="_blank" rel="noopener noreferrer"></a> </p>
+  <p>Share with editing access: <br><a id="with-edit-link" target="_blank" rel="noopener noreferrer"></a> </p>
+  <p>Export as a single, static HTML file <br>(right-click and 'Save Link as'): <br><a id="static-link" target="_blank" rel="noopener noreferrer"></a> </p>
+
+  <script defer>
+    const readOnlyURL = location.origin + location.pathname;
+    const withEditURL = location.href;
+    const staticURL = location.origin + location.pathname.replace('/room/', '/static/');
+
+    const readOnlyLink = document.getElementById('read-only-link');
+    const withEditLink = document.getElementById('with-edit-link');
+    const staticLink = document.getElementById('static-link');
+
+    readOnlyLink.setAttribute('href', readOnlyURL);
+    readOnlyLink.innerText = readOnlyURL;
+
+    withEditLink.setAttribute('href', withEditURL);
+    withEditLink.innerText = withEditURL;
+
+    staticLink.setAttribute('href', staticURL);
+    staticLink.innerText = staticURL;
+  </script>
+
 </div>
 
 <script src="<%= room.baseURL %>/js/editButtons.js" defer type="module"></script>
