@@ -8,7 +8,7 @@ export const TOOLTIPS = {
         "undo": "Unbreaks a marginalia into it's original state",
         "info": "Displays information about the room",
         "page": "Unknown",
-        "publish": "Publishes your room as HTML, Markdown or a PDF file",
+        "publish": "Publish your room as HTML, or share a link to here.",
         "font-size": "Adjusts your text size",
         "bold": "Makes text bold",
         "italic": "Makes text italic",
