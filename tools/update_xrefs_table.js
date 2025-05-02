@@ -61,22 +61,18 @@ for (const room of rooms) {
 
     const noteList = await parseNote(room.rootNote);
 
-    db.getDatabaseInstance().serialize(async () => {
-        const stmt = await db.prepare(`
-          INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)
-        `);
+    const stmt = await db.prepare(`
+      INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)
+    `);
 
-        for (const noteId of noteList) {
-            stmt.run(roomId, noteId);
-        }
+    for (const noteId of noteList) {
+        await stmt.run(roomId, noteId);
+    }
 
-        stmt.finalize((err) => {
-            if (err) throw err;
-            console.log(`Inserted ${noteList.length} pairs (ignoring duplicates).`);
-        });
-    });
+    await stmt.finalize(); // No callback needed
 
-    console.log("");
+    console.log(`Inserted ${noteList.length} pairs (ignoring duplicates).`);
+    console.log(" - done");
 }
 
 // Reinstatiate the trigger
