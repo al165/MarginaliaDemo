@@ -22,6 +22,8 @@ import { Server } from 'socket.io';
 import esbuild from 'esbuild';
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
 
+import { updateUploadsXRefTable } from './utils/utils.js';
+
 dotenv.configDotenv();
 
 let UPLOADS_DIR = process.env.UPLOADS_DIR ?? "./uploads";
@@ -141,28 +143,6 @@ function generateId(length) {
         id += charset[randomBytes[i] % charset.length];
     }
     return id;
-}
-
-async function updateUploadsXRefTable(noteId, noteContent) {
-    const ops = noteContent.ops;
-    for (const op of ops) {
-        if (!op.insert)
-            continue;
-
-        if (!op.insert.image)
-            continue;
-
-        const row = await db.get("SELECT * FROM Uploads WHERE fileUrl = ?", [op.insert.image]);
-        if (!row) {
-            console.error(`Error: upload with URL ${op.insert.image} not found in Uploads.`)
-            continue;
-        }
-
-        const uploadId = row.id;
-        const xref = await db.get("SELECT * FROM Notes_Uploads_XRef WHERE noteId = ? AND uploadId = ?", [noteId, uploadId]);
-        if (!xref)
-            await db.run("INSERT INTO Notes_Uploads_XRef (noteId, uploadId) VALUES (?, ?)", [noteId, uploadId]);
-    }
 }
 
 const DEFAULT_NOTE = JSON.stringify(
@@ -399,7 +379,7 @@ app.post(BASE_URL + '/room/:roomId/note', checkEditToken, asyncHandler(async (re
     }
 
     // Check if any images are in the noteContent
-    await updateUploadsXRefTable(noteId, noteContent);
+    await updateUploadsXRefTable(db, noteId, noteContent);
 
     res.status(201).json({ noteId });
 }));
@@ -468,7 +448,7 @@ app.put(BASE_URL + '/room/:roomId/note/:noteId', checkEditToken, asyncHandler(as
     );
 
     // Check if any images are in the noteContent
-    await updateUploadsXRefTable(noteId, noteContent);
+    await updateUploadsXRefTable(db, noteId, noteContent);
 
     console.log(`UPDATED NOTE: id ${noteId}`);
 
