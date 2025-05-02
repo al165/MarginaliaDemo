@@ -49,6 +49,7 @@ console.log("BaseURL: " + BASE_URL);
 
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+import { group } from 'console';
 
 const dbPromise = open({ filename: './db/marginalia.db', driver: sqlite3.Database });
 
@@ -252,8 +253,25 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
 
     // Convert ops to HTML for easier editing
     for (const note of notes) {
-        // TODO: embed images as base64 strings
         const ops = JSON.parse(note.noteContent)['ops'];
+
+        // Convert image URLs to base64 strings
+        for (const op of ops) {
+            if (!op.insert || !op.insert.image)
+                continue;
+
+            let row = await db.get("SELECT * FROM Uploads WHERE fileUrl = ?", [op.insert.image]);
+            if (!row) {
+                console.log(`image with src ${fileURL} not in Uploads table, external?`);
+                continue;
+            }
+
+            const filepath = path.join(row.path, row.filename);
+            const imgBase64 = imageToBase64(filepath).src;
+            op.insert.image = imgBase64;
+        }
+
+
         const cfg = {
             customTag: function (format, op) {
                 if (format === 'annotate') {
