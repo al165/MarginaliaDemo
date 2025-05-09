@@ -27,8 +27,6 @@ function split(fragment, vertical, newNote, hRect) {
     const lastScrollX = state.scrollX;
     const lastScrollY = state.scrollY;
 
-    newNote.toFront();
-
     const pos = fragment.getPosition();
     const size = fragment.getSize();
 
@@ -117,6 +115,8 @@ function split(fragment, vertical, newNote, hRect) {
     fragment.children.push(fragmentRight);
 
     fragment.close(false);
+
+    newNote.toFront();
 
     calculateBoundingBox();
 
