@@ -196,15 +196,16 @@ class Fragment {
         // console.log('Fragment.onHover()');
 
         this.noteContainer.appendChild(noteButtons);
+        noteButtons.style.zIndex = this.noteContainer.style.zIndex;
+
         noteButtons.dataset.noteid = this.noteId;
 
         closeBtn.onclick = () => {
             this.close(true);
-            console.log("close note");
         }
+
         restoreBtn.onclick = () => {
             this.restore();
-            console.log("restore note")
         };
 
         noteButtons.style.visibility = "visible";
