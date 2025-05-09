@@ -167,6 +167,8 @@ class Fragment {
 
         this.noteContainer = document.createElement('div');
         this.noteContainer.classList.add('note-container');
+        state.lastZIndex++;
+        this.noteContainer.style.zIndex = state.lastZIndex;
 
         this.noteWindow = document.createElement('div');
         this.noteWindow.classList.add('note-window');
