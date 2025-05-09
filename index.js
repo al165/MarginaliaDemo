@@ -413,7 +413,7 @@ app.post(BASE_URL + '/upload', uploadPhoto.single('file'), asyncHandler(async (r
     console.log(newFilename);
 
     try {
-        let magickCommand = `convert ${req.file.path} -resize 256x256 -ordered-dither o2x2 ${newFilePath}`;
+        let magickCommand = `convert ${req.file.path} -resize 512x512 -ordered-dither o2x2 ${newFilePath}`;
         if (HAS_MAGICK)
             magickCommand = 'magick ' + magickCommand;
         const { stdout, stderr } = await execPromise(magickCommand);
