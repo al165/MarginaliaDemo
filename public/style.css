@@ -63,10 +63,18 @@ a:visited {
     color: var(--link-color);
 }
 
-.note-padding {
+.note-padding-v,
+.note-padding-h {
     position: absolute;
     pointer-events: none;
+}
+
+.note-padding-v {
     width: 100%;
+}
+
+.note-padding-h {
+    height: 100%;
 }
 
 .note-container {

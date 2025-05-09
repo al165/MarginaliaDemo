@@ -171,15 +171,20 @@ class Fragment {
         state.lastZIndex++;
 
         this.notePaddingTop = document.createElement('div');
-        this.notePaddingTop.classList.add('note-padding');
+        this.notePaddingTop.classList.add('note-padding-v');
         this.notePaddingTop.style.top = '-2em';
         this.notePaddingTop.style.height = '2em';
         this.notePaddingBottom = document.createElement('div');
-        this.notePaddingBottom.classList.add('note-padding');
+        this.notePaddingBottom.classList.add('note-padding-v');
         this.notePaddingBottom.style.bottom = '-6em';
         this.notePaddingBottom.style.height = '6em';
+        this.notePaddingRight = document.createElement('div');
+        this.notePaddingRight.classList.add('note-padding-h');
+        this.notePaddingRight.style.right = '-6em';
+        this.notePaddingRight.style.width = '6em';
         this.noteContainer.appendChild(this.notePaddingTop);
         this.noteContainer.appendChild(this.notePaddingBottom);
+        this.noteContainer.appendChild(this.notePaddingRight);
 
         this.noteWindow = document.createElement('div');
         this.noteWindow.classList.add('note-window');
