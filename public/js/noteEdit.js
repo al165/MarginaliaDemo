@@ -116,10 +116,9 @@ class EditableNote extends Note {
     }
 
     exitEditMode(skip_save = false) {
-        // console.log(`${this.noteId} exitEditMode`);
+        console.log(`${this.noteId} exitEditMode`);
         this.editing = false;
         this.noteWindow.classList.remove('note-editing');
-
 
         if (!skip_save)
             this.save();
@@ -129,6 +128,7 @@ class EditableNote extends Note {
 
         if (state.currentEditingNote == this)
             state.editMode = false;
+
         state.currentEditingNote = undefined;
     }
 

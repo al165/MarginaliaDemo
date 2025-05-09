@@ -117,20 +117,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const addLinkBtn = document.getElementById('link-editor-add-btn');
         const urlTextInput = document.getElementById('link-editor-url');
+        urlTextInput.value = "";
+        urlTextInput.focus();
+
         addLinkBtn.onclick = () => {
             const newURL = urlTextInput.value;
-            if (newURL) {
+            if (newURL && state.lastEditingNote) {
+                state.lastEditingNote.enterEditMode();
                 state.currentEditingNote.noteEditor.format('link', newURL, 'user');
             } else {
+                state.lastEditingNote.enterEditMode();
                 state.currentEditingNote.noteEditor.format('link', undefined, 'user');
             }
             linkEditorPopup.style.visibility = 'hidden';
             popupClose.style.visibility = 'hidden';
+            urlTextInput.value = "";
         };
 
         popupClose.onclick = () => {
             linkEditorPopup.style.visibility = 'hidden';
             popupClose.style.visibility = 'hidden';
+            urlTextInput.value = "";
         }
     });
 
@@ -147,8 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectionBounds = state.currentEditingNote.noteEditor.getBounds(selection.index, selection.length);
         const noteEditorBounds = state.currentEditingNote.noteContainer.getBoundingClientRect();
 
-        console.log(selectionBounds);
-
         popupClose.style.visibility = 'visible';
         videoEditorPopup.style.visibility = 'visible';
 
@@ -156,20 +161,30 @@ document.addEventListener('DOMContentLoaded', () => {
         videoEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + 50 + "px";
 
         const urlTextInput = document.getElementById("video-editor-url");
+        urlTextInput.value = "";
+        urlTextInput.focus();
+
         videoEditorAddBtn.onclick = () => {
-            const newURL = urlTextInput.value;
-            if (newURL) {
-                state.currentEditingNote.noteEditor.insertEmbed(selection.index + 1, 'video', extractVideoUrl(newURL), 'user');
+            let newURL = urlTextInput.value;
+            if (newURL)
+                newURL = extractVideoUrl(newURL);
+
+            if (newURL && state.lastEditingNote) {
+                state.lastEditingNote.enterEditMode();
+                state.currentEditingNote.noteEditor.insertEmbed(selection.index + 1, 'video', newURL, 'user');
                 state.currentEditingNote.noteEditor.formatText(selection.index + 1, 1, { height: '170', width: '400' });
                 state.currentEditingNote.noteEditor.setSelection(selection.index + 2, Quill.sources.SILENT);
             }
             videoEditorPopup.style.visibility = 'hidden';
             popupClose.style.visibility = 'hidden';
+            urlTextInput.value = "";
         }
 
         popupClose.onclick = () => {
             videoEditorPopup.style.visibility = 'hidden';
             popupClose.style.visibility = 'hidden';
+            state.lastEditingNote.enterEditMode();
+            urlTextInput.value = "";
         }
     });
 
@@ -330,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
             textToolbar.style.right = editToolbar.clientWidth - editToolbar.clientHeight + "px";
         } else {
             textToolbar.style.right = editToolbar.clientWidth - textToolbar.clientWidth + "px";
-            linkEditorPopup.style.visibility = 'hidden';
+            // linkEditorPopup.style.visibility = 'hidden';
         }
     })
 });
@@ -348,5 +363,5 @@ function extractVideoUrl(url) {
     if ((match = url.match(/^(?:(https?):\/\/)?(?:www\.)?vimeo\.com\/(\d+)/))) {
         return `${match[1] || 'https'}://player.vimeo.com/video/${match[2]}/`;
     }
-    return url;
+    return undefined;
 }

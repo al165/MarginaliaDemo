@@ -1,5 +1,6 @@
 class MarginaliaRoomState {
     #currentEditingNote = undefined;
+    #lastEditingNote = undefined;
     #roomId = undefined;
     #editMode = false;
     notes = {};
@@ -25,6 +26,7 @@ class MarginaliaRoomState {
     }
 
     set currentEditingNote(val) {
+        this.#lastEditingNote = this.#currentEditingNote;
         if (this.socket) {
             if (val) {
                 this.socket.emit('editingNote', { roomId: this.roomId, noteId: val.noteId, lock: val != undefined });
@@ -42,6 +44,10 @@ class MarginaliaRoomState {
 
     get currentEditingNote() {
         return this.#currentEditingNote;
+    }
+
+    get lastEditingNote() {
+        return this.#lastEditingNote;
     }
 
     set roomId(val) {
