@@ -167,8 +167,19 @@ class Fragment {
 
         this.noteContainer = document.createElement('div');
         this.noteContainer.classList.add('note-container');
-        state.lastZIndex++;
         this.noteContainer.style.zIndex = state.lastZIndex;
+        state.lastZIndex++;
+
+        this.notePaddingTop = document.createElement('div');
+        this.notePaddingTop.classList.add('note-padding');
+        this.notePaddingTop.style.top = '-2em';
+        this.notePaddingTop.style.height = '2em';
+        this.notePaddingBottom = document.createElement('div');
+        this.notePaddingBottom.classList.add('note-padding');
+        this.notePaddingBottom.style.bottom = '-6em';
+        this.notePaddingBottom.style.height = '6em';
+        this.noteContainer.appendChild(this.notePaddingTop);
+        this.noteContainer.appendChild(this.notePaddingBottom);
 
         this.noteWindow = document.createElement('div');
         this.noteWindow.classList.add('note-window');

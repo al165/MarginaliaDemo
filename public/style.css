@@ -63,10 +63,14 @@ a:visited {
     color: var(--link-color);
 }
 
+.note-padding {
+    position: absolute;
+    pointer-events: none;
+    width: 100%;
+}
+
 .note-container {
     position: absolute;
-    padding-top: 2em;
-    padding-bottom: 6em;
     transition: filter 0.5s, opacity 0.5s;
 }
 
@@ -156,7 +160,6 @@ a:visited {
 
 #note-buttons {
     visibility: hidden;
-    margin-top: 2em;
 }
 
 .btn,
