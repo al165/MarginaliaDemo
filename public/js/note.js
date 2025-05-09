@@ -87,17 +87,6 @@ class Note extends NoteStatic {
         else
             this.noteContainer.classList.remove('note-locked');
     }
-
-    getHTML() {
-        // need to add <br> to empty <p></p> tags...
-        let html = this.noteEditor.getSemanticHTML();
-        html = html.replaceAll('<p></p>', '<p><br></p>');
-        return html;
-    }
-
-    reload() {
-
-    }
 }
 
 
