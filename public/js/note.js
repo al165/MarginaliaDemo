@@ -73,6 +73,7 @@ class Note extends NoteStatic {
         this.noteEditor.setContents(contents);
         this.lastContent = JSON.stringify(contents);
         updateHighlights(this);
+        this.addLoadCallbacks();
 
         this.width = this.noteContents.offsetWidth;
         this.height = this.noteContents.offsetHeight;

@@ -355,9 +355,21 @@ class NoteStatic extends Fragment {
     setHTML(html) {
         this.noteContents.innerHTML = html;
         updateHighlights(this);
+        this.addLoadCallbacks();
 
         this.width = this.noteContents.offsetWidth;
         this.height = this.noteContents.offsetHeight;
+    }
+
+    addLoadCallbacks() {
+        const elements = this.noteContents.querySelectorAll('img,iframe');
+
+        for (const element of elements) {
+            element.addEventListener('load', () => {
+                this.width = this.noteContents.offsetWidth;
+                this.height = this.noteContents.offsetHeight;
+            });
+        }
     }
 
     getHTML() {
