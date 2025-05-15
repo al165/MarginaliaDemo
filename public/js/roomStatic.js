@@ -48,6 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear any notes divs that might have been saved in the static HTML document
     document.getElementById("notes").innerHTML = "";
 
+    window.notes = {};
+
+    for (const noteHtml of document.querySelectorAll(".static-note")) {
+        const noteId = noteHtml.dataset.id;
+        const width = noteHtml.dataset.width;
+
+        window.notes[noteId] = {
+            noteOptions: { width },
+            noteHtml: noteHtml.innerHTML
+        };
+    }
+
     window.fetchNote(rootNote).then((newNote) => {
         if (!newNote) {
             console.log("Could not fetch root note " + rootNote);

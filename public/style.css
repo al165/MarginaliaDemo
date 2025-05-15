@@ -77,6 +77,10 @@ a:visited {
     height: 100%;
 }
 
+.static-note {
+    visibility: hidden;
+}
+
 .note-container {
     position: absolute;
     transition: filter 0.5s, opacity 0.5s;

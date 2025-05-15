@@ -35,9 +35,9 @@
   <!-- Statically rendered data 
     - you may edit the data of the notes here, or add custom CSS properties, or any modifications you like!
   -->
-  <script>
+  <!-- <script>
     window.notes = <%- JSON.stringify(notes, null, 2) %>;
-  </script>
+  </script> -->
   <style>
     <%- css %>
   </style>
@@ -60,6 +60,17 @@
 
   <% if(room.canEdit) { %>
   <%- include('partials/toolbar.ejs') %>
+  <% } %>
+
+  <% if(room.renderStatic) { %>
+  <!-- Here are the HTML contents of each annotation. Feel free to edit them! -->
+  <% for(const [noteId, noteData] of Object.entries(notes)) { %>
+  <div class="static-note" data-id="<%= noteId %>" data-width="<%= noteData.noteOptions.width %>">
+    <%- noteData.noteHtml %>
+  </div>
+
+  <% } %>
+  <!-- End of note data -->
   <% } %>
 
   <div id="bounding"></div>

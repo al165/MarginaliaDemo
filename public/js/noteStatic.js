@@ -358,7 +358,7 @@ class NoteStatic extends Fragment {
     }
 
     setHTML(html) {
-        this.noteContents.innerHTML = html;
+        this.noteContents.innerHTML = html.trim().replaceAll("\n", "");
         updateHighlights(this);
         this.addLoadCallbacks();
 

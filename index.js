@@ -13,6 +13,7 @@ import express from 'express';
 import { createServer } from 'http';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
+import { prettify, trimify } from 'htmlfy'
 
 import multer, { diskStorage } from 'multer';
 
@@ -271,7 +272,6 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
             op.insert.image = imgBase64;
         }
 
-
         const cfg = {
             customTag: function (format, op) {
                 if (format === 'annotate') {
@@ -290,7 +290,7 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
         const converter = new QuillDeltaToHtmlConverter(ops, cfg);
 
         const html = converter.convert();
-        note.noteHtml = html;
+        note.noteHtml = trimify(prettify(html, { ignore: ['mark', 'br'] }), ['br', 'p']);
         note.noteContent = undefined;
         note.noteOptions = JSON.parse(note.noteOptions);
     }
