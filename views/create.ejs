@@ -14,19 +14,23 @@
 
     #create {
       position: absolute;
+      background-color: #E8E8E8;
       top: 50vh;
       left: 50vw;
       transform: translate(-50%, -50%);
       border: solid black 1px;
-      box-shadow: #C2C1FF 0px 0px 5px 3px;
+      box-shadow: #C2C1FF 0px 0px 48px 24px;
       padding: 2em;
+      max-width: 30em;
     }
   </style>
 </head>
 
 <body>
   <div id="create">
-    <input type="text" name="roomname" id="room-name" placeholder="room name...">
+    <p>Create a room for your notes.</p>
+    <input type="text" name="roomname" id="room-name" placeholder="Room name...">
+    <p>Make sure you bookmark/save the URL generated in the next page so that you can find it again!</p>
     <button disabled id="create-room-btn">
       Create Room
     </button>
