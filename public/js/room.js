@@ -18,7 +18,7 @@ socket.on('noteUpdated', function (noteId) {
 
 socket.on('noteEditing', function (data) {
     console.log("socket: noteEditing: " + data.noteId);
-    if (!data.noteId)
+    if (!data.noteId || state.notes[data.noteId])
         return;
     state.notes[data.noteId].setLocked(data.lock);
 });
