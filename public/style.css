@@ -228,6 +228,14 @@ a:visited {
     margin: 0.7em;
 }
 
+.ql-font-monospace {
+    font-family: monospace;
+}
+
+.ql-font-serif {
+    font-family: serif;
+}
+
 .tool {
     width: 2em;
     height: 2em;
