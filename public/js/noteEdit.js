@@ -7,7 +7,6 @@ import { Note } from './note.js';
 
 const noteButtons = document.querySelector("#note-buttons");
 
-const editBtn = noteButtons.querySelector("#edit-note");
 const removeBtn = noteButtons.querySelector("#remove-note");
 const resizeHandle = document.querySelector("#resize-note");
 
@@ -62,9 +61,8 @@ class EditableNote extends Note {
                 // console.log(`${this.noteId} lost focus`);
                 this.exitEditMode();
                 return;
-            }
-            else if (range.length == 0) {
-                return;
+            } else {
+                this.enterEditMode();
             }
 
             this.lastHighlight = range;
@@ -75,14 +73,8 @@ class EditableNote extends Note {
     onHover() {
         super.onHover();
         // console.log("EditableNote.onHover()");
-        // console.log("isLocked: " + this.locked);
 
         if (!this.locked) {
-            editBtn.style.display = "block";
-            editBtn.onclick = () => {
-                this.enterEditMode();
-            }
-
             if (this.closable) {
                 removeBtn.style.display = "block";
                 removeBtn.onclick = () => {
@@ -108,10 +100,7 @@ class EditableNote extends Note {
             state.currentEditingNote.exitEditMode();
 
         this.editing = true;
-        this.noteEditor.enable(true);
-        this.noteEditor.focus();
         this.noteWindow.classList.add('note-editing');
-        state.editMode = true;
         state.currentEditingNote = this;
     }
 
@@ -123,13 +112,12 @@ class EditableNote extends Note {
         if (!skip_save)
             this.save();
 
-        if (this.noteEditor)
-            this.noteEditor.enable(false);
-
-        if (state.currentEditingNote == this)
-            state.editMode = false;
-
         state.currentEditingNote = undefined;
+    }
+
+    setLocked(lock) {
+        super.setLocked(lock);
+        this.noteEditor.enable(!lock);
     }
 
     delete() {
@@ -268,7 +256,6 @@ class EditableNote extends Note {
 class EditableSplit extends Split {
     onHover() {
         super.onHover();
-        editBtn.style.display = "none";
         removeBtn.style.display = "none";
         resizeHandle.style.display = "none";
     }

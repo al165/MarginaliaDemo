@@ -74,7 +74,6 @@ class Note extends NoteStatic {
                 'link',
             ]
         });
-        this.noteEditor.enable(false);
     }
 
     setContents(contents) {

@@ -2,7 +2,6 @@ class MarginaliaRoomState {
     #currentEditingNote = undefined;
     #lastEditingNote = undefined;
     #roomId = undefined;
-    #editMode = false;
     notes = {};
     lastZIndex = 0;
     scrollX = 0;
@@ -60,18 +59,6 @@ class MarginaliaRoomState {
 
     get roomId() {
         return this.#roomId;
-    }
-
-    set editMode(val) {
-        this.#editMode = val;
-        for (const callback of this.callbacks) {
-            if (callback.event === 'editMode')
-                callback.fn(val);
-        }
-    }
-
-    get editMode() {
-        return this.#editMode;
     }
 
     set language(val) {
