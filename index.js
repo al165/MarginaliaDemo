@@ -290,8 +290,7 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     const css = fs.readFileSync('./public/style.css').toString();
     const closeIcon = svgToBase64('./public/icons/close.svg');
     const undoIcon = svgToBase64('./public/icons/06_undo.svg');
-    const logo1 = svgToBase64('./public/logo1.svg');
-    const logo2 = svgToBase64('./public/logo2.svg');
+    const logo = svgToBase64('./public/0_logo.svg');
 
     const favicon = imageToBase64('./public/favicon.ico');
     const faviconHtml = `<link rel="icon" type="${favicon.mime}" href="${favicon.src}">`;
@@ -308,7 +307,7 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
             room: row,
             notes: noteData,
             css,
-            icons: { close: closeIcon, undo: undoIcon, logo1, logo2 },
+            icons: { close: closeIcon, undo: undoIcon, logo },
             favicon: faviconHtml
         });
 }));

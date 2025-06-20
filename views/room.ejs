@@ -44,16 +44,20 @@
 </head>
 
 <body>
-  <div class="logo" id="logo1"></div>
-  <div class="logo" id="logo2"></div>
   <% if(room.renderStatic) { %>
   <!-- Feel free to use your own logo here, or remove it entirely -->
-  <img src="<%= icons.logo1 %>" alt="logo" class="logo-text">
-  <img src="<%= icons.logo2 %>" alt="logo" class="logo-text">
+  <div class="logo" id="logo1"></div>
+  <div class="logo" id="logo2"></div>
+  <img src="<%= icons.logo %>" alt="marginalia logo" class="logo-text">
+  <!-- <img src="<%= icons.logo2 %>" alt="logo" class="logo-text"> -->
   <% } else { %>
+  <a href="<%= room.baseURL %>/">
+    <div class="logo" id="logo1"></div>
+  </a>
+  <a href="<%= room.baseURL %>/">
+    <div class="logo" id="logo2"></div>
+  </a>
   <img src="<%= room.baseURL %>/0_logo.svg" class="logo-text" alt="marginalia logo">
-  <!-- <a href="<%= room.baseURL %>/"><img src="<%= room.baseURL %>/logo1.svg" alt="logo" class="logo-text"></a>
-  <a href="<%= room.baseURL %>/"><img src="<%= room.baseURL %>/logo2.svg" alt="logo" class="logo-text"></a> -->
   <% } %>
 
   <% if(room.canEdit) { %>
