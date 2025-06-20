@@ -6,7 +6,7 @@ import { TOOLTIPS } from './data/tooltips.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const newNoteBtn = document.querySelector("#new-note");
+    const newNoteBtn = document.querySelector("#highlight");
     newNoteBtn.addEventListener('click', function (ev) {
         if (!state.currentEditingNote)
             return;

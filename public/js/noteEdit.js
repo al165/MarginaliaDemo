@@ -7,6 +7,8 @@ import { Note } from './note.js';
 
 const noteButtons = document.querySelector("#note-buttons");
 
+const hightlightToolbar = document.querySelector("#highlight-toolbar");
+const highlightBtn = document.querySelector("#highlight");
 const removeBtn = noteButtons.querySelector("#remove-note");
 const resizeHandle = document.querySelector("#resize-note");
 
@@ -56,12 +58,30 @@ class EditableNote extends Note {
 
         this.noteEditor.focus();
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
-
+            console.log(`selection-change:`);
+            console.log(range);
             if (!range) {
                 // console.log(`${this.noteId} lost focus`);
+                hightlightToolbar.style.visibility = 'hidden';
                 this.exitEditMode();
                 return;
             } else {
+                if (range.length > 0) {
+                    let newRange = {
+                        index: range.index,
+                        length: 1
+                    };
+                    const highlightBounds = this.noteEditor.getBounds(newRange);
+                    console.log(highlightBounds);
+
+                    hightlightToolbar.style.left = highlightBounds.left + this.getPosition().left + 'px';
+                    hightlightToolbar.style.top = highlightBounds.top + this.getPosition().top - hightlightToolbar.clientHeight + 'px';
+
+
+                    hightlightToolbar.style.visibility = 'visible';
+                }
+                else
+                    hightlightToolbar.style.visibility = 'hidden';
                 this.enterEditMode();
             }
 

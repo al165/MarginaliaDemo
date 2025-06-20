@@ -237,11 +237,11 @@ a:visited {
 }
 
 .tool {
-    width: 2em;
-    height: 2em;
+    width: 3em;
+    height: 3em;
     object-fit: contain;
     cursor: pointer;
-    margin: 0.8em;
+    margin: 0.5em;
 }
 
 #edit-toolbar,
@@ -307,6 +307,39 @@ a:visited {
     padding: 1em;
     background-color: var(--menu-bg-color);
     box-shadow: var(--glow-color) 0px 0px 48px 24px;
+}
+
+#highlight-toolbar {
+    box-sizing: border-box;
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    top: 200px;
+    left: 200px;
+    width: 8em;
+    height: 3em;
+    padding: 0em 1.2em;
+    border-radius: 3em 3em 0 0;
+    background-color: var(--glow-color);
+    visibility: hidden;
+    z-index: 1990;
+}
+
+#highlight-toolbar .tool {
+    margin: 0;
+    width: 2em;
+    height: 2em;
+}
+
+.colour-choice {
+    box-sizing: border-box;
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: 1em;
+    background-color: #FF00FF;
+    border: 2px black solid;
 }
 
 #link-editor {
