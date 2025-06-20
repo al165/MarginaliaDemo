@@ -14,19 +14,27 @@ async function fetchNote(noteId, note) {
 
         if (!note) {
             // console.log("fetchNote: `note` not provided, making new");
-            const newNote = new window.Note(noteId);
-            const options = JSON.parse(data.noteOptions) || {};
-            // options.width = 500;
-            newNote.setOptions(options);
-            newNote.setContents(JSON.parse(data.noteContent));
-            newNote.show();
+            let newNote;
+            if (data.noteType == 0) {
+                newNote = new window.Note(noteId, data.noteType);
+                const options = JSON.parse(data.noteOptions) || {};
+                newNote.setOptions(options);
+                newNote.setContents(data.noteContent);
+                newNote.show();
+            } else if (data.noteType == 1) {
+                newNote = new window.NoteStatic(noteId, data.noteType);
+                const options = JSON.parse(data.noteOptions) || {};
+                newNote.setOptions(options);
+                newNote.setHTML(data.noteContent);
+                newNote.show();
+            }
 
             calculateBoundingBox();
             return newNote;
         } else {
             // console.log("fetchNote: `note` provided, updating contents");
             note.setOptions(JSON.parse(data.noteOptions));
-            note.setContents(JSON.parse(data.noteContent));
+            note.setContents(data.noteContent);
 
             calculateBoundingBox();
             return note;
@@ -38,8 +46,8 @@ async function fetchNote(noteId, note) {
 
 
 class Note extends NoteStatic {
-    constructor(noteId) {
-        super(noteId);
+    constructor(noteId, noteType = 0) {
+        super(noteId, noteType);
 
         this.lastContent = "";
         this.lastHighlight;
@@ -70,8 +78,8 @@ class Note extends NoteStatic {
     }
 
     setContents(contents) {
-        this.noteEditor.setContents(contents);
-        this.lastContent = JSON.stringify(contents);
+        this.noteEditor.setContents(JSON.parse(contents));
+        this.lastContent = contents;
         updateHighlights(this);
         this.addLoadCallbacks();
 
@@ -91,5 +99,6 @@ class Note extends NoteStatic {
 
 
 window.Note = Note;
+window.NoteStatic = NoteStatic;
 
 export { Note, fetchNote }

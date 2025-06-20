@@ -188,7 +188,7 @@ app.get(BASE_URL + '/roomlist', asyncHandler(async (req, res) => {
 app.get(BASE_URL + '/room/:roomId/note/:noteId', asyncHandler(async (req, res) => {
     const { roomId, noteId } = req.params;
 
-    const row = await db.get("SELECT noteContent, noteOptions FROM Notes WHERE id = ?", [noteId]);
+    const row = await db.get("SELECT noteContent, noteOptions, noteType, createdOn FROM Notes WHERE id = ?", [noteId]);
 
     if (!row || !row.noteContent)
         throw new Error(`Note ${noteId} not found`);

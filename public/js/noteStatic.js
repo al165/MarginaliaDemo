@@ -313,8 +313,9 @@ class Fragment {
 }
 
 class NoteStatic extends Fragment {
-    constructor(noteId) {
+    constructor(noteId, noteType = 0) {
         super(noteId);
+        this.noteType = noteType;
         this.options = {};
 
         this.noteContents.classList.add('ql-editor');

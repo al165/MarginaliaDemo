@@ -1,0 +1,8 @@
+-- Up
+
+ALTER TABLE Notes ADD noteType INTEGER DEFAULT 0 NOT NULL;
+
+-- Down
+
+ALTER TABLE Notes DROP COLUMN noteType;
+
