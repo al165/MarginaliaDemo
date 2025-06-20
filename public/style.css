@@ -27,28 +27,21 @@ body {
 .logo {
     box-sizing: border-box;
     background-color: var(--menu-bg-color);
-    font-family: monospace;
-    font-size: 2em;
     position: fixed;
     top: 0;
     left: 0;
-    padding: 0.3em;
     z-index: 1000;
-    border-radius: 0 0 2em 0;
+    border-radius: 0 0 4em 0;
 }
 
 #logo1 {
-    padding-top: 1em;
-    padding-bottom: 1em;
-    width: 2em;
-    height: 6.5em;
+    width: 4.5em;
+    height: 14em;
 }
 
 #logo2 {
-    padding-left: 1em;
-    padding-right: 2em;
-    height: 2em;
-    width: 6.5em;
+    height: 4.5em;
+    width: 14em;
 }
 
 .logo-text {
@@ -56,6 +49,7 @@ body {
     top: 0;
     left: 0;
     z-index: 1001;
+    width: 13em;
 }
 
 a,
