@@ -50,7 +50,6 @@ console.log("BaseURL: " + BASE_URL);
 
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
-import { group } from 'console';
 
 const dbPromise = open({ filename: './db/marginalia.db', driver: sqlite3.Database });
 
@@ -147,20 +146,11 @@ function generateId(length) {
     return id;
 }
 
-const DEFAULT_NOTE = JSON.stringify(
-    {
-        "ops": [
-            { "insert": "Welcome to your room!" },
-            {
-                "attributes": { "header": 2 },
-                "insert": "\n"
-            },
-            {
-                "insert": "This is a room for you to start creating and editing notes.\n\nHover over this note and click on the pencil icon to enter edit mode where you can change the text. Clicking outside the note will save it automatically.\n\nYou can change the formatting by selecting some the format options below.\n\nTo make an annotation while in edit mode, highlight the text you want and click the highlighter on the right!\n\nTo publish, click on the envelope icon to be redirected to a public URL that you can share with the world! Users will not be able to edit the notes, only view them. You can share this URL if you want others to be able to edit your notes too! \n"
-            }
-        ]
-    }
-);
+const DEFAULT_NOTE =
+{
+    "insert": "Welcome to your room!\n\nThis is a room for you to start creating and editing notes.\n\nHover over this note and click on the pencil icon to enter edit mode where you can change the text. Clicking outside the note will save it automatically.\n\nYou can change the formatting by selecting some the format options below.\n\nTo make an annotation while in edit mode, highlight the text you want and click the highlighter on the right!\n\nTo publish, click on the envelope icon to be redirected to a public URL that you can share with the world! Users will not be able to edit the notes, only view them. You can share this URL if you want others to be able to edit your notes too! \n"
+};
+
 
 app.get(BASE_URL + '/room', asyncHandler(async (req, res) => {
     const rows = await db.all("SELECT id roomId, name, editToken FROM Rooms", []);
@@ -342,9 +332,20 @@ app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
     // Create a default note to get started:
     const noteId = generateId(16);
 
+    let newNoteOps = {
+        'ops': [
+            { "insert": roomName },
+            {
+                "attributes": { "header": 2 },
+                "insert": "\n"
+            },
+            DEFAULT_NOTE
+        ]
+    }
+
     await db.run(
         "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
-        [noteId, createdOn, DEFAULT_NOTE, null]
+        [noteId, createdOn, JSON.stringify(newNoteOps), null]
     );
     await db.run("INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)", [roomId, noteId]);
 
