@@ -8,7 +8,6 @@ import { Note } from './note.js';
 const noteButtons = document.querySelector("#note-buttons");
 
 const hightlightToolbar = document.querySelector("#highlight-toolbar");
-const highlightBtn = document.querySelector("#highlight");
 const removeBtn = noteButtons.querySelector("#remove-note");
 const resizeHandle = document.querySelector("#resize-note");
 
@@ -55,8 +54,9 @@ class EditableNote extends Note {
 
     constructor(noteId) {
         super(noteId);
-
+        this.noteEditor.enable(canEdit);
         this.noteEditor.focus();
+
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
             console.log(`selection-change:`);
             console.log(range);
@@ -113,6 +113,12 @@ class EditableNote extends Note {
         // console.log(`${this.noteId} enterEditMode`);
         if (this.locked) {
             console.log("enterEditMode: is locked so returning");
+            return;
+        }
+
+        if (!canEdit) {
+            console.log("enterEditMode: canEdit is false");
+            this.noteEditor.enable(false);
             return;
         }
 
