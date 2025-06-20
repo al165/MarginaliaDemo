@@ -313,18 +313,22 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
         });
 }));
 
-app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
+app.get(BASE_URL + '/newroom', asyncHandler(async (req, res) => {
+
+    // app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
     // Create new room
     // TODO: tidy-up new rooms that are not edited after some timeout
 
     const roomId = generateId(8);
     const editToken = generateId(16);
-    const { roomName } = req.body;
+    let { roomname } = req.query;
+    if (!roomname)
+        roomname = 'New room';
     const createdOn = new Date();
 
     await db.run(
         "INSERT INTO Rooms(id, name, editToken, createdOn) VALUES (?, ?, ?, ?)",
-        [roomId, roomName, editToken, createdOn]
+        [roomId, roomname, editToken, createdOn]
     );
 
     console.log(`NEW ROOM: id ${roomId} editToken ${editToken}`);
@@ -334,7 +338,7 @@ app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
 
     let newNoteOps = {
         'ops': [
-            { "insert": roomName },
+            { "insert": roomname },
             {
                 "attributes": { "header": 2 },
                 "insert": "\n"
@@ -351,7 +355,8 @@ app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
 
     await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [noteId, roomId]);
 
-    res.status(201).json({ roomId, editToken });
+    // res.status(201).json({ roomId, editToken });
+    res.redirect(`${BASE_URL}/room/${roomId}?editToken=${editToken}`);
 }));
 
 app.delete(BASE_URL + '/room/:roomId', checkEditToken, asyncHandler(async (req, res) => {
@@ -674,12 +679,15 @@ async function createHomeNote() {
                     },
                     {
                         "attributes": {
-                            "link": BASE_URL + "/create"
+                            "annotate": {
+                                "color": "oklch(0.65 0.4 312)",
+                                "id": "createroom"
+                            }
                         },
-                        "insert": "create a room"
+                        "insert": "create a room of ones own..."
                     },
                     {
-                        "insert": " of ones own....\n\n"
+                        "insert": "\n\n"
                     },
                     {
                         "attributes": {
@@ -693,7 +701,17 @@ async function createHomeNote() {
                 ]
             }
         )
+    }
 
+    const createRoomNote = {
+        id: 'createroom',
+        createdOn,
+        noteContent: `<form action="${BASE_URL}/newroom">
+<input type="text" name="roomname" style="margin: 0.5em 0.5em 0.5em 0em; padding: 0.2em" placeholder="Name of your room">
+<input type="submit" value="Create your room" style="padding: 0.2em">
+<p>Make sure to save or bookmark the next page so that you can return to it!<p>
+</form>`,
+        noteType: 1
     }
 
     const aboutNoteData = {
@@ -787,14 +805,14 @@ async function createHomeNote() {
         )
     }
 
-    const notes = [welcomeNoteData, aboutNoteData, marginNote, howToUseNote];
+    const notes = [welcomeNoteData, aboutNoteData, marginNote, howToUseNote, createRoomNote];
     const db = await dbPromise;
     await db.run("BEGIN TRANSACTION;");
 
     notes.map(async (noteData) => {
         await db.run(
-            "INSERT INTO Notes (id, createdOn, noteContent) VALUES (?, ?, ?) ON CONFLICT(id) DO NOTHING;",
-            [noteData.id, noteData.createdOn, noteData.noteContent],
+            "INSERT INTO Notes (id, createdOn, noteContent, noteType) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO NOTHING;",
+            [noteData.id, noteData.createdOn, noteData.noteContent, noteData.noteType ? noteData.noteType : 0],
             function (err) {
                 if (err)
                     console.error(err);
