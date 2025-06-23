@@ -161,7 +161,6 @@ a:visited {
     top: 0;
     right: 0;
     border-radius: 0 0 0 0.5em;
-    filter: drop-shadow(var(--glow-color) 0px 0px 4px);
     background-color: var(--glow-color);
     z-index: 1010;
     width: fit-content;
