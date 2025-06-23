@@ -10,6 +10,8 @@ class MarginaliaRoomState {
     resizing = undefined;
     resizeStartPosition = undefined;
     resizeStartWidth = undefined;
+    dragging = undefined;
+    draggingFragment = undefined;
     callbacks = [];
 
     socket = undefined;

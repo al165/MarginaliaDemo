@@ -22,6 +22,13 @@ const noteButtons = document.querySelector("#note-buttons");
 
 const closeBtn = noteButtons.querySelector("#close-note");
 const restoreBtn = noteButtons.querySelector("#restore-note");
+const dragHandle = document.querySelector("#drag-note");
+
+dragHandle.addEventListener('mousedown', (ev) => {
+    ev.preventDefault();
+    state.draggingFragment.noteContainer.classList.remove('slide');
+    state.dragging = true;
+});
 
 function split(fragment, vertical, newNote, hRect) {
     const lastScrollX = state.scrollX;
@@ -220,6 +227,9 @@ class Fragment {
         noteButtons.style.zIndex = this.noteContainer.style.zIndex;
 
         noteButtons.dataset.noteid = this.noteId;
+
+        if (!state.dragging)
+            state.draggingFragment = this;
 
         closeBtn.onclick = () => {
             this.close(true);

@@ -171,7 +171,8 @@ a:visited {
 }
 
 .btn,
-.handle {
+.handle,
+.drag {
     cursor: pointer;
     width: 1.5em;
     height: 1.5em;
@@ -180,6 +181,10 @@ a:visited {
 
 .handle {
     cursor: col-resize;
+}
+
+.drag {
+    cursor: move;
 }
 
 .ql-editor {

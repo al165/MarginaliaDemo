@@ -74,6 +74,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+document.addEventListener("mouseup", (ev) => {
+    if (state.dragging) {
+        state.dragging = false;
+    }
+});
+
+document.addEventListener("mousemove", (ev) => {
+    if (state.dragging && state.draggingFragment) {
+        const fragmentSize = state.draggingFragment.getSize();
+        state.draggingFragment.setPosition({
+            left: ev.clientX + state.scrollX - fragmentSize.width + 20,
+            top: ev.clientY + state.scrollY - 20
+        });
+    }
+});
+
 document.addEventListener("scroll", () => {
     state.scrollY = window.scrollY;
     state.scrollX = window.scrollX;
