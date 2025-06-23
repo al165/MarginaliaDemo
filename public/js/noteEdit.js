@@ -180,6 +180,7 @@ class EditableNote extends Note {
             this.close(false);
 
             if (!res.ok) {
+                console.log("Deleting not ok:");
                 console.log(res.statusText);
                 return;
             }
@@ -192,12 +193,11 @@ class EditableNote extends Note {
                 for (const format of parentContents.ops) {
                     if (format.attributes && format.attributes.annotate && format.attributes.annotate.id == this.noteId) {
                         delete format.attributes.annotate;
-                        break;
                     }
                 }
 
-                this.parent.setContents(parentContents.ops, 'api');
                 this.parent.restore();
+                this.parent.setContents(JSON.stringify(parentContents.ops), 'api');
                 this.parent.save();
             }
 

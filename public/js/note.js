@@ -81,7 +81,15 @@ class Note extends NoteStatic {
         if (!contents)
             return;
 
-        this.noteEditor.setContents(JSON.parse(contents));
+        let newContents;
+        try {
+            newContents = JSON.parse(contents);
+        } catch (err) {
+            console.error(err);
+            return;
+        }
+
+        this.noteEditor.setContents(newContents);
         this.lastContent = contents;
         updateHighlights(this);
         this.addLoadCallbacks();

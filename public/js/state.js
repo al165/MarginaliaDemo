@@ -86,7 +86,7 @@ class MarginaliaRoomState {
         delete this.notes[note.noteId];
         for (const callback of this.callbacks) {
             if (callback.event === 'deleteNote')
-                callback.fn(val);
+                callback.fn(note);
         }
     }
 
