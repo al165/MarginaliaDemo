@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newNote.enterEditMode();
         newNote.toFront();
         newNote.parent = parentNote;
-        newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + parentPos.top });
+        newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
 
         ev.stopPropagation();
     });
