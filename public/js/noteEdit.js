@@ -4,6 +4,7 @@
 import { state } from './state.js';
 import { Split, updateHighlights } from './noteStatic.js';
 import { Note } from './note.js';
+import { HIGHLIGHT_COLOURS } from './data/colourschemes.js';
 
 const noteButtons = document.querySelector("#note-buttons");
 
@@ -13,22 +14,13 @@ const resizeHandle = document.querySelector("#resize-note");
 
 // Color management
 // TODO: add to state
-const highlightColors = [
-    '#ff0063',
-    '#ff87ff',
-    '#b26bfe',
-    '#6c9aff',
-    '#dfffcd',
-    '#00dfba',
-    '#ffffb9',
-];
 let currentColor = 0;
 
 function getNextColor() {
     //lastHue = (lastHue + 25) % 360;
     //return `oklch(0.65 0.4 ${lastHue})`
-    currentColor = (currentColor + 1) % highlightColors.length;
-    return highlightColors[currentColor];
+    currentColor = (currentColor + 1) % HIGHLIGHT_COLOURS.length;
+    return HIGHLIGHT_COLOURS[currentColor];
 }
 
 if (resizeHandle) {

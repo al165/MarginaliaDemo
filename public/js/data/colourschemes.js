@@ -57,6 +57,10 @@ export const THEME_LIST = [
     PURPLE_THEME,
 ];
 
+export const HIGHLIGHT_COLOURS = [
+    "#ff5cff", "#ffd2af", "#A6BDFF", "#3CFFB6", "#FFFF78"
+];
+
 export function setTheme(colourTheme) {
     console.log(colourTheme['name']);
 
