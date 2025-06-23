@@ -141,6 +141,16 @@ class EditableNote extends Note {
         state.currentEditingNote = undefined;
     }
 
+    preSplit() {
+        super.preSplit();
+        this.noteEditor.enable(false);
+    }
+
+    restore() {
+        super.restore();
+        this.noteEditor.enable(true);
+    }
+
     setLocked(lock) {
         super.setLocked(lock);
         this.noteEditor.enable(!lock);

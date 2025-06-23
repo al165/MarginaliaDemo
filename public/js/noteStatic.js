@@ -44,6 +44,8 @@ function split(fragment, vertical, newNote, hRect) {
 
     const cut = hRect[mainCartesian] - pos[mainAxisN] + scrollMainAxis + hRect[mainDim] / 2;
 
+    fragment.preSplit();
+
     const html = fragment.getHTML();
     const areaRect = fragment.noteWindow.getBoundingClientRect();
     const contentRect = fragment.noteContents.getBoundingClientRect();
@@ -296,6 +298,11 @@ class Fragment {
             this.close(false);
         }
         document.querySelector("#notes").appendChild(this.noteContainer);
+    }
+
+
+    preSplit() {
+        // called before note is split.
     }
 
     restore() {
