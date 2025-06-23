@@ -133,6 +133,7 @@ function updateHighlights(note) {
         highlight.style.backgroundColor = c;
 
         highlight.onclick = (ev) => {
+            ev.preventDefault();
             // const vertical = Math.random() < 0.5;
             lastVertical = !lastVertical;
 
