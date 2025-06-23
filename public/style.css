@@ -321,18 +321,16 @@ a:visited {
     box-sizing: border-box;
     position: absolute;
     display: flex;
+    gap: 0.5em;
     flex-direction: row;
     align-items: center;
     justify-content: space-around;
-    top: 200px;
-    left: 200px;
-    width: 8em;
     height: 3em;
-    padding: 0em 1.2em;
-    border-radius: 3em 3em 0 0;
+    padding-left: 1.2em;
+    border-radius: 3em 0 0 0;
     background-color: var(--glow-color);
+    z-index: 1010;
     visibility: hidden;
-    z-index: 1990;
 }
 
 #highlight-toolbar .tool {
@@ -341,13 +339,25 @@ a:visited {
     height: 2em;
 }
 
+#highlight-colour-pallette {
+    display: flex;
+    gap: 0.1em;
+    overflow: hidden;
+    align-items: center;
+    max-width: 0;
+    margin-right: 0.5em;
+    transition: max-width 0.6s;
+}
+
 .colour-choice {
+    display: inline;
     box-sizing: border-box;
-    width: 1.6em;
-    height: 1.6em;
-    border-radius: 1em;
+    cursor: pointer;
+    min-width: 1.6em;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
     background-color: #FF00FF;
-    border: 2px black solid;
+    border: 1px black solid;
 }
 
 #link-editor {

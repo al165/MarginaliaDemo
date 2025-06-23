@@ -13,15 +13,33 @@ const removeBtn = noteButtons.querySelector("#remove-note");
 const resizeHandle = document.querySelector("#resize-note");
 
 // Color management
-// TODO: add to state
-let currentColor = 0;
+let currentColor = HIGHLIGHT_COLOURS[0];
 
-function getNextColor() {
-    //lastHue = (lastHue + 25) % 360;
-    //return `oklch(0.65 0.4 ${lastHue})`
-    currentColor = (currentColor + 1) % HIGHLIGHT_COLOURS.length;
-    return HIGHLIGHT_COLOURS[currentColor];
+const highlighterColour = document.querySelector("#highlight-colour");
+highlighterColour.style.backgroundColor = currentColor;
+
+const highlighterPallette = document.querySelector("#highlight-colour-pallette");
+
+for (const hiColour of HIGHLIGHT_COLOURS) {
+    const colourChoice = document.createElement('div');
+    colourChoice.classList.add('colour-choice');
+    colourChoice.style.backgroundColor = hiColour;
+
+    highlighterPallette.appendChild(colourChoice);
+
+    colourChoice.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        currentColor = hiColour;
+        highlighterColour.style.backgroundColor = hiColour;
+        highlighterPallette.style.maxWidth = '0em';
+    });
 }
+
+highlighterColour.addEventListener('mousedown', (ev) => {
+    ev.preventDefault();
+    highlighterPallette.style.maxWidth = '10em';
+});
+
 
 if (resizeHandle) {
     resizeHandle.addEventListener('mousedown', (ev) => {
@@ -53,6 +71,7 @@ class EditableNote extends Note {
             if (!range) {
                 // console.log(`${this.noteId} lost focus`);
                 hightlightToolbar.style.visibility = 'hidden';
+                highlighterPallette.style.maxWidth = '0em';
                 this.exitEditMode();
                 return;
             } else {
@@ -69,8 +88,10 @@ class EditableNote extends Note {
 
                     hightlightToolbar.style.visibility = 'visible';
                 }
-                else
+                else {
                     hightlightToolbar.style.visibility = 'hidden';
+                    highlighterPallette.style.maxWidth = '0em';
+                }
                 this.enterEditMode();
             }
 
@@ -259,7 +280,7 @@ class EditableNote extends Note {
 
                     if (this.parent) {
                         this.parent.noteEditor.setSelection(this.parent.lastHighlight);
-                        this.parent.noteEditor.format('annotate', { id: this.noteId, color: getNextColor() });
+                        this.parent.noteEditor.format('annotate', { id: this.noteId, color: currentColor });
                         this.parent.noteEditor.blur();
                         updateHighlights(this.parent);
                         this.parent.save();
@@ -275,7 +296,6 @@ class EditableNote extends Note {
             });
         }
     }
-
 }
 
 class EditableSplit extends Split {
