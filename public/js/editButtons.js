@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.style.visibility = 'visible';
 
             const toolTipMaxX = document.getElementById("room-toolbar").getBoundingClientRect().left;
-            const toolTipMaxY = document.getElementById("edit-toolbar").getBoundingClientRect().top;
+            const toolTipMaxY = document.getElementById("text-toolbar").getBoundingClientRect().top;
 
             tooltip.style.left = Math.min(ev.clientX, toolTipMaxX - tooltip.getBoundingClientRect().width) + "px";
             tooltip.style.top = Math.min(ev.clientY, toolTipMaxY - tooltip.getBoundingClientRect().height) + "px";

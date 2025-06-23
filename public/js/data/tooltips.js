@@ -1,7 +1,7 @@
 export const TOOLTIPS = {
     "en": {
         "new-note": "Creates a new marginalia and highlights your text with a bright colour",
-        "pencil": "New note",
+        "pencil": "Draw",
         "themes": "Set the colour theme",
         "viewmode": "Switch to view mode",
         "trash": "Deletes the marginalia",
