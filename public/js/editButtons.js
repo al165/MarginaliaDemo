@@ -336,18 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.style.visibility = 'hidden';
         });
     }
-
-    // Events
-    state.addCallback('editMode', (editMode) => {
-        const editToolbar = document.getElementById("edit-toolbar");
-        const textToolbar = document.getElementById("text-toolbar");
-        if (editMode) {
-            textToolbar.style.right = editToolbar.clientWidth - editToolbar.clientHeight + "px";
-        } else {
-            textToolbar.style.right = editToolbar.clientWidth - textToolbar.clientWidth + "px";
-            // linkEditorPopup.style.visibility = 'hidden';
-        }
-    })
 });
 
 function extractVideoUrl(url) {

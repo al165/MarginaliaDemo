@@ -58,8 +58,6 @@ class EditableNote extends Note {
         this.noteEditor.focus();
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
-            console.log(`selection-change:`);
-            console.log(range);
             if (!range) {
                 // console.log(`${this.noteId} lost focus`);
                 hightlightToolbar.style.visibility = 'hidden';
@@ -76,7 +74,6 @@ class EditableNote extends Note {
 
                     hightlightToolbar.style.left = highlightBounds.left + this.getPosition().left + 'px';
                     hightlightToolbar.style.top = highlightBounds.top + this.getPosition().top - hightlightToolbar.clientHeight + 'px';
-
 
                     hightlightToolbar.style.visibility = 'visible';
                 }
@@ -202,13 +199,13 @@ class EditableNote extends Note {
             console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
             return;
         }
-        console.log(`${this.noteId} save()`);
+        // console.log(`${this.noteId} save()`);
 
         const noteContent = this.noteEditor.getContents();
         const noteOptions = this.options;
         // noteOptions.width = this.width;
         if (!force && JSON.stringify(noteContent) === this.lastContent) {
-            console.log(`${this.noteId} Text has not changed.`);
+            // console.log(`${this.noteId} Text has not changed.`);
             return;
         }
 

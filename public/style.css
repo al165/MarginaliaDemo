@@ -2,9 +2,11 @@
     --background-color: #FFFFFF;
     --note-bg-color: #E8E8E8;
     --menu-bg-color: #E8E8E8;
+    --text-menu-bg-color: #cccccc;
     --glow-color: #C2C1FF;
     --text-color: #000000;
     --link-color: #6e6e7e;
+    --tool-size: 3em;
 }
 
 body {
@@ -232,48 +234,59 @@ a:visited {
 }
 
 .tool {
-    width: 3em;
-    height: 3em;
+    width: var(--tool-size);
+    height: var(--tool-size);
     object-fit: contain;
     cursor: pointer;
     margin: 0.5em;
 }
 
-#edit-toolbar,
-#room-toolbar,
-#text-toolbar {
-    position: fixed;
-    display: flex;
-    bottom: 0;
-    right: 0;
+#insert-toolbar,
+#text-toolbar,
+#room-toolbar {
     padding: 0.5em;
     background-color: var(--menu-bg-color);
     z-index: 1000;
     border-radius: 4em 0 0 0;
 }
 
+#insert-toolbar,
+#text-toolbar {
+    flex-direction: row;
+    width: fit-content;
+    padding-left: calc(0.5 * var(--tool-size));
+}
+
+#insert-toolbar {
+    display: flex;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+#text-toolbar {
+    max-width: 95vw;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    background-color: var(--text-menu-bg-color);
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: calc(var(--tool-size) + 1em + 0.5em);
+}
+
 #room-toolbar {
+    position: fixed;
+    display: flex;
+    bottom: 0;
+    right: 0;
     flex-direction: column;
     height: fit-content;
     padding-top: 2em;
     z-index: 1001;
 }
 
-#edit-toolbar,
-#text-toolbar {
-    flex-direction: row;
-    width: fit-content;
-    padding-left: 2em;
-    padding-right: calc(2em + 2 * 0.8em + 0.5em);
-}
-
-#text-toolbar {
-    filter: brightness(90%);
-    overflow: hidden;
-    transition: right 0.3s ease-out;
-    right: -100vw;
-    padding-right: calc(2em + 2 * 0.8em + 0.5em + 2em);
-}
 
 #tooltip {
     position: fixed;

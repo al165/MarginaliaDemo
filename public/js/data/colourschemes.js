@@ -4,6 +4,7 @@ export const LIGHT_THEME = {
     backgroundColor: "#FFFFFF",
     noteBgColor: "#E8E8E8",
     menuBgColor: "#E8E8E8",
+    textMenuBgColor: "#CCCCCC",
     glowColor: "#C2C1FF",
     textColor: "#000000",
     linkColor: "#6e6e7e",
@@ -16,6 +17,7 @@ export const DARK_THEME = {
     backgroundColor: "#494949",
     noteBgColor: "#000000",
     menuBgColor: "#000000",
+    textMenuBgColor: "#595959",
     glowColor: "#ff00ff",
     textColor: "#ffffff",
     linkColor: "#ff00ff",
@@ -28,6 +30,7 @@ export const SUMMER_THEME = {
     backgroundColor: "#de3800",
     noteBgColor: "#ffd200",
     menuBgColor: "#ffd200",
+    textMenuBgColor: "#EEC400",
     glowColor: "#ec8e6f",
     textColor: "#000000",
     linkColor: "#de3800",
@@ -40,6 +43,7 @@ export const PURPLE_THEME = {
     backgroundColor: "#cabcfa",
     noteBgColor: "#cabcfa",
     menuBgColor: "#210000",
+    textMenuBgColor: "#595959",
     glowColor: "#b26bfe",
     textColor: "#000000",
     linkColor: "#b26bfe",
@@ -59,6 +63,7 @@ export function setTheme(colourTheme) {
     document.documentElement.style.setProperty('--background-color', colourTheme.backgroundColor);
     document.documentElement.style.setProperty('--note-bg-color', colourTheme.noteBgColor);
     document.documentElement.style.setProperty('--menu-bg-color', colourTheme.menuBgColor);
+    document.documentElement.style.setProperty('--text-menu-bg-color', colourTheme.textMenuBgColor);
     document.documentElement.style.setProperty('--glow-color', colourTheme.glowColor);
     document.documentElement.style.setProperty('--text-color', colourTheme.textColor);
     document.documentElement.style.setProperty('--link-color', colourTheme.linkColor);
