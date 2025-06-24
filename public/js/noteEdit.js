@@ -72,7 +72,6 @@ class EditableNote extends Note {
                 return;
 
             if (!range) {
-                // console.log(`${this.noteId} lost focus`);
                 hightlightToolbar.style.visibility = 'hidden';
                 highlighterPallette.style.maxWidth = '0em';
                 this.exitEditMode();
@@ -95,7 +94,9 @@ class EditableNote extends Note {
                     hightlightToolbar.style.visibility = 'hidden';
                     highlighterPallette.style.maxWidth = '0em';
                 }
-                this.enterEditMode();
+
+                if (!this.editing)
+                    this.enterEditMode();
             }
 
             this.lastHighlight = range;
@@ -144,7 +145,7 @@ class EditableNote extends Note {
     }
 
     exitEditMode(skip_save = false) {
-        console.log(`${this.noteId} exitEditMode`);
+        console.log(`${this.noteId} exitEditMode, skip_save: ${skip_save}`);
         this.editing = false;
         this.noteWindow.classList.remove('note-editing');
 
