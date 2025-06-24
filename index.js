@@ -43,7 +43,7 @@ const storagePhoto = diskStorage({
 const uploadPhoto = multer({ storage: storagePhoto });
 
 
-let BASE_URL = process.env.BASE_URL;
+let BASE_URL = process.env.BASE_URL || '';
 if (BASE_URL && BASE_URL.slice(-1) === '/')
     BASE_URL = BASE_URL.slice(0, -1);
 console.log("BaseURL: " + BASE_URL);
