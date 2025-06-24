@@ -20,6 +20,8 @@ async function fetchNote(noteId, note) {
                 const options = JSON.parse(data.noteOptions) || {};
                 newNote.setOptions(options);
                 newNote.setContents(data.noteContent);
+                newNote.setLocked(state.lockedNotes.has(noteId));
+
                 newNote.show();
             } else if (data.noteType == 1) {
                 newNote = new window.NoteStatic(noteId, data.noteType);
@@ -27,12 +29,6 @@ async function fetchNote(noteId, note) {
                 newNote.setOptions(options);
                 newNote.setHTML(data.noteContent);
                 newNote.show();
-            }
-
-            if (state.lockedNotes.has(noteId)) {
-                newNote.setLocked(true);
-            } else {
-                newNote.setLocked(false);
             }
 
             calculateBoundingBox();
