@@ -291,7 +291,7 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
     const closeIcon = svgToBase64('./public/icons/close.svg');
     const dragIcon = svgToBase64('./public/icons/28_drag.svg');
     const unbreakIcon = svgToBase64('./public/icons/29_unbreak.svg');
-    const logo = svgToBase64('./public/0_logo.svg');
+    const logo = svgToBase64('./public/logo.svg');
 
     const favicon = imageToBase64('./public/favicon.ico');
     const faviconHtml = `<link rel="icon" type="${favicon.mime}" href="${favicon.src}">`;
