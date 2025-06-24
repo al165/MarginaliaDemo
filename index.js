@@ -224,8 +224,8 @@ app.get(BASE_URL + '/static/:roomId/', asyncHandler(async (req, res) => {
         JOIN Rooms_Notes_XRef ON Notes.id = Rooms_Notes_XRef.noteId 
         WHERE Rooms_Notes_XRef.roomId = ?`, roomId);
 
-    if (!notes) {
-        console.err(`No notes found in room ${roomId}`);
+    if (!notes || notes.length === 0) {
+        console.error(`No notes found in room ${roomId}`);
         return res.sendStatus(404);
     }
 
