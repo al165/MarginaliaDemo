@@ -197,7 +197,6 @@ a:visited {
 }
 
 .ql-editor p,
-.ql-editor ol,
 .ql-editor pre,
 .ql-editor blockquote,
 .ql-editor h1,
@@ -208,6 +207,10 @@ a:visited {
 .ql-editor h6 {
     margin: 0;
     padding: 0
+}
+
+.ql-editor ol {
+    padding-left: 1.5em;
 }
 
 .ql-editor mark {
