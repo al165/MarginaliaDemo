@@ -83,7 +83,6 @@ class EditableNote extends Note {
                         length: 1
                     };
                     const highlightBounds = this.noteEditor.getBounds(newRange);
-                    console.log(highlightBounds);
 
                     hightlightToolbar.style.left = highlightBounds.left + this.getPosition().left + 'px';
                     hightlightToolbar.style.top = highlightBounds.top + this.getPosition().top - hightlightToolbar.clientHeight + 'px';

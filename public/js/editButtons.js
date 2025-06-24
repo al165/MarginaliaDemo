@@ -47,10 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentFormat = state.currentEditingNote.noteEditor.getFormat();
             if (!currentFormat || !currentFormat[format]) {
                 state.currentEditingNote.noteEditor.format(format, values[0], 'user');
+                console.log("Setting format " + format + " to " + values[0]);
             } else {
                 let nextIndex = values.indexOf(currentFormat[format]) + 1;
                 nextIndex = nextIndex % values.length;
                 state.currentEditingNote.noteEditor.format(format, values[nextIndex], 'user');
+                console.log("Setting format " + format + " to " + values[nextIndex]);
             }
         });
     }

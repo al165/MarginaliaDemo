@@ -213,6 +213,10 @@ a:visited {
     padding-left: 1.5em;
 }
 
+.ql-editor ol li[data-list="bullet"] {
+    list-style-type: disc;
+}
+
 .ql-editor mark {
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
