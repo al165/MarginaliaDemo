@@ -68,6 +68,9 @@ class EditableNote extends Note {
         this.noteEditor.focus();
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
+            if (this.locked)
+                return;
+
             if (!range) {
                 // console.log(`${this.noteId} lost focus`);
                 hightlightToolbar.style.visibility = 'hidden';
@@ -153,6 +156,7 @@ class EditableNote extends Note {
 
     preSplit() {
         super.preSplit();
+        this.noteEditor.blur();
         this.noteEditor.enable(false);
     }
 

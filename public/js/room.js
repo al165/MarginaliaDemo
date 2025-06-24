@@ -18,13 +18,21 @@ socket.on('noteUpdated', function (noteId) {
 
 socket.on('noteEditing', function (data) {
     console.log("socket: noteEditing: " + data.noteId);
-    if (!data.noteId || !state.notes[data.noteId])
+    if (!data.noteId)
         return;
-    state.notes[data.noteId].setLocked(data.lock);
+
+    if (data.lock)
+        state.lockedNotes.add(data.noteId);
+    else
+        state.lockedNotes.delete(data.noteId);
+
+    if (state.notes[data.noteId])
+        state.notes[data.noteId].setLocked(data.lock);
 });
 
 socket.on('lockedNotes', function (lockedNotes) {
     for (const noteId of lockedNotes) {
+        state.lockedNotes.add(noteId);
         if (state.notes[noteId]) {
             state.notes[noteId].setLocked(true);
         }

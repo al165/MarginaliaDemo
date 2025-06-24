@@ -29,6 +29,12 @@ async function fetchNote(noteId, note) {
                 newNote.show();
             }
 
+            if (state.lockedNotes.has(noteId)) {
+                newNote.setLocked(true);
+            } else {
+                newNote.setLocked(false);
+            }
+
             calculateBoundingBox();
             return newNote;
         } else {

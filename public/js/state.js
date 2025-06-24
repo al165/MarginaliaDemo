@@ -3,6 +3,7 @@ class MarginaliaRoomState {
     #lastEditingNote = undefined;
     #roomId = undefined;
     notes = {};
+    lockedNotes = new Set();
     lastZIndex = 0;
     scrollX = 0;
     scrollY = 0;
