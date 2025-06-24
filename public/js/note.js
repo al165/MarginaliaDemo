@@ -52,7 +52,6 @@ class Note extends NoteStatic {
         this.lastContent = "";
         this.lastHighlight;
         this.locked = false;
-        this.noteContents.classList.remove('ql-editor');
 
         this.noteEditor = new Quill(this.noteContents, {
             placeholder: 'Write your note here...',
@@ -74,6 +73,7 @@ class Note extends NoteStatic {
                 'link',
             ]
         });
+        this.noteContents.classList.remove('ql-editor');
         this.noteEditor.enable(false);
     }
 

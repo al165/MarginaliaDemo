@@ -113,8 +113,8 @@ a:visited {
 }
 
 .note-locked {
-    /* filter: brightness(50%); */
-    opacity: 50%;
+    filter: brightness(50%);
+    /* opacity: 50%; */
 }
 
 .overflow-hidden {
@@ -163,7 +163,7 @@ a:visited {
     border-radius: 0 0 0 0.5em;
     background-color: var(--glow-color);
     z-index: 1010;
-    width: fit-content;
+    width: 2em;
 }
 
 #note-buttons {

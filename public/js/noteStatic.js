@@ -202,10 +202,10 @@ class Fragment {
         this.noteContents = document.createElement('div');
         this.noteContents.classList.add('note');
         this.noteContents.classList.add('note-content');
-        this.noteContents.classList.add('ql-container');
+        // this.noteContents.classList.add('ql-container');
 
-        this.noteContainer.appendChild(this.noteWindow);
         this.noteWindow.appendChild(this.noteContents);
+        this.noteContainer.appendChild(this.noteWindow);
 
         this.noteContainer.addEventListener('mouseenter', () => this.onHover());
 
@@ -289,6 +289,8 @@ class Fragment {
         }
         this.width = size.width;
         this.height = size.height;
+        // this.noteContents.style.width = size.width + "px";
+        // this.noteContents.style.height = size.height + "px";
         this.noteWindow.style.width = size.width + "px";
         this.noteWindow.style.height = size.height + "px";
     }
@@ -417,13 +419,14 @@ class Split extends Fragment {
     constructor(noteId, note, html) {
         super(noteId);
         this.noteContents.classList.add('absolute');
-        this.noteContents.classList.add('ql-editor');
         this.noteWindow.classList.add('slide');
 
         this.note = note;
         this.html = html;
 
         this.noteContents.innerHTML = html;
+        this.noteContents.style.width = note.noteContents.offsetWidth + "px";
+        this.noteContents.style.height = note.noteContents.offsetHeight + "px";
         updateHighlights(this);
     }
 
