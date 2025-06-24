@@ -202,7 +202,7 @@ class Fragment {
         this.noteContents = document.createElement('div');
         this.noteContents.classList.add('note');
         this.noteContents.classList.add('note-content');
-        // this.noteContents.classList.add('ql-container');
+        this.noteContents.classList.add('ql-container');
 
         this.noteWindow.appendChild(this.noteContents);
         this.noteContainer.appendChild(this.noteWindow);
@@ -221,8 +221,6 @@ class Fragment {
     }
 
     onHover() {
-        // console.log('Fragment.onHover()');
-
         this.noteContainer.appendChild(noteButtons);
         noteButtons.style.zIndex = this.noteContainer.style.zIndex;
 
@@ -418,8 +416,8 @@ class NoteStatic extends Fragment {
 class Split extends Fragment {
     constructor(noteId, note, html) {
         super(noteId);
+        this.noteContents.classList.add('ql-editor');
         this.noteContents.classList.add('absolute');
-        this.noteWindow.classList.add('slide');
 
         this.note = note;
         this.html = html;

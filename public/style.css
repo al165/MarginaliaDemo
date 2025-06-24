@@ -92,6 +92,7 @@ a:visited {
 }
 
 .note-content {
+    box-sizing: border-box;
     background-color: var(--note-bg-color);
 }
 
@@ -136,19 +137,15 @@ a:visited {
 }
 
 .note {
-    /* border: 1px solid black; */
     width: 22em;
-    padding-right: 1em;
+    padding: 1em;
+    padding-right: 2em;
     height: fit-content;
 }
 
 .ql-container {
     font-size: large;
     color: var(--text-color);
-}
-
-.ql-editor {
-    padding-right: 1em;
 }
 
 .buttons {
@@ -192,8 +189,6 @@ a:visited {
     counter-reset: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
     line-height: 1.42;
     outline: none;
-    padding: 12px 15px;
-    padding-right: 15px;
     tab-size: 4;
     -moz-tab-size: 4;
     text-align: left;
