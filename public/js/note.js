@@ -21,7 +21,6 @@ async function fetchNote(noteId, note) {
                 newNote.setOptions(options);
                 newNote.setContents(data.noteContent);
                 newNote.setLocked(state.lockedNotes.has(noteId));
-
                 newNote.show();
             } else if (data.noteType == 1) {
                 newNote = new window.NoteStatic(noteId, data.noteType);

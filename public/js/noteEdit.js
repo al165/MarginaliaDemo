@@ -12,6 +12,15 @@ const hightlightToolbar = document.querySelector("#highlight-toolbar");
 const removeBtn = noteButtons.querySelector("#remove-note");
 const resizeHandle = document.querySelector("#resize-note");
 
+if (canEdit && editToken) {
+    let roomHistory = JSON.parse(localStorage.getItem("history") || '{}');
+    roomHistory[roomId] = {
+        url: window.location.href,
+        roomName: roomName
+    }
+    localStorage.setItem('history', JSON.stringify(roomHistory));
+}
+
 // Color management
 let currentColor = HIGHLIGHT_COLOURS[0];
 

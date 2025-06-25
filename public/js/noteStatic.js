@@ -386,6 +386,22 @@ class NoteStatic extends Fragment {
 
     setHTML(html) {
         this.noteContents.innerHTML = html.trim().replaceAll("\n", "");
+
+        // execture <script> tags
+        Array.from(this.noteContents.querySelectorAll("script"))
+            .forEach(oldScriptEl => {
+                const newScriptEl = document.createElement("script");
+
+                Array.from(oldScriptEl.attributes).forEach(attr => {
+                    newScriptEl.setAttribute(attr.name, attr.value)
+                });
+
+                const scriptText = document.createTextNode(oldScriptEl.innerHTML);
+                newScriptEl.appendChild(scriptText);
+
+                oldScriptEl.parentNode.replaceChild(newScriptEl, oldScriptEl);
+            });
+
         updateHighlights(this);
         this.addLoadCallbacks();
 
