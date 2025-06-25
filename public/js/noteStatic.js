@@ -30,7 +30,6 @@ dragHandle.addEventListener('mousedown', (ev) => {
 
     const notePos = state.draggingFragment.getPosition();
     let mouseOffset = {}; // relative to noteContainer
-    console.log(ev);
     mouseOffset.left = ev.clientX - notePos.left + state.scrollX;
     mouseOffset.top = ev.clientY - notePos.top + state.scrollY;
 
