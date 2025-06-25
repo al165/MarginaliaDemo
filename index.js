@@ -707,8 +707,8 @@ async function createHomeNote() {
         id: 'createroom',
         createdOn,
         noteContent: `<form action="${BASE_URL}/newroom">
-<input type="text" name="roomname" style="margin: 0.5em 0.5em 0.5em 0em; padding: 0.2em" placeholder="Name of your room">
-<input type="submit" value="Create your room" style="padding: 0.2em">
+<input type="text" name="roomname" style="margin: 0.5em 0.5em 0.5em 0em" placeholder="Name of your room">
+<input type="submit" value="Create your room">
 <p>Make sure to save or bookmark the next page so that you can return to it!<p>
 </form>`,
         noteType: 1
