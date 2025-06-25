@@ -57,6 +57,7 @@ if (resizeHandle) {
         state.resizeStartPosition = ev.clientX;
         note.noteWindow.classList.remove("grow");
         state.resizeStartWidth = note.width;
+        note.toFront();
     });
 }
 
@@ -105,7 +106,8 @@ class EditableNote extends Note {
 
     onHover() {
         super.onHover();
-        // console.log("EditableNote.onHover()");
+        if ((state.dragging) || state.resizing)
+            return;
 
         if (!this.locked) {
             if (this.closable) {
@@ -305,6 +307,8 @@ class EditableNote extends Note {
 class EditableSplit extends Split {
     onHover() {
         super.onHover();
+        if (state.dragging || state.resizing)
+            return;
         removeBtn.style.display = "none";
         resizeHandle.style.display = "none";
     }

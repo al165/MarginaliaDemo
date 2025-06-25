@@ -217,6 +217,8 @@ class Fragment {
         this.noteContainer.addEventListener('mouseenter', () => this.onHover());
 
         this.noteContainer.onmouseleave = (ev) => {
+            if (state.dragging || state.resizing)
+                return;
             noteButtons.style.visibility = "hidden";
         };
 
@@ -228,7 +230,7 @@ class Fragment {
     }
 
     onHover() {
-        if (state.dragging && state.draggingFragment !== this)
+        if ((state.dragging && state.draggingFragment !== this) || state.resizing)
             return;
 
         this.noteContainer.appendChild(noteButtons);
@@ -357,6 +359,9 @@ class NoteStatic extends Fragment {
     onHover() {
         super.onHover();
 
+        if (state.resizing || state.dragging)
+            return;
+
         restoreBtn.style.display = "none";
         closeBtn.onclick = () => this.close();
         closeBtn.style.display = this.closable ? "block" : "none";
@@ -433,6 +438,9 @@ class Split extends Fragment {
 
     onHover() {
         super.onHover();
+
+        if (state.dragging || state.resizing)
+            return;
 
         restoreBtn.onclick = () => this.restore();
         restoreBtn.style.display = "block";
