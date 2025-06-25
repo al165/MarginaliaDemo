@@ -27,6 +27,7 @@ const dragHandle = document.querySelector("#drag-note");
 dragHandle.addEventListener('mousedown', (ev) => {
     ev.preventDefault();
     state.draggingFragment.noteContainer.classList.remove('slide');
+    state.draggingFragment.toFront();
 
     const notePos = state.draggingFragment.getPosition();
     let mouseOffset = {}; // relative to noteContainer
@@ -227,6 +228,9 @@ class Fragment {
     }
 
     onHover() {
+        if (state.dragging && state.draggingFragment !== this)
+            return;
+
         this.noteContainer.appendChild(noteButtons);
         noteButtons.style.zIndex = this.noteContainer.style.zIndex;
 

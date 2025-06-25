@@ -314,8 +314,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolglow = document.querySelector("#tool-glow");
 
     for (const tool of tools) {
+        // prevent drag ghost image
+        tool.setAttribute('draggable', false);
+
         // add glow on hover
         tool.addEventListener('mouseenter', () => {
+            if (tool.id === 'highlight')
+                return;
             const toolbounds = tool.getBoundingClientRect();
             toolglow.style.visibility = 'visible';
 

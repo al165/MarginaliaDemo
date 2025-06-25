@@ -175,6 +175,7 @@ a:visited {
     width: 1.5em;
     height: 1.5em;
     margin: 0.1em;
+    user-select: none;
 }
 
 .handle {
@@ -248,6 +249,7 @@ a:visited {
     margin: 0.5em;
     z-index: 1002;
     position: relative;
+    user-select: none;
 }
 
 #tool-glow {

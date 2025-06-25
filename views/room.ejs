@@ -79,18 +79,18 @@
   <div id="note-buttons" class="buttons">
 
     <% if(room.renderStatic) { %>
-    <img src="<%= icons.close %>" class="btn" alt="close button" id="close-note">
-    <img src="<%= icons.drag %>" class="drag" alt="move note" id="drag-note">
-    <img src="<%= icons.unbreak %>" class="btn" alt="restore button" id="restore-note">
+    <img src="<%= icons.close %>" draggable="false" class="btn" alt="close button" id="close-note">
+    <img src="<%= icons.drag %>" draggable="false" class="drag" alt="move note" id="drag-note">
+    <img src="<%= icons.unbreak %>" draggable="false" class="btn" alt="restore button" id="restore-note">
     <% } else { %>
-    <img src="<%= room.baseURL %>/icons/close.svg" class="btn" alt="close button" id="close-note">
-    <img src="<%= room.baseURL %>/icons/28_drag.svg" class="drag" alt="move note" id="drag-note">
-    <img src="<%= room.baseURL %>/icons/29_unbreak.svg" class="btn" alt="restore button" id="restore-note">
+    <img src="<%= room.baseURL %>/icons/close.svg" draggable="false" class="btn" alt="close button" id="close-note">
+    <img src="<%= room.baseURL %>/icons/28_drag.svg" draggable="false" class="drag" alt="move note" id="drag-note">
+    <img src="<%= room.baseURL %>/icons/29_unbreak.svg" draggable="false" class="btn" alt="restore button" id="restore-note">
     <% } %>
 
     <% if(room.canEdit) { %>
-    <img src="<%= room.baseURL %>/icons/05_trash.svg" class="btn" alt="remove note" id="remove-note">
-    <img src="<%= room.baseURL %>/icons/26_resize.svg" class="handle" alt="resize note" id="resize-note">
+    <img src="<%= room.baseURL %>/icons/05_trash.svg" draggable="false" class="btn" alt="remove note" id="remove-note">
+    <img src="<%= room.baseURL %>/icons/26_resize.svg" draggable="false" class="handle" alt="resize note" id="resize-note">
     <% } // if(room.canEdit) %>
 
   </div>
