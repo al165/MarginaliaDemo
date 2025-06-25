@@ -106,7 +106,7 @@ document.addEventListener("mouseup", (ev) => {
 
         state.resizing = undefined;
     } else if (state.dragging) {
-        state.dragging = false;
+        state.dragging = undefined;
     }
 });
 
@@ -118,10 +118,9 @@ document.addEventListener("mousemove", (ev) => {
         state.notes[noteId].noteWindow.style.width = newWidth + "px";
         state.notes[noteId].noteContents.style.width = newWidth + "px";
     } else if (state.dragging && state.draggingFragment) {
-        const fragmentSize = state.draggingFragment.getSize();
         state.draggingFragment.setPosition({
-            left: ev.clientX + state.scrollX - fragmentSize.width + 20,
-            top: ev.clientY + state.scrollY - 20
+            left: ev.clientX + state.scrollX - state.dragging.left,
+            top: ev.clientY + state.scrollY - state.dragging.top
         });
     }
 });

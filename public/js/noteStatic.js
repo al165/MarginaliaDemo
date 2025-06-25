@@ -27,7 +27,14 @@ const dragHandle = document.querySelector("#drag-note");
 dragHandle.addEventListener('mousedown', (ev) => {
     ev.preventDefault();
     state.draggingFragment.noteContainer.classList.remove('slide');
-    state.dragging = true;
+
+    const notePos = state.draggingFragment.getPosition();
+    let mouseOffset = {}; // relative to noteContainer
+    console.log(ev);
+    mouseOffset.left = ev.clientX - notePos.left + state.scrollX;
+    mouseOffset.top = ev.clientY - notePos.top + state.scrollY;
+
+    state.dragging = mouseOffset;
 });
 
 function split(fragment, vertical, newNote, hRect) {
