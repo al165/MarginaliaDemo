@@ -311,8 +311,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tooltips
     const tools = document.querySelectorAll(".tool");
     const tooltip = document.querySelector("#tooltip");
+    const toolglow = document.querySelector("#tool-glow");
 
     for (const tool of tools) {
+        // add glow on hover
+        tool.addEventListener('mouseenter', () => {
+            const toolbounds = tool.getBoundingClientRect();
+            toolglow.style.visibility = 'visible';
+
+            toolglow.style.left = toolbounds.left + toolbounds.width / 2 - toolglow.clientWidth / 2 + 'px';
+            toolglow.style.top = toolbounds.top + toolbounds.height / 2 - toolglow.clientHeight / 2 + 'px';
+
+            tool.parentNode.appendChild(toolglow);
+        });
+
+        tool.addEventListener('mouseleave', () => {
+            toolglow.style.visibility = 'hidden';
+        });
+
+        // add tooltip
         const toolId = tool.id;
         if (!toolId || !TOOLTIPS["en"][toolId])
             continue;
