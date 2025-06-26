@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Pop up related tools
     const linkEditBtn = document.querySelector("#links");
-    const popupClose = document.querySelector("#popup-close");
     const linkEditorPopup = document.querySelector("#link-editor");
     linkEditBtn.addEventListener('click', function () {
         if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
@@ -111,8 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else
             document.getElementById("link-editor-url").value = '';
 
-        popupClose.style.visibility = 'visible';
-        linkEditorPopup.style.visibility = 'visible';
+        linkEditorPopup.showModal();
 
         linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + state.scrollX + "px";
         linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + "px";
@@ -122,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         urlTextInput.value = "";
         urlTextInput.focus();
 
-        addLinkBtn.onclick = () => {
+        function addURL() {
             const newURL = urlTextInput.value;
             if (newURL && state.lastEditingNote) {
                 state.lastEditingNote.enterEditMode();
@@ -131,17 +129,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.lastEditingNote.enterEditMode();
                 state.currentEditingNote.noteEditor.format('link', undefined, 'user');
             }
-            linkEditorPopup.style.visibility = 'hidden';
-            popupClose.style.visibility = 'hidden';
             urlTextInput.value = "";
-        };
-
-        popupClose.onclick = () => {
-            linkEditorPopup.style.visibility = 'hidden';
-            popupClose.style.visibility = 'hidden';
-            urlTextInput.value = "";
+            linkEditorPopup.close();
         }
+
+        addLinkBtn.onclick = addURL;
+        urlTextInput.addEventListener('keydown', ev => {
+            if (ev.key === 'Enter')
+                addURL();
+        });
     });
+    linkEditorPopup.addEventListener('click', () => linkEditorPopup.close());
+    document.querySelector("#link-editor>div").addEventListener('click', ev => ev.stopPropagation());
 
     // Video embed
     const videoEmbedBtn = document.querySelector("#video");
@@ -156,8 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectionBounds = state.currentEditingNote.noteEditor.getBounds(selection.index, selection.length);
         const noteEditorBounds = state.currentEditingNote.noteContainer.getBoundingClientRect();
 
-        popupClose.style.visibility = 'visible';
-        videoEditorPopup.style.visibility = 'visible';
+        videoEditorPopup.showModal();
 
         videoEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + state.scrollX + "px";
         videoEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + 50 + "px";
@@ -166,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         urlTextInput.value = "";
         urlTextInput.focus();
 
-        videoEditorAddBtn.onclick = () => {
+        function addVideo() {
             let newURL = urlTextInput.value;
             if (newURL)
                 newURL = extractVideoUrl(newURL);
@@ -177,39 +175,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.currentEditingNote.noteEditor.formatText(selection.index + 1, 1, { height: '170', width: '400' });
                 state.currentEditingNote.noteEditor.setSelection(selection.index + 2, Quill.sources.SILENT);
             }
-            videoEditorPopup.style.visibility = 'hidden';
-            popupClose.style.visibility = 'hidden';
             urlTextInput.value = "";
+            videoEditorPopup.close();
         }
 
-        popupClose.onclick = () => {
-            videoEditorPopup.style.visibility = 'hidden';
-            popupClose.style.visibility = 'hidden';
-            state.lastEditingNote.enterEditMode();
-            urlTextInput.value = "";
-        }
+        videoEditorAddBtn.onclick = addVideo;
+        urlTextInput.addEventListener('keydown', ev => {
+            if (ev.key === 'Enter')
+                addVideo();
+        });
     });
+    videoEditorPopup.addEventListener('click', () => videoEditorPopup.close());
+    document.querySelector("#video-editor>div").addEventListener('click', ev => ev.stopPropagation());
 
     // Share/export
     const exportBtn = document.querySelector("#publish");
     const exportPopup = document.querySelector("#export-popup");
-    const popupCloseBtn = document.querySelector("#popup-close-btn");
     exportBtn.addEventListener('click', function () {
-        popupClose.classList.add("transparent");
-        popupClose.style.visibility = 'visible';
+        exportPopup.showModal();
         exportPopup.classList.add("centered");
         exportPopup.style.visibility = 'visible';
-
-        popupClose.onclick = () => {
-            exportPopup.style.visibility = 'hidden';
-            exportPopup.classList.remove("centered");
-            popupClose.style.visibility = 'hidden';
-            popupClose.classList.remove("transparent");
-        }
-
-        popupCloseBtn.onclick = popupClose.onclick;
     });
-
+    document.querySelector("#export-close-btn").addEventListener('click', () => exportPopup.close());
+    exportPopup.addEventListener('click', () => exportPopup.close());
+    document.querySelector("#export-popup>div").addEventListener('click', ev => ev.stopPropagation());
 
     // Image uploads...
     const imageUploadBtn = document.querySelector("#image-upload");

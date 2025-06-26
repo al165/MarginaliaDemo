@@ -37,53 +37,63 @@
 
 <div id="tooltip" class="drop-shadow"></div>
 
-
-<div id="popup-close"></div>
-
 <div id="highlight-toolbar">
   <img src="<%= room.baseURL %>/icons/01_highlight.svg" alt="highlight" class="tool" id="highlight">
   <div id="highlight-colour" class="colour-choice"></div>
   <div id="highlight-colour-pallette"></div>
 </div>
 
-<div id="link-editor" class="popup-content">
-  <input type="text" placeholder="Full URL, including http://" name="url" id="link-editor-url">
-  <button type="button" id="link-editor-add-btn">Add link</button>
-</div>
-
-<div id="video-editor" class="popup-content">
-  <input type="text" placeholder="Video URL" name="url" id="video-editor-url">
-  <button type="button" id="video-editor-add-btn">Add video</button>
-</div>
-
-<div id="export-popup" class="popup-content">
-  <div class="buttons">
-    <img src="<%= room.baseURL %>/icons/close.svg" class="btn" alt="close button" id="popup-close-btn">
+<dialog id="link-editor">
+  <div>
+    <input type="text" placeholder="Full URL, including http://" name="url" id="link-editor-url">
+    <button id="link-editor-add-btn">Add link</button>
+    <form method="dialog">
+      <button>Cancel</button>
+    </form>
   </div>
-  <h2>Share/Export this room</h2>
-  <p>Share read-only version: <br><a id="read-only-link" target="_blank" rel="noopener noreferrer"></a> </p>
-  <p>Share with editing access: <br><a id="with-edit-link" target="_blank" rel="noopener noreferrer"></a> </p>
-  <p>Export as a single, static HTML file <br>(right-click and 'Save Link as'): <br><a id="static-link" target="_blank" rel="noopener noreferrer"></a> </p>
+</dialog>
 
-  <script defer>
-    const readOnlyURL = location.origin + location.pathname;
-    const withEditURL = location.href;
-    const staticURL = location.origin + location.pathname.replace('/room/', '/static/');
+<dialog id="video-editor" class="popup-content">
+  <div>
+    Paste a link to YouTube or Vimeo below to embed into the note:
+    <input type="text" placeholder="Video URL" name="url" id="video-editor-url">
+    <button type="button" id="video-editor-add-btn">Add video</button>
+    <form method="dialog">
+      <button>Cancel</button>
+    </form>
+  </div>
+</dialog>
 
-    const readOnlyLink = document.getElementById('read-only-link');
-    const withEditLink = document.getElementById('with-edit-link');
-    const staticLink = document.getElementById('static-link');
+<dialog id="export-popup" class="popup-content">
+  <div>
+    <div class="buttons">
+      <img src="<%= room.baseURL %>/icons/close.svg" class="btn" alt="close button" id="export-close-btn">
+    </div>
+    <h2>Share/Export this room</h2>
+    <p>Share read-only version: <br><a id="read-only-link" target="_blank" rel="noopener noreferrer"></a> </p>
+    <p>Share with editing access: <br><a id="with-edit-link" target="_blank" rel="noopener noreferrer"></a> </p>
+    <p>Export as a single, static HTML file <br>(right-click and 'Save Link as'): <br><a id="static-link" target="_blank" rel="noopener noreferrer"></a> </p>
 
-    readOnlyLink.setAttribute('href', readOnlyURL);
-    readOnlyLink.innerText = readOnlyURL;
+    <script defer>
+      const readOnlyURL = location.origin + location.pathname;
+      const withEditURL = location.href;
+      const staticURL = location.origin + location.pathname.replace('/room/', '/static/');
 
-    withEditLink.setAttribute('href', withEditURL);
-    withEditLink.innerText = withEditURL;
+      const readOnlyLink = document.getElementById('read-only-link');
+      const withEditLink = document.getElementById('with-edit-link');
+      const staticLink = document.getElementById('static-link');
 
-    staticLink.setAttribute('href', staticURL);
-    staticLink.innerText = staticURL;
-  </script>
+      readOnlyLink.setAttribute('href', readOnlyURL);
+      readOnlyLink.innerText = readOnlyURL;
 
-</div>
+      withEditLink.setAttribute('href', withEditURL);
+      withEditLink.innerText = withEditURL;
+
+      staticLink.setAttribute('href', staticURL);
+      staticLink.innerText = staticURL;
+    </script>
+  </div>
+
+</dialog>
 
 <script src="<%= room.baseURL %>/js/editButtons.js" defer type="module"></script>
