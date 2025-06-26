@@ -145,10 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
         else
             document.getElementById("link-editor-url").value = '';
 
-        linkEditorPopup.showModal();
-
         linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + state.scrollX + "px";
         linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + "px";
+
+        linkEditorPopup.showModal();
 
         urlTextInput.value = "";
         urlTextInput.focus();
