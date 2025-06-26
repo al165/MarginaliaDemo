@@ -110,14 +110,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlTextInput = document.getElementById('link-editor-url');
 
     function addURL() {
-        const newURL = urlTextInput.value;
-        if (newURL && state.lastEditingNote) {
-            state.lastEditingNote.enterEditMode();
-            state.currentEditingNote.noteEditor.format('link', newURL, 'user');
-        } else {
+        let newURL = urlTextInput.value.trim();
+
+        if (!newURL) {
             state.lastEditingNote.enterEditMode();
             state.currentEditingNote.noteEditor.format('link', undefined, 'user');
+            urlTextInput.value = "";
+            linkEditorPopup.close();
+            return;
         }
+
+        if (!/^https?:\/\//i.test(newURL))
+            newURL = 'http://' + newURL;
+
+        state.lastEditingNote.enterEditMode();
+        state.currentEditingNote.noteEditor.format('link', newURL, 'user');
+
         urlTextInput.value = "";
         linkEditorPopup.close();
     }
