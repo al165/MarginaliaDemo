@@ -7,6 +7,7 @@ import { Note } from './note.js';
 import { expandSelection } from './utils.js';
 import { HIGHLIGHT_COLOURS } from './data/colourschemes.js';
 
+const linkEditBtn = document.querySelector("#links");
 const noteButtons = document.querySelector("#note-buttons");
 
 const hightlightToolbar = document.querySelector("#highlight-toolbar");
@@ -88,6 +89,7 @@ class EditableNote extends Note {
                 hightlightToolbar.style.visibility = 'hidden';
                 highlighterPallette.style.maxWidth = '0em';
                 urlToolbar.style.visibility = 'hidden';
+                linkEditBtn.classList.add('tool-disabled');
                 this.exitEditMode();
                 return;
             } else {
@@ -121,10 +123,12 @@ class EditableNote extends Note {
                     hightlightToolbar.style.top = highlightBounds.top + this.getPosition().top - hightlightToolbar.clientHeight + 'px';
 
                     hightlightToolbar.style.visibility = 'visible';
+                    linkEditBtn.classList.remove('tool-disabled');
                 }
                 else {
                     hightlightToolbar.style.visibility = 'hidden';
                     highlighterPallette.style.maxWidth = '0em';
+                    linkEditBtn.classList.add('tool-disabled');
                 }
 
                 this.lastSelection = range;

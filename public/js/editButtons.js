@@ -108,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const linkEditorPopup = document.querySelector("#link-editor");
     const addLinkBtn = document.getElementById('link-editor-add-btn');
     const urlTextInput = document.getElementById('link-editor-url');
-    availableNoteTools.push(linkEditBtn);
 
     function addURL() {
         const newURL = urlTextInput.value;
