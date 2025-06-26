@@ -383,6 +383,23 @@ dialog {
     border: 1px black solid;
 }
 
+#url-toolbar {
+    box-sizing: border-box;
+    position: absolute;
+    max-width: 30em;
+    background-color: var(--glow-color);
+    color: var(--text-color);
+    border-radius: 0 0 0 1em;
+    padding: 0.3em 1.2em;
+    z-index: 1010;
+    visibility: hidden;
+}
+
+#url-toolbar a,
+#url-toolbar a:visited {
+    color: var(--text-color);
+}
+
 dialog>div {
     display: flex;
     flex-direction: column;

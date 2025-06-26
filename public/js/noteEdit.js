@@ -4,6 +4,7 @@
 import { state } from './state.js';
 import { Split, updateHighlights } from './noteStatic.js';
 import { Note } from './note.js';
+import { expandSelection } from './utils.js';
 import { HIGHLIGHT_COLOURS } from './data/colourschemes.js';
 
 const noteButtons = document.querySelector("#note-buttons");
@@ -49,6 +50,7 @@ highlighterColour.addEventListener('mousedown', (ev) => {
     highlighterPallette.style.maxWidth = '10em';
 });
 
+const urlToolbar = document.querySelector("#url-toolbar");
 
 if (resizeHandle) {
     resizeHandle.addEventListener('mousedown', (ev) => {
@@ -85,9 +87,29 @@ class EditableNote extends Note {
             if (!range) {
                 hightlightToolbar.style.visibility = 'hidden';
                 highlighterPallette.style.maxWidth = '0em';
+                urlToolbar.style.visibility = 'hidden';
                 this.exitEditMode();
                 return;
             } else {
+                const currentFormat = this.noteEditor.getFormat(range);
+
+                // Show URL bar
+                if (currentFormat.link) {
+                    const linkRange = expandSelection(this.noteEditor, range);
+                    const linkBounds = this.noteEditor.getBounds(linkRange);
+                    urlToolbar.style.left = linkBounds.left + this.getPosition().left + 'px';
+                    urlToolbar.style.top = linkBounds.top + linkBounds.height + this.getPosition().top + 'px';
+
+                    const linkElement = urlToolbar.querySelector("a");
+                    linkElement.href = currentFormat.link;
+                    linkElement.innerText = currentFormat.link;
+
+                    urlToolbar.style.visibility = 'visible';
+                } else {
+                    urlToolbar.style.visibility = 'hidden';
+                }
+
+                // Show Highlight bar
                 if (range.length > 0) {
                     let newRange = {
                         index: range.index,
