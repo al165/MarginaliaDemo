@@ -386,7 +386,6 @@ dialog {
 #url-toolbar {
     box-sizing: border-box;
     position: absolute;
-    max-width: 30em;
     background-color: var(--glow-color);
     color: var(--text-color);
     border-radius: 0 0 0 1em;
@@ -398,6 +397,14 @@ dialog {
 #url-toolbar a,
 #url-toolbar a:visited {
     color: var(--text-color);
+}
+
+#remove-link-btn {
+    display: inline;
+    height: 1.2em;
+    vertical-align: middle;
+    cursor: pointer;
+    margin-left: 0.5em;
 }
 
 dialog>div {

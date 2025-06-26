@@ -8,6 +8,8 @@ import { expandSelection } from './utils.js';
 import { HIGHLIGHT_COLOURS } from './data/colourschemes.js';
 
 const linkEditBtn = document.querySelector("#links");
+const linkDeleteBtn = document.querySelector("#remove-link-btn");
+
 const noteButtons = document.querySelector("#note-buttons");
 
 const hightlightToolbar = document.querySelector("#highlight-toolbar");
@@ -90,6 +92,7 @@ class EditableNote extends Note {
                 highlighterPallette.style.maxWidth = '0em';
                 urlToolbar.style.visibility = 'hidden';
                 linkEditBtn.classList.add('tool-disabled');
+                console.log("no range, exiting editmode");
                 this.exitEditMode();
                 return;
             } else {
@@ -105,6 +108,12 @@ class EditableNote extends Note {
                     const linkElement = urlToolbar.querySelector("a");
                     linkElement.href = currentFormat.link;
                     linkElement.innerText = currentFormat.link;
+
+                    linkDeleteBtn.onclick = () => {
+                        this.noteEditor.formatText(linkRange.index, linkRange.length, 'link', false, 'user');
+                        this.save();
+                        this.noteEditor.setSelection(linkRange);
+                    };
 
                     urlToolbar.style.visibility = 'visible';
                 } else {
@@ -175,7 +184,7 @@ class EditableNote extends Note {
             return;
         }
 
-        if (state.currentEditingNote)
+        if (state.currentEditingNote && state.currentEditingNote !== this)
             state.currentEditingNote.exitEditMode();
 
         this.editing = true;
@@ -338,6 +347,13 @@ class EditableNote extends Note {
                 console.log("Error editing note: " + error);
             });
         }
+    }
+
+    setContents(contents) {
+        super.setContents(contents);
+
+        if (this.editing)
+            this.noteEditor.setSelection(this.lastSelection);
     }
 }
 
