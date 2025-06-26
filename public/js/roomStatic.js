@@ -2,22 +2,6 @@ import { state } from './state.js';
 import { NoteStatic } from './noteStatic.js'
 
 
-function calculateBoundingBox() {
-    // Resize #notes to fit all the elements
-    const notesContainer = document.getElementById("notes");
-    const noteElements = document.querySelectorAll(".note");
-    let w = 0;
-    let h = 0;
-    for (const noteElement of noteElements) {
-        const bounds = noteElement.getBoundingClientRect();
-
-        w = Math.max(w, bounds.left + bounds.width);
-        h = Math.max(h, bounds.top + bounds.height);
-    }
-    notesContainer.style.width = w + "px";
-    notesContainer.style.height = h + "px";
-}
-
 async function fetchNoteStatic(noteId, note) {
     const data = window.notes[noteId];
     if (!data) {
@@ -33,8 +17,6 @@ async function fetchNoteStatic(noteId, note) {
 
     note.setOptions(options);
     note.setHTML(data.noteHtml);
-
-    calculateBoundingBox();
 
     return note;
 }

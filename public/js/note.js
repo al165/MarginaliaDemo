@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { NoteStatic, calculateBoundingBox, updateHighlights } from './noteStatic.js'
+import { NoteStatic, updateHighlights } from './noteStatic.js'
 
 async function fetchNote(noteId, note) {
     console.log("fetchNote ", noteId);
@@ -13,7 +13,6 @@ async function fetchNote(noteId, note) {
         }
 
         if (!note) {
-            // console.log("fetchNote: `note` not provided, making new");
             let newNote;
             if (data.noteType == 0) {
                 newNote = new window.Note(noteId, data.noteType);
@@ -30,14 +29,11 @@ async function fetchNote(noteId, note) {
                 newNote.show();
             }
 
-            calculateBoundingBox();
             return newNote;
         } else {
-            // console.log("fetchNote: `note` provided, updating contents");
             note.setOptions(JSON.parse(data.noteOptions));
             note.setContents(data.noteContent);
 
-            calculateBoundingBox();
             return note;
         }
     } catch (error) {

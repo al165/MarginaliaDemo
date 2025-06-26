@@ -72,8 +72,8 @@ if (resizeHandle) {
 
 class EditableNote extends Note {
 
-    constructor(noteId) {
-        super(noteId);
+    constructor(noteId, noteType = 0) {
+        super(noteId, noteType);
         this.noteEditor.enable(canEdit);
         this.noteEditor.focus();
 
@@ -134,7 +134,6 @@ class EditableNote extends Note {
     }
 
     enterEditMode() {
-        // console.log(`${this.noteId} enterEditMode`);
         if (this.locked) {
             console.log("enterEditMode: is locked so returning");
             return;
@@ -203,7 +202,6 @@ class EditableNote extends Note {
             // remove annotation from parent
             if (this.parent) {
                 let parentContents = this.parent.noteEditor.getContents();
-                const parentId = parent.noteId;
 
                 for (const format of parentContents.ops) {
                     if (format.attributes && format.attributes.annotate && format.attributes.annotate.id == this.noteId) {
@@ -227,15 +225,12 @@ class EditableNote extends Note {
             console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
             return;
         }
-        // console.log(`${this.noteId} save()`);
 
         const noteContent = this.noteEditor.getContents();
         const noteOptions = this.options;
-        // noteOptions.width = this.width;
-        if (!force && JSON.stringify(noteContent) === this.lastContent) {
-            // console.log(`${this.noteId} Text has not changed.`);
+
+        if (!force && JSON.stringify(noteContent) === this.lastContent)
             return;
-        }
 
         if (this.noteId) {
             // note already saved, update it
