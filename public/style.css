@@ -262,6 +262,10 @@ a:visited {
     pointer-events: none;
 }
 
+.coming-soon {
+    filter: opacity(50%);
+}
+
 #insert-toolbar,
 #text-toolbar,
 #room-toolbar {
