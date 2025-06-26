@@ -76,6 +76,7 @@ class EditableNote extends Note {
         super(noteId, noteType);
         this.noteEditor.enable(canEdit);
         this.noteEditor.focus();
+        this.lastSelection;
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
             if (this.locked)
@@ -103,6 +104,8 @@ class EditableNote extends Note {
                     hightlightToolbar.style.visibility = 'hidden';
                     highlighterPallette.style.maxWidth = '0em';
                 }
+
+                this.lastSelection = range;
 
                 if (!this.editing)
                     this.enterEditMode();
@@ -134,6 +137,7 @@ class EditableNote extends Note {
     }
 
     enterEditMode() {
+        console.log(`${this.noteId} enterEditMode()`);
         if (this.locked) {
             console.log("enterEditMode: is locked so returning");
             return;
@@ -151,6 +155,9 @@ class EditableNote extends Note {
         this.editing = true;
         this.noteWindow.classList.add('note-editing');
         state.currentEditingNote = this;
+
+        if (this.lastSelection)
+            this.noteEditor.setSelection(this.lastSelection);
     }
 
     exitEditMode(skip_save = false) {

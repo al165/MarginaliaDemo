@@ -30,7 +30,7 @@
   <div id="insert-toolbar">
     <img src="<%= room.baseURL %>/icons/13_audio.svg" alt="audio" class="tool coming-soon" id="audio">
     <img src="<%= room.baseURL %>/icons/12_video.svg" alt="video" class="tool" id="video">
-    <img src="<%= room.baseURL %>/icons/11_image.svg" alt="image" class="tool" id="image-upload">
+    <img src="<%= room.baseURL %>/icons/11_image.svg" alt="image" class="tool" id="image-add">
     <img src="<%= room.baseURL %>/icons/10_links.svg" alt="link" class="tool" id="links">
   </div>
 </div>
@@ -53,7 +53,7 @@
   </div>
 </dialog>
 
-<dialog id="video-editor" class="popup-content">
+<dialog id="video-editor" class="centered">
   <div>
     Paste a link to YouTube or Vimeo below to embed into the note:
     <input type="text" placeholder="Video URL" name="url" id="video-editor-url">
@@ -64,7 +64,22 @@
   </div>
 </dialog>
 
-<dialog id="export-popup" class="popup-content">
+<dialog id="image-editor" class="centered">
+  <div>
+    You can upload an image (which will be compressed and dithered)
+    <button id="image-upload">Upload image</button>
+    <br><em>or</em><br>
+    paste a direct link to an image hosted somewhere else:
+    <input type="text" placeholder="Image URL" name="image-url" id="image-editor-url">
+    <button id="image-editor-submit">Submit</button>
+    <br><br>
+    <form method="dialog">
+      <button>Cancel</button>
+    </form>
+  </div>
+</dialog>
+
+<dialog id="export-popup" class="centered">
   <div>
     <div class="buttons">
       <img src="<%= room.baseURL %>/icons/close.svg" class="btn" alt="close button" id="export-close-btn">

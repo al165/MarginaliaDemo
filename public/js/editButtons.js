@@ -93,6 +93,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Pop up related tools
     const linkEditBtn = document.querySelector("#links");
     const linkEditorPopup = document.querySelector("#link-editor");
+    const addLinkBtn = document.getElementById('link-editor-add-btn');
+    const urlTextInput = document.getElementById('link-editor-url');
+
+    function addURL() {
+        const newURL = urlTextInput.value;
+        if (newURL && state.lastEditingNote) {
+            state.lastEditingNote.enterEditMode();
+            state.currentEditingNote.noteEditor.format('link', newURL, 'user');
+        } else {
+            state.lastEditingNote.enterEditMode();
+            state.currentEditingNote.noteEditor.format('link', undefined, 'user');
+        }
+        urlTextInput.value = "";
+        linkEditorPopup.close();
+    }
+
+    addLinkBtn.onclick = addURL;
+    urlTextInput.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter')
+            addURL();
+    });
+
     linkEditBtn.addEventListener('click', function () {
         if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
             return;
@@ -115,77 +137,63 @@ document.addEventListener('DOMContentLoaded', () => {
         linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + state.scrollX + "px";
         linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + "px";
 
-        const addLinkBtn = document.getElementById('link-editor-add-btn');
-        const urlTextInput = document.getElementById('link-editor-url');
         urlTextInput.value = "";
         urlTextInput.focus();
-
-        function addURL() {
-            const newURL = urlTextInput.value;
-            if (newURL && state.lastEditingNote) {
-                state.lastEditingNote.enterEditMode();
-                state.currentEditingNote.noteEditor.format('link', newURL, 'user');
-            } else {
-                state.lastEditingNote.enterEditMode();
-                state.currentEditingNote.noteEditor.format('link', undefined, 'user');
-            }
-            urlTextInput.value = "";
-            linkEditorPopup.close();
-        }
-
-        addLinkBtn.onclick = addURL;
-        urlTextInput.addEventListener('keydown', ev => {
-            if (ev.key === 'Enter')
-                addURL();
-        });
     });
-    linkEditorPopup.addEventListener('click', () => linkEditorPopup.close());
+
+    linkEditorPopup.addEventListener('click', () => {
+        linkEditorPopup.close();
+    });
+
+    linkEditorPopup.addEventListener('close', () => {
+        if (state.lastEditingNote)
+            state.lastEditingNote.enterEditMode();
+    });
     document.querySelector("#link-editor>div").addEventListener('click', ev => ev.stopPropagation());
 
     // Video embed
     const videoEmbedBtn = document.querySelector("#video");
     const videoEditorAddBtn = document.querySelector("#video-editor-add-btn");
     const videoEditorPopup = document.querySelector("#video-editor");
+    const videoUrlInput = document.getElementById("video-editor-url");
+
+    function addVideo() {
+        let newURL = videoUrlInput.value;
+        if (newURL)
+            newURL = extractVideoUrl(newURL);
+
+        if (newURL && state.lastEditingNote) {
+            state.lastEditingNote.enterEditMode();
+            const selection = state.currentEditingNote.lastSelection;
+            state.currentEditingNote.noteEditor.insertEmbed(selection.index + 1, 'video', newURL, 'user');
+            state.currentEditingNote.noteEditor.formatText(selection.index + 1, 1, { height: '170', width: '400' });
+            state.currentEditingNote.noteEditor.setSelection(selection.index + 2, Quill.sources.SILENT);
+        }
+        videoUrlInput.value = "";
+        videoEditorPopup.close();
+    }
+
+    videoEditorAddBtn.onclick = addVideo;
+    videoUrlInput.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter')
+            addVideo();
+    });
+
     videoEmbedBtn.addEventListener('click', function () {
-        if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+        if (!state.currentEditingNote)// || !state.currentEditingNote.noteEditor)
             return;
-
-        const selection = state.currentEditingNote.noteEditor.getSelection();
-
-        const selectionBounds = state.currentEditingNote.noteEditor.getBounds(selection.index, selection.length);
-        const noteEditorBounds = state.currentEditingNote.noteContainer.getBoundingClientRect();
 
         videoEditorPopup.showModal();
 
-        videoEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + state.scrollX + "px";
-        videoEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + 50 + "px";
-
-        const urlTextInput = document.getElementById("video-editor-url");
-        urlTextInput.value = "";
-        urlTextInput.focus();
-
-        function addVideo() {
-            let newURL = urlTextInput.value;
-            if (newURL)
-                newURL = extractVideoUrl(newURL);
-
-            if (newURL && state.lastEditingNote) {
-                state.lastEditingNote.enterEditMode();
-                state.currentEditingNote.noteEditor.insertEmbed(selection.index + 1, 'video', newURL, 'user');
-                state.currentEditingNote.noteEditor.formatText(selection.index + 1, 1, { height: '170', width: '400' });
-                state.currentEditingNote.noteEditor.setSelection(selection.index + 2, Quill.sources.SILENT);
-            }
-            urlTextInput.value = "";
-            videoEditorPopup.close();
-        }
-
-        videoEditorAddBtn.onclick = addVideo;
-        urlTextInput.addEventListener('keydown', ev => {
-            if (ev.key === 'Enter')
-                addVideo();
-        });
+        videoUrlInput.value = "";
+        videoUrlInput.focus();
     });
-    videoEditorPopup.addEventListener('click', () => videoEditorPopup.close());
+    videoEditorPopup.addEventListener('click', () => { videoEditorPopup.close() });
+    videoEditorPopup.addEventListener('close', () => {
+        if (state.lastEditingNote) {
+            state.lastEditingNote.enterEditMode();
+        }
+    });
     document.querySelector("#video-editor>div").addEventListener('click', ev => ev.stopPropagation());
 
     // Share/export
@@ -193,17 +201,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportPopup = document.querySelector("#export-popup");
     exportBtn.addEventListener('click', function () {
         exportPopup.showModal();
-        exportPopup.classList.add("centered");
-        exportPopup.style.visibility = 'visible';
     });
     document.querySelector("#export-close-btn").addEventListener('click', () => exportPopup.close());
     exportPopup.addEventListener('click', () => exportPopup.close());
     document.querySelector("#export-popup>div").addEventListener('click', ev => ev.stopPropagation());
 
     // Image uploads...
+    const imageAddPopup = document.querySelector("#image-editor");
+    const imageAddBtn = document.querySelector("#image-add");
     const imageUploadBtn = document.querySelector("#image-upload");
     const imageUploadInput = document.querySelector("#imgupload");
     const imageUploadForm = document.querySelector("#image-upload-form");
+    const imageUrlInput = document.querySelector("#image-editor-url");
+    const imageUrlSubmitBtn = document.querySelector("#image-editor-submit");
+
+    function addImage(url) {
+        console.log("addImage url: " + url);
+        if (!url || !state.lastEditingNote) {
+            console.log("!url || !state.lastEditingNote");
+            return;
+        }
+
+        state.lastEditingNote.enterEditMode();
+        const { noteEditor } = state.currentEditingNote;
+        const range = noteEditor.getSelection(true);
+        noteEditor.insertText(range.index, '\n', 'user');
+        noteEditor.insertEmbed(range.index + 1, 'image', url, 'user');
+        noteEditor.setSelection(range.index + 2, 'silent');
+
+        imageAddPopup.close();
+    }
+
+    imageAddBtn.addEventListener('click', () => {
+        if (state.currentEditingNote) {
+            state.currentEditingNote.exitEditMode(true);
+            imageAddPopup.showModal();
+
+            imageUrlInput.value = "";
+        }
+    });
 
     imageUploadBtn.addEventListener('click', function (ev) {
         imageUploadInput.click();
@@ -211,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     imageUploadInput.addEventListener('change', function (ev) {
-        const allowed = ['image/webp', 'image/jpeg', 'image/png'];
+        const allowed = ['image/webp', 'image/jpeg', 'image/png', 'image/gif'];
         const sizeLimit = 1024 * 1024 * 8; // 8 megabytes
 
         for (const file of imageUploadInput.files) {
@@ -231,12 +267,8 @@ document.addEventListener('DOMContentLoaded', () => {
     imageUploadForm.addEventListener('submit', function (ev) {
         ev.preventDefault();
 
-        if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
-            return;
-
-        if (!state.currentEditingNote.noteId) {
-            state.currentEditingNote.save();
-        }
+        imageUploadBtn.innerText = 'Uploading...';
+        imageUploadBtn.disabled = true;
 
         const formData = new FormData(imageUploadForm);
 
@@ -248,16 +280,26 @@ document.addEventListener('DOMContentLoaded', () => {
         ).then(json => {
             const { path } = json.msg;
 
-            if (!state.currentEditingNote)
-                return; // create new note instead??
+            imageUploadBtn.innerText = 'Upload image';
+            imageUploadBtn.disabled = false;
 
-            const { noteEditor } = state.currentEditingNote;
-            const range = noteEditor.getSelection(true);
-            noteEditor.insertText(range.index, '\n', 'user');
-            noteEditor.insertEmbed(range.index + 1, 'image', baseURL + path, 'user');
-            noteEditor.setSelection(range.index + 2, 'silent');
+            addImage(baseURL + path);
         });
     });
+
+    imageUrlSubmitBtn.onclick = () => { addImage(imageUrlInput.value) };
+    imageUrlInput.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter')
+            addImage(imageUrlInput.value);
+    });
+
+    imageAddPopup.addEventListener('click', () => imageAddPopup.close());
+    imageAddPopup.addEventListener('close', () => {
+        if (state.lastEditingNote) {
+            state.lastEditingNote.enterEditMode();
+        }
+    });
+    document.querySelector("#image-editor>div").addEventListener('click', ev => ev.stopPropagation());
 
     // Themes
     function updateTheme(colourTheme) {
