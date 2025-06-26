@@ -21,9 +21,9 @@ export const TOOLTIPS = {
         "bulletpoints": "Makes a bulleted list",
         "citation": "Add a quote",
         "font": "Changes font",
-        "audio": "Embeds audio from an online link",
-        "video": "Embeds video from an online link",
-        "image-upload": "Upload or embed image from an online link",
+        "audio": "Embed audio from an online link",
+        "video": "Embed a video from an online link",
+        "image-add": "Upload or embed an image",
         "links": "Links text to URLs"
     }
 }

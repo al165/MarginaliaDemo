@@ -267,8 +267,10 @@ a:visited {
     pointer-events: none;
 }
 
+.tool-disabled,
 .coming-soon {
-    filter: opacity(50%);
+    filter: contrast(50%);
+    opacity: 50%;
 }
 
 #insert-toolbar,

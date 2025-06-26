@@ -4,6 +4,8 @@ import { state } from './state.js';
 import { THEME_LIST, setTheme } from './data/colourschemes.js';
 import { TOOLTIPS } from './data/tooltips.js';
 
+let availableNoteTools = [];
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const newNoteBtn = document.querySelector("#highlight");
@@ -59,42 +61,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const boldBtn = document.querySelector("#bold");
     toggleFormat(boldBtn, 'bold');
+    availableNoteTools.push(boldBtn);
 
     const italicBtn = document.querySelector("#italic");
     toggleFormat(italicBtn, 'italic');
+    availableNoteTools.push(italicBtn);
 
     const underlineBtn = document.querySelector("#underline");
     toggleFormat(underlineBtn, 'underline');
+    availableNoteTools.push(underlineBtn);
 
     const strikethroughBtn = document.querySelector("#strikethrough");
     toggleFormat(strikethroughBtn, 'strike');
+    availableNoteTools.push(strikethroughBtn);
 
     const blockquoteBtn = document.querySelector("#citation");
     toggleFormat(blockquoteBtn, 'blockquote');
+    availableNoteTools.push(blockquoteBtn);
 
     const headingsBtn = document.querySelector("#heading");
     cycleFormat(headingsBtn, 'header', [1, 2, 3, null]);
+    availableNoteTools.push(headingsBtn);
 
     const writingDirection = document.querySelector("#writingdirection");
     cycleFormat(writingDirection, 'direction', ['rtl', null]);
+    availableNoteTools.push(writingDirection);
 
     const justificationBtn = document.querySelector("#justification");
     cycleFormat(justificationBtn, 'align', ['center', 'right', null]);
+    availableNoteTools.push(justificationBtn);
 
     const numberedListBtn = document.querySelector("#bulletnumbers");
     cycleFormat(numberedListBtn, 'list', ['ordered', null]);
+    availableNoteTools.push(numberedListBtn);
 
     const bulletListBtn = document.querySelector("#bulletpoints");
     cycleFormat(bulletListBtn, 'list', ['bullet', null]);
+    availableNoteTools.push(bulletListBtn);
 
     const fontsBtn = document.querySelector("#font");
     cycleFormat(fontsBtn, 'font', ['serif', 'monospace', null]);
+    availableNoteTools.push(fontsBtn);
 
     // Pop up related tools
     const linkEditBtn = document.querySelector("#links");
     const linkEditorPopup = document.querySelector("#link-editor");
     const addLinkBtn = document.getElementById('link-editor-add-btn');
     const urlTextInput = document.getElementById('link-editor-url');
+    availableNoteTools.push(linkEditBtn);
 
     function addURL() {
         const newURL = urlTextInput.value;
@@ -156,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoEditorAddBtn = document.querySelector("#video-editor-add-btn");
     const videoEditorPopup = document.querySelector("#video-editor");
     const videoUrlInput = document.getElementById("video-editor-url");
+    availableNoteTools.push(videoEmbedBtn);
 
     function addVideo() {
         let newURL = videoUrlInput.value;
@@ -214,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageUploadForm = document.querySelector("#image-upload-form");
     const imageUrlInput = document.querySelector("#image-editor-url");
     const imageUrlSubmitBtn = document.querySelector("#image-editor-submit");
+    availableNoteTools.push(imageAddBtn);
 
     function addImage(url) {
         console.log("addImage url: " + url);
@@ -391,6 +407,13 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.style.visibility = 'hidden';
         });
     }
+
+    state.addCallback('currentEditingNote', note => {
+        if (note)
+            availableNoteTools.forEach(btn => btn.classList.remove('tool-disabled'));
+        else
+            availableNoteTools.forEach(btn => btn.classList.add('tool-disabled'));
+    });
 });
 
 function extractVideoUrl(url) {
