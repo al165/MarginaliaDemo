@@ -226,6 +226,11 @@ a:visited {
     cursor: pointer;
 }
 
+.ql-editor mark img {
+    box-shadow: inherit;
+    background-color: inherit;
+}
+
 .ql-editor blockquote {
     border-left: var(--glow-color) 3px solid;
     padding: 0.3em;
@@ -323,16 +328,6 @@ a:visited {
     z-index: 2000;
 }
 
-#popup-close {
-    z-index: 1998;
-    position: fixed;
-    padding: 0;
-    margin: 0;
-    width: 100vw;
-    height: 100vh;
-    visibility: hidden;
-}
-
 dialog {
     z-index: 1999;
     position: absolute;
@@ -386,8 +381,7 @@ dialog {
     border: 1px black solid;
 }
 
-#link-editor>div,
-#video-editor>div {
+dialog>div {
     display: flex;
     flex-direction: column;
     justify-items: center;
@@ -395,8 +389,7 @@ dialog {
     max-width: 20em;
 }
 
-#link-editor button,
-#video-editor button {
+dialog button {
     width: 100%;
 }
 
