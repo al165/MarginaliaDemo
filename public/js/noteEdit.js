@@ -75,6 +75,27 @@ if (resizeHandle) {
     });
 }
 
+function checkSelection(note, range) {
+    if (!note || !range || range.length == 0) {
+        hightlightToolbar.style.visibility = 'hidden';
+        highlighterPallette.style.maxWidth = '0em';
+        linkEditBtn.classList.add('tool-disabled');
+        urlToolbar.style.visibility = 'hidden';
+    } else {
+        let newRange = {
+            index: range.index,
+            length: 1
+        };
+        const highlightBounds = note.noteEditor.getBounds(newRange);
+
+        hightlightToolbar.style.left = highlightBounds.left + note.getPosition().left + 'px';
+        hightlightToolbar.style.top = highlightBounds.top + note.getPosition().top - hightlightToolbar.clientHeight + 'px';
+
+        hightlightToolbar.style.visibility = 'visible';
+        linkEditBtn.classList.remove('tool-disabled');
+    }
+}
+
 class EditableNote extends Note {
 
     constructor(noteId, noteType = 0) {
@@ -83,16 +104,18 @@ class EditableNote extends Note {
         this.lastSelection;
         this.parentHighlight;
 
+        this.noteEditor.on('text-change', (delta, oldDelta, source) => {
+            const range = this.noteEditor.getSelection();
+            checkSelection(this, range);
+        });
+
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
             if (this.locked)
                 return;
 
-            if (!range) {
-                hightlightToolbar.style.visibility = 'hidden';
-                highlighterPallette.style.maxWidth = '0em';
-                urlToolbar.style.visibility = 'hidden';
-                linkEditBtn.classList.add('tool-disabled');
+            checkSelection(this, range);
 
+            if (!range) {
                 this.exitEditMode();
                 return;
             } else {
@@ -118,26 +141,6 @@ class EditableNote extends Note {
                     urlToolbar.style.visibility = 'visible';
                 } else {
                     urlToolbar.style.visibility = 'hidden';
-                }
-
-                // Show Highlight bar
-                if (range.length > 0) {
-                    let newRange = {
-                        index: range.index,
-                        length: 1
-                    };
-                    const highlightBounds = this.noteEditor.getBounds(newRange);
-
-                    hightlightToolbar.style.left = highlightBounds.left + this.getPosition().left + 'px';
-                    hightlightToolbar.style.top = highlightBounds.top + this.getPosition().top - hightlightToolbar.clientHeight + 'px';
-
-                    hightlightToolbar.style.visibility = 'visible';
-                    linkEditBtn.classList.remove('tool-disabled');
-                }
-                else {
-                    hightlightToolbar.style.visibility = 'hidden';
-                    highlighterPallette.style.maxWidth = '0em';
-                    linkEditBtn.classList.add('tool-disabled');
                 }
 
                 this.lastSelection = range;
