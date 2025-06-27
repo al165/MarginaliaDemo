@@ -20,10 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
         parentNote.parentHighlight = selection;
 
         const newNote = new EditableNote();
-        newNote.enterEditMode();
+        newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
         newNote.toFront();
         newNote.parent = parentNote;
-        newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
+        newNote.enterEditMode();
 
         ev.stopPropagation();
     });

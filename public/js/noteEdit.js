@@ -80,7 +80,6 @@ class EditableNote extends Note {
     constructor(noteId, noteType = 0) {
         super(noteId, noteType);
         this.noteEditor.enable(canEdit);
-        this.noteEditor.focus();
         this.lastSelection;
         this.parentHighlight;
 
@@ -185,6 +184,7 @@ class EditableNote extends Note {
             return;
         }
 
+        this.noteEditor.focus();
         this.editing = true;
         this.noteWindow.classList.add('note-editing');
         if (this.lastSelection)

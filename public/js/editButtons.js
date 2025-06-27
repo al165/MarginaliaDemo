@@ -177,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     state.addCallback('currentEditingNote', note => {
-        console.log("state callback: currentEditingNote " + note);
         if (note)
             availableNoteTools.forEach(btn => btn.classList.remove('tool-disabled'));
         else
