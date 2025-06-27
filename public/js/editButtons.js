@@ -182,4 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else
             availableNoteTools.forEach(btn => btn.classList.add('tool-disabled'));
     });
+
+    availableNoteTools.forEach(btn => btn.classList.add('tool-disabled'));
 });
