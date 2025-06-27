@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         linkEditorPopup.showModal();
 
         urlTextInput.value = "";
-        urlTextInput.focus();
+        // urlTextInput.focus();
     });
 
     linkEditorPopup.addEventListener('click', () => {
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         videoEditorPopup.showModal();
 
         videoUrlInput.value = "";
-        videoUrlInput.focus();
+        // videoUrlInput.focus();
     });
     videoEditorPopup.addEventListener('click', () => { videoEditorPopup.close() });
     videoEditorPopup.addEventListener('close', () => {
@@ -172,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.currentEditingNote) {
             state.currentEditingNote.exitEditMode(true);
             imageAddPopup.showModal();
+            document.activeElement.blur();
 
             imageUrlInput.value = "";
         }

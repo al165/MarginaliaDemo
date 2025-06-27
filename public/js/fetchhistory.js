@@ -8,7 +8,7 @@ console.log(history);
 if (!history || Object.keys(history).length == 0) {
     historyDiv.remove();
 } else {
-    historyDiv.innerHTML = '<br><em>Your rooms:</em>';
+    historyDiv.innerHTML = '<br>Your rooms:';
     const historyList = document.createElement('ul');
     historyList.style.marginTop = 0;
     for (const roomId of Object.keys(history)) {

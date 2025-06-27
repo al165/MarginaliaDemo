@@ -5,7 +5,7 @@
 </div>
 
 <div id="url-toolbar">
-  <em>Follow link: </em><a target="_blank" rel="noopener noreferrer"></a> <img src="<%= room.baseURL %>/icons/05_trash.svg" id="remove-link-btn">
+  <em>Follow link: </em><a target="_blank" rel="noopener noreferrer"></a> <img title="Remove link" src="<%= room.baseURL %>/icons/05_trash.svg" id="remove-link-btn">
 </div>
 
 <dialog id="link-editor">
@@ -33,11 +33,11 @@
   <div>
     You can upload an image (which will be compressed and dithered)
     <button id="image-upload">Upload image</button>
-    <br><em>or</em><br>
-    paste a direct link to an image hosted somewhere else:
+    <hr />
+    or paste a direct link to an image hosted somewhere else:
     <input type="text" placeholder="Image URL" name="image-url" id="image-editor-url">
     <button id="image-editor-submit">Submit</button>
-    <br><br>
+    <hr />
     <form method="dialog">
       <button>Cancel</button>
     </form>

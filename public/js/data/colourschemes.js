@@ -7,7 +7,7 @@ export const LIGHT_THEME = {
     textMenuBgColor: "#CCCCCC",
     glowColor: "#C2C1FF",
     textColor: "#000000",
-    linkColor: "#6e6e7e",
+    linkColor: "#0000FF",
     iconFilter: "",
 };
 
@@ -27,11 +27,11 @@ export const DARK_THEME = {
 export const SUMMER_THEME = {
     name: "summer",
     icons: "yellow",
-    backgroundColor: "#de3800",
+    backgroundColor: "#ec8e6f",
     noteBgColor: "#ffd200",
     menuBgColor: "#ffd200",
     textMenuBgColor: "#EEC400",
-    glowColor: "#ec8e6f",
+    glowColor: "#de3800",
     textColor: "#000000",
     linkColor: "#de3800",
     iconFilter: "",

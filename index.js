@@ -706,8 +706,7 @@ async function createHomeNote() {
     const createRoomNote = {
         id: 'createroom',
         createdOn,
-        noteContent: `<form action="${BASE_URL}/newroom">
-  <input type="text" name="roomname" style="margin: 0.5em 0.5em 0.5em 0em" placeholder="Name of your room">
+        noteContent: `<form action="${BASE_URL}/newroom"><input type="text" name="roomname" style="margin: 0.5em 0.5em 0.5em 0em" placeholder="Name of your room">
   <input type="submit" value="Create your room"></form>
   <p>Tip: bookmark or save the URL of your room so that you can return to it later!</p><div id="room-history"></div><script src="${BASE_URL}/js/fetchhistory.js"></script>`,
         noteType: 1

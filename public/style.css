@@ -22,6 +22,11 @@ div {
     color: var(--text-color);
 }
 
+hr {
+    width: 100%;
+    color: var(--text-color);
+}
+
 #bounding {
     /* border: 1px red solid; */
     margin: 0;
@@ -326,7 +331,6 @@ a:visited {
     z-index: 1001;
 }
 
-
 #tooltip {
     position: fixed;
     visibility: hidden;
@@ -450,8 +454,10 @@ input[type=submit] {
     border: none;
     color: var(--text-color);
     border-radius: 3px;
-    padding: 0.4em;
+    padding: 0.4em 0.8em;
     cursor: pointer;
+    font-size: large;
+    outline-offset: 3px;
 }
 
 button:focus,
@@ -475,6 +481,7 @@ input[type=text] {
     color: var(--text-color);
     border: none;
     padding: 0.4em;
+    font-size: large;
 }
 
 input[type=text]:focus {
