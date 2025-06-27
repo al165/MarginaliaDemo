@@ -148,7 +148,7 @@ function generateId(length) {
 
 const DEFAULT_NOTE =
 {
-    "insert": "Welcome to your room!\n\nThis is a room for you to start creating and editing notes.\n\nHover over this note and click on the pencil icon to enter edit mode where you can change the text. Clicking outside the note will save it automatically.\n\nYou can change the formatting by selecting some the format options below.\n\nTo make an annotation while in edit mode, highlight the text you want and click the highlighter on the right!\n\nTo publish, click on the envelope icon to be redirected to a public URL that you can share with the world! Users will not be able to edit the notes, only view them. You can share this URL if you want others to be able to edit your notes too! \n"
+    "insert": "Welcome to your room.\n\n\n\nClick to start writing...\n\n\n\nTo publish, click on the envelope icon to be redirected to a public URL that you can share with the world.\n"
 };
 
 
