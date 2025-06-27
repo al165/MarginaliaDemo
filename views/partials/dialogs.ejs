@@ -73,7 +73,16 @@
       staticLink.innerText = staticURL;
     </script>
   </div>
+</dialog>
 
+<dialog id="delete-popup" class="centered">
+  <div>
+    You are about to delete a note. This cannot be undone! Are you sure?
+    <form method="dialog">
+      <button>Cancel</button>
+    </form>
+    <button id="confirm-delete-btn">Yes, delete note</button>
+  </div>
 </dialog>
 
 <script src="<%= room.baseURL %>/js/dialogs.js" defer type="module"></script>

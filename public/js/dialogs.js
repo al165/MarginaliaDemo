@@ -237,6 +237,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.querySelector("#image-editor>div").addEventListener('click', ev => ev.stopPropagation());
 
+    // --- Delete note
+    const deleteBtn = document.querySelector("#remove-note");
+    const deleteNotePopup = document.querySelector("#delete-popup");
+    const confirmDeleteBtn = document.querySelector("#confirm-delete-btn");
+
+    deleteBtn.addEventListener('click', function () {
+        deleteNotePopup.showModal();
+    });
+
+    confirmDeleteBtn.addEventListener('click', function () {
+        const noteId = deleteBtn.dataset.noteid;
+        if (noteId && state.notes[noteId]) {
+            console.log("delete note " + noteId);
+            state.notes[noteId].delete();
+            deleteNotePopup.close();
+        }
+    });
+
+    deleteNotePopup.addEventListener('click', () => deleteNotePopup.close());
+    document.querySelector("#delete-popup>div").addEventListener('click', ev => ev.stopPropagation());
+
     // --- Export / Share
     const exportBtn = document.querySelector("#publish");
     const exportPopup = document.querySelector("#export-popup");

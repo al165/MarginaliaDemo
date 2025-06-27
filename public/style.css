@@ -18,6 +18,10 @@ body {
     margin: 0;
 }
 
+div {
+    color: var(--text-color);
+}
+
 #bounding {
     /* border: 1px red solid; */
     margin: 0;
@@ -420,6 +424,12 @@ dialog>div {
 
 dialog button {
     width: 100%;
+}
+
+#confirm-delete-btn {
+    background-color: #ff6565;
+    color: white;
+    outline-color: white;
 }
 
 .transparent {

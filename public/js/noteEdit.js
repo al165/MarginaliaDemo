@@ -162,9 +162,10 @@ class EditableNote extends Note {
         if (!this.locked) {
             if (this.closable) {
                 removeBtn.style.display = "block";
-                removeBtn.onclick = () => {
-                    this.delete();
-                }
+                removeBtn.dataset.noteid = this.noteId;
+                // removeBtn.onclick = () => {
+                //     this.delete();
+                // }
             } else {
                 removeBtn.style.display = "none";
             }
