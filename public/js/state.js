@@ -27,22 +27,32 @@ class MarginaliaRoomState {
         });
     }
 
-    set currentEditingNote(val) {
+    enteredEditMode(note) {
+        if (this.#currentEditingNote !== note)
+            this.currentEditingNote = note;
+    }
+
+    exitedEditMode(note) {
+        if (this.#currentEditingNote === note)
+            this.currentEditingNote = undefined;
+    }
+
+    set currentEditingNote(note) {
         if (this.#currentEditingNote)
             this.#lastEditingNote = this.#currentEditingNote;
 
         if (this.socket) {
-            if (val) {
-                this.socket.emit('editingNote', { roomId: this.roomId, noteId: val.noteId, lock: val != undefined });
+            if (note) {
+                this.socket.emit('editingNote', { roomId: this.roomId, noteId: note.noteId, lock: note != undefined });
             } else if (this.#currentEditingNote) {
-                this.socket.emit('editingNote', { roomId: this.roomId, noteId: this.#currentEditingNote.noteId, lock: val != undefined });
+                this.socket.emit('editingNote', { roomId: this.roomId, noteId: this.#currentEditingNote.noteId, lock: note != undefined });
             }
         }
 
-        this.#currentEditingNote = val;
+        this.#currentEditingNote = note;
         for (const callback of this.callbacks) {
             if (callback.event === 'currentEditingNote')
-                callback.fn(val);
+                callback.fn(note);
         }
     }
 

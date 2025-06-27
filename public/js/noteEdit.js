@@ -185,15 +185,12 @@ class EditableNote extends Note {
             return;
         }
 
-        if (state.currentEditingNote && state.currentEditingNote !== this)
-            state.currentEditingNote.exitEditMode();
-
         this.editing = true;
         this.noteWindow.classList.add('note-editing');
-        state.currentEditingNote = this;
-
         if (this.lastSelection)
-            this.noteEditor.setSelection(this.lastSelection);
+            this.noteEditor.setSelection(this.lastSelection,);
+
+        state.enteredEditMode(this);
     }
 
     exitEditMode(skip_save = false) {
@@ -204,7 +201,7 @@ class EditableNote extends Note {
         if (!skip_save)
             this.save();
 
-        state.currentEditingNote = undefined;
+        state.exitedEditMode(this);
     }
 
     preSplit() {
