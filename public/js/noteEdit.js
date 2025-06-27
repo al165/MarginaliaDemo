@@ -82,6 +82,7 @@ class EditableNote extends Note {
         this.noteEditor.enable(canEdit);
         this.noteEditor.focus();
         this.lastSelection;
+        this.parentHighlight;
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
             if (this.locked)
@@ -92,7 +93,7 @@ class EditableNote extends Note {
                 highlighterPallette.style.maxWidth = '0em';
                 urlToolbar.style.visibility = 'hidden';
                 linkEditBtn.classList.add('tool-disabled');
-                console.log("no range, exiting editmode");
+
                 this.exitEditMode();
                 return;
             } else {
@@ -310,6 +311,11 @@ class EditableNote extends Note {
 
             // get the lastHighlight of the parent note
             // to set the annotation format...
+            let lastHighlight;
+            if (this.parent)
+                lastHighlight = this.parent.parentHighlight;
+
+            console.log(lastHighlight);
 
             fetch(`${baseURL}/room/${state.roomId}/note/`, {
                 method: 'POST',
@@ -330,10 +336,8 @@ class EditableNote extends Note {
                     // update the highlight with the assigned noteId
                     this.noteId = json.noteId;
 
-                    if (this.parent) {
-                        this.parent.noteEditor.setSelection(this.parent.lastHighlight);
-                        this.parent.noteEditor.format('annotate', { id: this.noteId, color: currentColor });
-                        this.parent.noteEditor.blur();
+                    if (lastHighlight) {
+                        this.parent.noteEditor.formatText(lastHighlight.index, lastHighlight.length, 'annotate', { id: this.noteId, color: currentColor });
                         updateHighlights(this.parent);
                         this.parent.save();
                     }

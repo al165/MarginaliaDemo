@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const bounds = parentNote.noteEditor.getBounds(selection);
         const parentPos = parentNote.getPosition();
+        parentNote.parentHighlight = selection;
 
         const newNote = new EditableNote();
         newNote.enterEditMode();
