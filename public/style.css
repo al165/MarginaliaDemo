@@ -127,8 +127,7 @@ a:visited {
 }
 
 .note-locked {
-    filter: grayscale(50%) blur(1px);
-    /* opacity: 50%; */
+    filter: grayscale(100%);
 }
 
 .overflow-hidden {

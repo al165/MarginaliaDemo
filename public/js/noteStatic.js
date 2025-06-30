@@ -236,7 +236,7 @@ class Fragment {
 
     show() {
         this.open = true;
-        document.querySelector("#notes").appendChild(this.noteContainer);
+        this.noteContainer.style.visibility = 'visible';
         this.noteWindow.style.width = "0px";
         this.noteWindow.classList.add("grow");
         this.noteWindow.offsetHeight;
@@ -281,8 +281,6 @@ class Fragment {
         }
         this.width = size.width;
         this.height = size.height;
-        // this.noteContents.style.width = size.width + "px";
-        // this.noteContents.style.height = size.height + "px";
         this.noteWindow.style.width = size.width + "px";
         this.noteWindow.style.height = size.height + "px";
     }
@@ -355,7 +353,7 @@ class NoteStatic extends Fragment {
 
     close(recurse = false) {
         this.open = false;
-        this.noteContainer.remove();
+        this.noteContainer.style.visibility = 'hidden';
     }
 
     restore() {
@@ -412,10 +410,15 @@ class NoteStatic extends Fragment {
         if (!options)
             return;
 
-        if (options.width) {
-            this.width = options.width;
-            this.noteContents.style.width = this.width + "px";
-        }
+        if (options.width)
+            this.setWidth(options.width);
+    }
+
+    setWidth(width) {
+        this.width = width;
+        this.options.width = width;
+        this.noteWindow.style.width = width + "px";
+        this.noteContents.style.width = width + "px";
     }
 }
 

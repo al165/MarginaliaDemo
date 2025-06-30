@@ -78,13 +78,12 @@ class EditableNote extends Note {
         if ((state.dragging) || state.resizing)
             return;
 
-        if (!this.locked) {
+        if (this.locked) {
+            noteButtons.style.visibility = "hidden";
+        } else {
             if (this.closable) {
                 removeBtn.style.display = "block";
                 removeBtn.dataset.noteid = this.noteId;
-                // removeBtn.onclick = () => {
-                //     this.delete();
-                // }
             } else {
                 removeBtn.style.display = "none";
             }

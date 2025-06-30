@@ -97,11 +97,11 @@ document.addEventListener("scroll", () => {
 });
 
 document.addEventListener("mouseup", (ev) => {
-    if (state.resizing) {
+    if (state.resizing && state.notes[state.resizing]) {
         const note = state.notes[state.resizing];
         note.noteWindow.classList.add("grow");
-        note.width = note.noteWindow.clientWidth;
-        note.options.width = note.width;
+        // note.width = note.noteWindow.clientWidth;
+        // note.options.width = note.width;
         note.save(true);
 
         state.resizing = undefined;
@@ -115,8 +115,11 @@ document.addEventListener("mousemove", (ev) => {
         let newWidth = state.resizeStartWidth + (ev.clientX - state.resizeStartPosition);
         newWidth = Math.min(800, Math.max(350, newWidth));
         const noteId = state.resizing;
-        state.notes[noteId].noteWindow.style.width = newWidth + "px";
-        state.notes[noteId].noteContents.style.width = newWidth + "px";
+        if (!state.notes[noteId])
+            return;
+        state.notes[noteId].setWidth(newWidth);
+        // state.notes[noteId].noteWindow.style.width = newWidth + "px";
+        // state.notes[noteId].noteContents.style.width = newWidth + "px";
     } else if (state.dragging && state.draggingFragment) {
         state.draggingFragment.setPosition({
             left: ev.clientX + state.scrollX - state.dragging.left,
