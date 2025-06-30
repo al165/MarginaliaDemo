@@ -258,6 +258,23 @@ a:visited {
     font-family: serif;
 }
 
+.ql-align-center {
+    text-align: center;
+}
+
+.ql-align-right {
+    text-align: right;
+}
+
+.ql-align-left {
+    text-align: left;
+}
+
+.ql-direction-rtl {
+    text-align: right;
+    direction: rtl;
+}
+
 .tool {
     width: var(--tool-size);
     height: var(--tool-size);
