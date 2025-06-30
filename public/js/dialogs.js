@@ -265,7 +265,6 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBtn.addEventListener('click', function () {
         exportPopup.showModal();
     });
-    document.querySelector("#export-close-btn").addEventListener('click', () => exportPopup.close());
     exportPopup.addEventListener('click', () => exportPopup.close());
     document.querySelector("#export-popup>div").addEventListener('click', ev => ev.stopPropagation());
 });

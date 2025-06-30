@@ -56,10 +56,9 @@ class EditableNote extends Note {
             if (this.locked)
                 return;
 
-            // checkSelection(this, range);
-
             if (!range) {
                 this.exitEditMode();
+                state.currentSelection = undefined;
                 return;
             } else {
                 this.lastSelection = range;
