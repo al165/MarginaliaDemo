@@ -7,6 +7,8 @@ import { state } from './state.js';
 
 const socket = io();
 
+let removeNoteBtn;
+
 socket.on('connect', function () {
     socket.emit('roomId', roomId);
 });
@@ -28,6 +30,16 @@ socket.on('noteEditing', function (data) {
 
     if (state.notes[data.noteId])
         state.notes[data.noteId].setLocked(data.lock);
+
+    if (removeNoteBtn && removeNoteBtn.dataset.noteid === data.noteId) {
+        if (data.lock) {
+            removeNoteBtn.classList.add('tool-disabled');
+            removeNoteBtn.title = "Cannot delete note while someone is editing the parent note";
+        } else {
+            removeNoteBtn.classList.remove('tool-disabled');
+            removeNoteBtn.title = "Delete note";
+        }
+    }
 });
 
 socket.on('lockedNotes', function (lockedNotes) {
@@ -89,6 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
             continue;
         setTheme(colourTheme);
     }
+
+    removeNoteBtn = document.querySelector("#remove-note");
 });
 
 document.addEventListener("scroll", () => {

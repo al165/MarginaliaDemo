@@ -305,7 +305,8 @@ a:visited {
     box-shadow: none;
 }
 
-.tool:disabled {
+.tool:disabled,
+.tool-disabled {
     filter: contrast(50%);
     opacity: 50%;
 }

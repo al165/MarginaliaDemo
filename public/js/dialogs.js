@@ -244,6 +244,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmDeleteBtn = document.querySelector("#confirm-delete-btn");
 
     deleteBtn.addEventListener('click', function () {
+        const noteId = deleteBtn.dataset.noteid;
+        if (!noteId || !state.notes[noteId])
+            return;
+
+        if (state.notes[noteId].parent.locked)
+            return;
+
         deleteNotePopup.showModal();
     });
 

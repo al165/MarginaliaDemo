@@ -86,6 +86,13 @@ class EditableNote extends Note {
             if (this.closable) {
                 removeBtn.style.display = "block";
                 removeBtn.dataset.noteid = this.noteId;
+                if (this.parent.locked) {
+                    removeBtn.classList.add('tool-disabled');
+                    removeBtn.title = "Cannot delete note while someone is editing the parent note";
+                } else {
+                    removeBtn.classList.remove('tool-disabled');
+                    removeBtn.title = "Delete note";
+                }
             } else {
                 removeBtn.style.display = "none";
             }
@@ -151,6 +158,15 @@ class EditableNote extends Note {
             return;
         }
 
+        // check if parent is locked...
+        if (this.parent && this.parent.locked) {
+            console.log(`Cannot delete note since parent is locked`);
+            return;
+        }
+
+        this.setLocked(true);
+        this.parent.setLocked(true);
+
         fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
             method: 'DELETE',
             body: JSON.stringify({
@@ -180,8 +196,10 @@ class EditableNote extends Note {
                 }
 
                 this.parent.restore();
+                this.parent.setLocked(false);
                 this.parent.setContents(JSON.stringify(parentContents.ops), 'api');
                 this.parent.save();
+
             }
 
             delete this.noteEditor;
