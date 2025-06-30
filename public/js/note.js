@@ -50,6 +50,12 @@ class Note extends NoteStatic {
         this.lastHighlight;
         this.locked = false;
 
+        this.notification = document.createElement('div');
+        this.notification.classList.add('notification');
+        this.notification.classList.add('drop-shadow');
+        this.noteContainer.appendChild(this.notification);
+        this.notification.innerText = "Someone is currently editing this note...";
+
         this.noteEditor = new Quill(this.noteContents, {
             placeholder: 'Write your note here...',
             formats: [
@@ -98,10 +104,26 @@ class Note extends NoteStatic {
     setLocked(lock) {
         this.locked = lock;
 
-        if (lock)
+        if (lock) {
             this.noteContainer.classList.add('note-locked');
-        else
+            if (this.open)
+                this.notification.style.visibility = 'visible';
+        }
+        else {
             this.noteContainer.classList.remove('note-locked');
+            this.notification.style.visibility = 'hidden';
+        }
+    }
+
+    show() {
+        super.show();
+        if (this.locked)
+            this.notification.style.visibility = 'visible';
+    }
+
+    close() {
+        super.close();
+        this.notification.style.visibility = 'hidden';
     }
 }
 
