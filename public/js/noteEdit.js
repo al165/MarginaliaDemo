@@ -146,6 +146,11 @@ class EditableNote extends Note {
     }
 
     delete() {
+        if (!canEdit || !editToken || this.locked) {
+            console.log(`Cannot delete note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
+            return;
+        }
+
         fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
             method: 'DELETE',
             body: JSON.stringify({
