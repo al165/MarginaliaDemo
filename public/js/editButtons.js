@@ -220,8 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFormatsToolbar(range) {
         const note = state.currentEditingNote;
         const headingsBtnIcon = headingsBtn.querySelector("img");
-        const justificationBtnIcon = headingsBtn.querySelector("img");
-        const writingDirectionBtnIcon = headingsBtn.querySelector("img");
+        const justificationBtnIcon = justificationBtn.querySelector("img");
+        const writingDirectionBtnIcon = writingDirectionBtn.querySelector("img");
 
         if (!note || !range) {
             // reset format buttons to default
