@@ -12,10 +12,10 @@
   <div>
     <input type="text" placeholder="Full URL, including http://" name="url" id="link-editor-url">
     <button id="link-editor-add-btn">Add link</button>
-    <form method="dialog">
-      <button>Cancel</button>
-    </form>
   </div>
+  <form method="dialog">
+    <button class="dialog-close"><img src="<%= room.baseURL %>/icons/close.svg" alt=""></button>
+  </form>
 </dialog>
 
 <dialog id="video-editor" class="centered">
@@ -23,10 +23,10 @@
     Paste a link to YouTube or Vimeo below to embed into the note:
     <input type="text" placeholder="Video URL" name="url" id="video-editor-url">
     <button type="button" id="video-editor-add-btn">Add video</button>
-    <form method="dialog">
-      <button>Cancel</button>
-    </form>
   </div>
+  <form method="dialog">
+    <button class="dialog-close"><img src="<%= room.baseURL %>/icons/close.svg" alt=""></button>
+  </form>
 </dialog>
 
 <dialog id="image-editor" class="centered">
@@ -37,18 +37,14 @@
     or paste a direct link to an image hosted somewhere else:
     <input type="text" placeholder="Image URL" name="image-url" id="image-editor-url">
     <button id="image-editor-submit">Submit</button>
-    <hr />
-    <form method="dialog">
-      <button>Cancel</button>
-    </form>
   </div>
+  <form method="dialog">
+    <button class="dialog-close"><img src="<%= room.baseURL %>/icons/close.svg" alt=""></button>
+  </form>
 </dialog>
 
 <dialog id="export-popup" class="centered">
   <div>
-    <div class="buttons">
-      <img src="<%= room.baseURL %>/icons/close.svg" class="btn" alt="close button" id="export-close-btn">
-    </div>
     <h2>Share/Export this room</h2>
     <p>Share read-only version: <br><a id="read-only-link" target="_blank" rel="noopener noreferrer"></a> </p>
     <p>Share with editing access: <br><a id="with-edit-link" target="_blank" rel="noopener noreferrer"></a> </p>
@@ -72,7 +68,11 @@
       staticLink.setAttribute('href', staticURL);
       staticLink.innerText = staticURL;
     </script>
+    <form method="dialog">
+      <button class="dialog-close"><img src="<%= room.baseURL %>/icons/close.svg" alt=""></button>
+    </form>
   </div>
+
 </dialog>
 
 <dialog id="delete-popup" class="centered">

@@ -362,6 +362,8 @@ dialog {
     z-index: 1999;
     position: absolute;
     padding: 1em;
+    padding-right: 2.5em;
+    max-width: 20em;
     background-color: var(--menu-bg-color);
     box-shadow: var(--glow-color) 0px 0px 48px 24px;
     border: none;
@@ -440,11 +442,25 @@ dialog>div {
     flex-direction: column;
     justify-items: center;
     gap: 0.5em;
-    max-width: 20em;
 }
 
 dialog button {
     width: 100%;
+    max-width: 20em;
+}
+
+.dialog-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2em;
+    border-radius: 0 0 0 4px;
+    padding: 0.2em;
+}
+
+#link-editor {
+    max-width: 30em;
+    width: 30em;
 }
 
 #confirm-delete-btn {
