@@ -4,15 +4,9 @@
 import { state } from './state.js';
 import { Split, updateHighlights } from './noteStatic.js';
 import { Note } from './note.js';
-import { expandSelection } from './utils.js';
-import { HIGHLIGHT_COLOURS } from './data/colourschemes.js';
-
-const linkEditBtn = document.querySelector("#links");
-const linkDeleteBtn = document.querySelector("#remove-link-btn");
 
 const noteButtons = document.querySelector("#note-buttons");
 
-const hightlightToolbar = document.querySelector("#highlight-toolbar");
 const removeBtn = noteButtons.querySelector("#remove-note");
 const resizeHandle = document.querySelector("#resize-note");
 
@@ -24,36 +18,6 @@ if (canEdit && editToken) {
     }
     localStorage.setItem('history', JSON.stringify(roomHistory));
 }
-
-// Color management
-let currentColor = HIGHLIGHT_COLOURS[0];
-
-const highlighterColour = document.querySelector("#highlight-colour");
-highlighterColour.style.backgroundColor = currentColor;
-
-const highlighterPallette = document.querySelector("#highlight-colour-pallette");
-
-for (const hiColour of HIGHLIGHT_COLOURS) {
-    const colourChoice = document.createElement('div');
-    colourChoice.classList.add('colour-choice');
-    colourChoice.style.backgroundColor = hiColour;
-
-    highlighterPallette.appendChild(colourChoice);
-
-    colourChoice.addEventListener('mousedown', (ev) => {
-        ev.preventDefault();
-        currentColor = hiColour;
-        highlighterColour.style.backgroundColor = hiColour;
-        highlighterPallette.style.maxWidth = '0em';
-    });
-}
-
-highlighterColour.addEventListener('mousedown', (ev) => {
-    ev.preventDefault();
-    highlighterPallette.style.maxWidth = '10em';
-});
-
-const urlToolbar = document.querySelector("#url-toolbar");
 
 if (resizeHandle) {
     resizeHandle.addEventListener('mousedown', (ev) => {
@@ -75,27 +39,6 @@ if (resizeHandle) {
     });
 }
 
-function checkSelection(note, range) {
-    if (!note || !range || range.length == 0) {
-        hightlightToolbar.style.visibility = 'hidden';
-        highlighterPallette.style.maxWidth = '0em';
-        linkEditBtn.classList.add('tool-disabled');
-        urlToolbar.style.visibility = 'hidden';
-    } else {
-        let newRange = {
-            index: range.index,
-            length: 1
-        };
-        const highlightBounds = note.noteEditor.getBounds(newRange);
-
-        hightlightToolbar.style.left = highlightBounds.left + note.getPosition().left + 'px';
-        hightlightToolbar.style.top = highlightBounds.top + note.getPosition().top - hightlightToolbar.clientHeight + 'px';
-
-        hightlightToolbar.style.visibility = 'visible';
-        linkEditBtn.classList.remove('tool-disabled');
-    }
-}
-
 class EditableNote extends Note {
 
     constructor(noteId, noteType = 0) {
@@ -106,43 +49,19 @@ class EditableNote extends Note {
 
         this.noteEditor.on('text-change', (delta, oldDelta, source) => {
             const range = this.noteEditor.getSelection();
-            checkSelection(this, range);
+            state.currentSelection = range;
         });
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
             if (this.locked)
                 return;
 
-            checkSelection(this, range);
+            // checkSelection(this, range);
 
             if (!range) {
                 this.exitEditMode();
                 return;
             } else {
-                const currentFormat = this.noteEditor.getFormat(range);
-
-                // Show URL bar
-                if (currentFormat.link) {
-                    const linkRange = expandSelection(this.noteEditor, range);
-                    const linkBounds = this.noteEditor.getBounds(linkRange);
-                    urlToolbar.style.left = linkBounds.left + this.getPosition().left + 'px';
-                    urlToolbar.style.top = linkBounds.top + linkBounds.height + this.getPosition().top + 'px';
-
-                    const linkElement = urlToolbar.querySelector("a");
-                    linkElement.href = currentFormat.link;
-                    linkElement.innerText = currentFormat.link;
-
-                    linkDeleteBtn.onclick = () => {
-                        this.noteEditor.formatText(linkRange.index, linkRange.length, 'link', false, 'user');
-                        this.save();
-                        this.noteEditor.setSelection(linkRange);
-                    };
-
-                    urlToolbar.style.visibility = 'visible';
-                } else {
-                    urlToolbar.style.visibility = 'hidden';
-                }
-
                 this.lastSelection = range;
 
                 if (!this.editing)
@@ -150,6 +69,7 @@ class EditableNote extends Note {
             }
 
             this.lastHighlight = range;
+            state.currentSelection = range;
         });
 
     }
@@ -316,8 +236,6 @@ class EditableNote extends Note {
             if (this.parent)
                 lastHighlight = this.parent.parentHighlight;
 
-            console.log(lastHighlight);
-
             fetch(`${baseURL}/room/${state.roomId}/note/`, {
                 method: 'POST',
                 body: JSON.stringify({
@@ -338,7 +256,7 @@ class EditableNote extends Note {
                     this.noteId = json.noteId;
 
                     if (lastHighlight) {
-                        this.parent.noteEditor.formatText(lastHighlight.index, lastHighlight.length, 'annotate', { id: this.noteId, color: currentColor });
+                        this.parent.noteEditor.formatText(lastHighlight.index, lastHighlight.length, 'annotate', { id: this.noteId, color: state.highlightColour });
                         updateHighlights(this.parent);
                         this.parent.save();
                     }

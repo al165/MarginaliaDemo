@@ -1,6 +1,7 @@
 class MarginaliaRoomState {
     #currentEditingNote = undefined;
     #lastEditingNote = undefined;
+    #currentSelection = undefined;
     #roomId = undefined;
     notes = {};
     lockedNotes = new Set();
@@ -13,6 +14,7 @@ class MarginaliaRoomState {
     resizeStartWidth = undefined;
     dragging = undefined;
     draggingFragment = undefined;
+    highlightColour = '#FF00FF';
     callbacks = [];
 
     socket = undefined;
@@ -58,6 +60,18 @@ class MarginaliaRoomState {
 
     get currentEditingNote() {
         return this.#currentEditingNote;
+    }
+
+    set currentSelection(selection) {
+        this.#currentSelection = selection;
+        for (const callback of this.callbacks) {
+            if (callback.event === 'selectionChange')
+                callback.fn(selection);
+        }
+    }
+
+    get currentSelection() {
+        return this.#currentSelection;
     }
 
     get lastEditingNote() {

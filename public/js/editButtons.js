@@ -1,6 +1,7 @@
 import { state } from './state.js';
 
-import { THEME_LIST, setTheme } from './data/colourschemes.js';
+import { THEME_LIST, setTheme, HIGHLIGHT_COLOURS } from './data/colourschemes.js';
+import { expandSelection } from './utils.js';
 import { TOOLTIPS } from './data/tooltips.js';
 
 let availableNoteTools = [];
@@ -184,4 +185,87 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     availableNoteTools.forEach(btn => btn.classList.add('tool-disabled'));
+
+    // Color management
+    state.highlightColour = HIGHLIGHT_COLOURS[0];
+
+    const highlighterColour = document.querySelector("#highlight-colour");
+    highlighterColour.style.backgroundColor = state.highlightColour;
+
+    const highlighterPallette = document.querySelector("#highlight-colour-pallette");
+
+    for (const hiColour of HIGHLIGHT_COLOURS) {
+        const colourChoice = document.createElement('div');
+        colourChoice.classList.add('colour-choice');
+        colourChoice.style.backgroundColor = hiColour;
+
+        highlighterPallette.appendChild(colourChoice);
+
+        colourChoice.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            state.highlightColour = hiColour;
+            highlighterColour.style.backgroundColor = hiColour;
+            highlighterPallette.style.maxWidth = '0em';
+        });
+    }
+
+    highlighterColour.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        highlighterPallette.style.maxWidth = '10em';
+    });
+
+    // Selection callback
+    const urlToolbar = document.querySelector("#url-toolbar");
+    const linkEditBtn = document.querySelector("#links");
+    const linkDeleteBtn = document.querySelector("#remove-link-btn");
+    const hightlightToolbar = document.querySelector("#highlight-toolbar");
+
+    state.addCallback('selectionChange', range => {
+        const note = state.currentEditingNote;
+
+        if (!note || !range || range.length == 0) {
+            // Hide highlight and url toolbars
+            hightlightToolbar.style.visibility = 'hidden';
+            highlighterPallette.style.maxWidth = '0em';
+            linkEditBtn.classList.add('tool-disabled');
+            urlToolbar.style.visibility = 'hidden';
+        } else {
+            // Show highlight toolbar
+            let startSelection = {
+                index: range.index,
+                length: 1
+            };
+            const highlightBounds = note.noteEditor.getBounds(startSelection);
+
+            hightlightToolbar.style.left = highlightBounds.left + note.getPosition().left + 'px';
+            hightlightToolbar.style.top = highlightBounds.top + note.getPosition().top - hightlightToolbar.clientHeight + 'px';
+
+            hightlightToolbar.style.visibility = 'visible';
+            linkEditBtn.classList.remove('tool-disabled');
+
+            const currentFormat = note.noteEditor.getFormat(range);
+
+            // Show URL bar
+            if (currentFormat.link) {
+                const linkRange = expandSelection(note.noteEditor, range);
+                const linkBounds = note.noteEditor.getBounds(linkRange);
+                urlToolbar.style.left = linkBounds.left + note.getPosition().left + 'px';
+                urlToolbar.style.top = linkBounds.top + linkBounds.height + note.getPosition().top + 'px';
+
+                const linkElement = urlToolbar.querySelector("a");
+                linkElement.href = currentFormat.link;
+                linkElement.innerText = currentFormat.link;
+
+                linkDeleteBtn.onclick = () => {
+                    this.noteEditor.formatText(linkRange.index, linkRange.length, 'link', false, 'user');
+                    this.save();
+                    this.noteEditor.setSelection(linkRange);
+                };
+
+                urlToolbar.style.visibility = 'visible';
+            } else {
+                urlToolbar.style.visibility = 'hidden';
+            }
+        }
+    });
 });
