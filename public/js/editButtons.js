@@ -60,9 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
     cycleFormat(headingsBtn, 'header', [1, 2, 3, null]);
     availableNoteTools.push(headingsBtn);
 
-    const writingDirection = document.querySelector("#writingdirection");
-    cycleFormat(writingDirection, 'direction', ['rtl', null]);
-    availableNoteTools.push(writingDirection);
+    const writingDirectionBtn = document.querySelector("#writingdirection");
+    cycleFormat(writingDirectionBtn, 'direction', ['rtl', null]);
+    availableNoteTools.push(writingDirectionBtn);
 
     const justificationBtn = document.querySelector("#justification");
     cycleFormat(justificationBtn, 'align', ['center', 'right', null]);
@@ -220,6 +220,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const linkDeleteBtn = document.querySelector("#remove-link-btn");
     const hightlightToolbar = document.querySelector("#highlight-toolbar");
 
+    function updateFormatsToolbar(range) {
+        const note = state.currentEditingNote;
+
+        if (!note || !range) {
+            // reset format buttons to default
+            headingsBtn.src = `${baseURL}/icons/20_heading.svg`;
+            justificationBtn.src = `${baseURL}/icons/18_justification_left.svg`;
+            writingDirectionBtn.src = `${baseURL}/icons/19_writingdirection_leftright.svg`;
+
+            linkEditBtn.classList.add('tool-disabled');
+        } else {
+            const currentFormat = note.noteEditor.getFormat(range);
+
+            // Headings
+            switch (currentFormat.header) {
+                case 2:
+                    headingsBtn.src = `${baseURL}/icons/20_heading_2.svg`;
+                    break;
+                case 3:
+                    headingsBtn.src = `${baseURL}/icons/20_heading_3.svg`;
+                    break;
+                default:
+                    headingsBtn.src = `${baseURL}/icons/20_heading.svg`;
+                    break;
+            }
+
+            // Justification
+            switch (currentFormat.align) {
+                case "center":
+                    justificationBtn.src = `${baseURL}/icons/18_justification_centre.svg`;
+                    break;
+                case "right":
+                    justificationBtn.src = `${baseURL}/icons/18_justification_right.svg`;
+                    break;
+                default:
+                    justificationBtn.src = `${baseURL}/icons/18_justification_left.svg`;
+                    break;
+            }
+
+            // Writing direction
+            if (currentFormat.direction === 'rtl')
+                writingDirectionBtn.src = `${baseURL}/icons/19_writingdirection_rightleft.svg`;
+            else
+                writingDirectionBtn.src = `${baseURL}/icons/19_writingdirection_leftright.svg`;
+
+            if (range.length)
+                linkEditBtn.classList.remove('tool-disabled');
+            else
+                linkEditBtn.classList.add('tool-disabled');
+        }
+    }
+
     state.addCallback('selectionChange', range => {
         const note = state.currentEditingNote;
 
@@ -227,9 +279,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hide highlight and url toolbars
             hightlightToolbar.style.visibility = 'hidden';
             highlighterPallette.style.maxWidth = '0em';
-            linkEditBtn.classList.add('tool-disabled');
             urlToolbar.style.visibility = 'hidden';
+
+            updateFormatsToolbar(range);
         } else {
+            const currentFormat = note.noteEditor.getFormat(range);
+            updateFormatsToolbar(range);
+
             // Show highlight toolbar
             let startSelection = {
                 index: range.index,
@@ -241,9 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
             hightlightToolbar.style.top = highlightBounds.top + note.getPosition().top - hightlightToolbar.clientHeight + 'px';
 
             hightlightToolbar.style.visibility = 'visible';
-            linkEditBtn.classList.remove('tool-disabled');
-
-            const currentFormat = note.noteEditor.getFormat(range);
 
             // Show URL bar
             if (currentFormat.link) {
