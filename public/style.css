@@ -284,6 +284,24 @@ a:visited {
     z-index: 1002;
     position: relative;
     user-select: none;
+    background: none;
+    padding: 0;
+}
+
+.tool:active,
+.tool:focus,
+.tool:hover {
+    background: none;
+    box-shadow: none;
+}
+
+.tool:disabled {
+    filter: contrast(50%);
+    opacity: 50%;
+}
+
+.tool>img {
+    height: 100%;
 }
 
 #tool-glow {
@@ -294,12 +312,6 @@ a:visited {
     z-index: 1001;
     visibility: hidden;
     pointer-events: none;
-}
-
-.tool-disabled,
-.coming-soon {
-    filter: contrast(50%);
-    opacity: 50%;
 }
 
 #insert-toolbar,

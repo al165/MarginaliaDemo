@@ -178,13 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     state.addCallback('currentEditingNote', note => {
-        if (note)
-            availableNoteTools.forEach(btn => btn.classList.remove('tool-disabled'));
-        else
-            availableNoteTools.forEach(btn => btn.classList.add('tool-disabled'));
+        availableNoteTools.forEach(btn => btn.disabled = note === undefined);
     });
 
-    availableNoteTools.forEach(btn => btn.classList.add('tool-disabled'));
+    availableNoteTools.forEach(btn => btn.disabled = true);
 
     // Color management
     state.highlightColour = HIGHLIGHT_COLOURS[0];
@@ -222,53 +219,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateFormatsToolbar(range) {
         const note = state.currentEditingNote;
+        const headingsBtnIcon = headingsBtn.querySelector("img");
+        const justificationBtnIcon = headingsBtn.querySelector("img");
+        const writingDirectionBtnIcon = headingsBtn.querySelector("img");
 
         if (!note || !range) {
             // reset format buttons to default
-            headingsBtn.src = `${baseURL}/icons/20_heading.svg`;
-            justificationBtn.src = `${baseURL}/icons/18_justification_left.svg`;
-            writingDirectionBtn.src = `${baseURL}/icons/19_writingdirection_leftright.svg`;
+            headingsBtnIcon.src = `${baseURL}/icons/20_heading.svg`;
+            justificationBtnIcon.src = `${baseURL}/icons/18_justification_left.svg`;
+            writingDirectionBtnIcon.src = `${baseURL}/icons/19_writingdirection_leftright.svg`;
 
-            linkEditBtn.classList.add('tool-disabled');
+            linkEditBtn.disabled = true;
         } else {
             const currentFormat = note.noteEditor.getFormat(range);
 
             // Headings
             switch (currentFormat.header) {
                 case 2:
-                    headingsBtn.src = `${baseURL}/icons/20_heading_2.svg`;
+                    headingsBtnIcon.src = `${baseURL}/icons/20_heading_2.svg`;
                     break;
                 case 3:
-                    headingsBtn.src = `${baseURL}/icons/20_heading_3.svg`;
+                    headingsBtnIcon.src = `${baseURL}/icons/20_heading_3.svg`;
                     break;
                 default:
-                    headingsBtn.src = `${baseURL}/icons/20_heading.svg`;
+                    headingsBtnIcon.src = `${baseURL}/icons/20_heading.svg`;
                     break;
             }
 
             // Justification
             switch (currentFormat.align) {
                 case "center":
-                    justificationBtn.src = `${baseURL}/icons/18_justification_centre.svg`;
+                    justificationBtnIcon.src = `${baseURL}/icons/18_justification_centre.svg`;
                     break;
                 case "right":
-                    justificationBtn.src = `${baseURL}/icons/18_justification_right.svg`;
+                    justificationBtnIcon.src = `${baseURL}/icons/18_justification_right.svg`;
                     break;
                 default:
-                    justificationBtn.src = `${baseURL}/icons/18_justification_left.svg`;
+                    justificationBtnIcon.src = `${baseURL}/icons/18_justification_left.svg`;
                     break;
             }
 
             // Writing direction
             if (currentFormat.direction === 'rtl')
-                writingDirectionBtn.src = `${baseURL}/icons/19_writingdirection_rightleft.svg`;
+                writingDirectionBtnIcon.src = `${baseURL}/icons/19_writingdirection_rightleft.svg`;
             else
-                writingDirectionBtn.src = `${baseURL}/icons/19_writingdirection_leftright.svg`;
+                writingDirectionBtnIcon.src = `${baseURL}/icons/19_writingdirection_leftright.svg`;
 
-            if (range.length)
-                linkEditBtn.classList.remove('tool-disabled');
-            else
-                linkEditBtn.classList.add('tool-disabled');
+            linkEditBtn.disabled = range.length == 0;
         }
     }
 
