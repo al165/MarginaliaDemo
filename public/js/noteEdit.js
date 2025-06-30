@@ -53,8 +53,10 @@ class EditableNote extends Note {
         });
 
         this.noteEditor.on('selection-change', (range, oldRange, source) => {
-            if (this.locked)
+            if (this.locked) {
+                this.noteEditor.blur();
                 return;
+            }
 
             if (!range) {
                 this.exitEditMode();
@@ -97,7 +99,8 @@ class EditableNote extends Note {
         console.log(`${this.noteId} enterEditMode()`);
         if (this.locked) {
             console.log("enterEditMode: is locked so returning");
-            return;
+            this.
+                return;
         }
 
         if (!canEdit) {
