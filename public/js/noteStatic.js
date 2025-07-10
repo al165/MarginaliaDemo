@@ -343,7 +343,12 @@ class NoteStatic extends Fragment {
             return;
 
         restoreBtn.style.display = "none";
-        closeBtn.onclick = () => this.close();
+        if (this.closable) {
+            closeBtn.onclick = () => {
+                noteButtons.style.visibility = "hidden";
+                this.close();
+            }
+        }
         closeBtn.style.display = this.closable ? "block" : "none";
     }
 
