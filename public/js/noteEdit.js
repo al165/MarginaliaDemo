@@ -85,9 +85,19 @@ class EditableNote extends Note {
         this.noteEditor.keyboard.addBinding({
             key: 's',
             shortKey: true
-        }, (range, context) => {
+        }, () => {
             if (this.editing) {
                 this.noteEditor.blur();
+                return false;
+            }
+        });
+
+        this.noteEditor.keyboard.addBinding({
+            key: 'h',
+            shortKey: true
+        }, () => {
+            if (this.editing) {
+                this.addHighlight();
                 return false;
             }
         });
@@ -225,6 +235,27 @@ class EditableNote extends Note {
             delete state.deleteNote(this);
         });
 
+    }
+
+    addHighlight() {
+        if (!canEdit || !editToken || this.locked || !this.editing)
+            return;
+
+        console.log("new note");
+        const selection = this.noteEditor.getSelection();
+        if (!selection || selection.length == 0) {
+            console.log("selection is undefined or 0");
+            return;
+        }
+        const bounds = this.noteEditor.getBounds(selection);
+        const parentPos = this.getPosition();
+        this.parentHighlight = selection;
+
+        const newNote = new EditableNote();
+        newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
+        newNote.toFront();
+        newNote.parent = this;
+        newNote.enterEditMode();
     }
 
     save(force = false) {

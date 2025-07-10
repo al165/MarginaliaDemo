@@ -1,4 +1,3 @@
-import { EditableNote } from './noteEdit.js';
 import { state } from './state.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,22 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     newNoteBtn.addEventListener('click', function (ev) {
         if (!state.currentEditingNote)
             return;
-        console.log("new note");
-        const parentNote = state.currentEditingNote;
-        const selection = parentNote.noteEditor.getSelection();
-        if (!selection || selection.length == 0) {
-            console.log("selection is undefined or 0");
-            return;
-        }
-        const bounds = parentNote.noteEditor.getBounds(selection);
-        const parentPos = parentNote.getPosition();
-        parentNote.parentHighlight = selection;
 
-        const newNote = new EditableNote();
-        newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
-        newNote.toFront();
-        newNote.parent = parentNote;
-        newNote.enterEditMode();
+        state.currentEditingNote.addHighlight();
 
         ev.stopPropagation();
     });
