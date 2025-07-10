@@ -90,6 +90,7 @@ a:visited {
 .note-container {
     position: absolute;
     transition: filter 0.5s, opacity 0.5s;
+    visibility: hidden;
 }
 
 .note-window {

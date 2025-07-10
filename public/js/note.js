@@ -13,6 +13,9 @@ async function fetchNote(noteId, note) {
         }
 
         if (!note) {
+            console.log('fetchNote: creating note');
+            // the newNote should only be made visible if is not closable, or
+            // if the 
             let newNote;
             if (data.noteType == 0) {
                 newNote = new window.Note(noteId, data.noteType);
@@ -20,17 +23,18 @@ async function fetchNote(noteId, note) {
                 newNote.setOptions(options);
                 newNote.setContents(data.noteContent);
                 newNote.setLocked(state.lockedNotes.has(noteId));
-                newNote.show();
             } else if (data.noteType == 1) {
                 newNote = new window.NoteStatic(noteId, data.noteType);
                 const options = JSON.parse(data.noteOptions) || {};
                 newNote.setOptions(options);
                 newNote.setHTML(data.noteContent);
-                newNote.show();
+                // newNote.show();
             }
+            // newNote.close();
 
             return newNote;
         } else {
+            console.log('fetchNote: updating note');
             note.setOptions(JSON.parse(data.noteOptions));
             note.setContents(data.noteContent);
 
@@ -115,8 +119,8 @@ class Note extends NoteStatic {
         }
     }
 
-    show() {
-        super.show();
+    show(animate = true) {
+        super.show(animate);
         if (this.locked)
             this.notification.style.visibility = 'visible';
     }

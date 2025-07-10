@@ -81,6 +81,9 @@ function split(fragment, vertical, newNote, hRect) {
     newNotePos[crossAxisN] = hRect[crossCartesian] + scrollCrossAxis;
     newNote.setPosition(newNotePos);
 
+    fragmentLeft.show();
+    fragmentRight.show();
+
     // now animate the positions
     fragmentLeft.noteContainer.classList.add('slide');
     fragmentRight.noteContainer.classList.add('slide');
@@ -141,6 +144,7 @@ function updateHighlights(note) {
                     if (!newNote)
                         return;
 
+                    newNote.show();
                     newNote.parent = note;
                     split(note, lastVertical, newNote, hRect);
                 });
@@ -159,7 +163,7 @@ class Fragment {
         this.children = [];
         this.splits = [];
         this.parent;
-        this.open = true;
+        this.open = false;
         this.width = 10;
         this.height = 10;
         this.position = { left: 0, top: 0 };
@@ -234,17 +238,22 @@ class Fragment {
         noteButtons.style.visibility = "visible";
     }
 
-    show() {
+    show(animate = true) {
+        console.log('Fragment.show()');
         this.open = true;
         this.noteContainer.style.visibility = 'visible';
-        this.noteWindow.style.width = "0px";
-        this.noteWindow.classList.add("grow");
+        if (animate) {
+            this.noteWindow.style.width = "0px";
+            this.noteWindow.classList.add("grow");
+        } else {
+            this.noteWindow.classList.remove("grow");
+        }
         this.noteWindow.offsetHeight;
         this.noteWindow.style.width = this.width + "px";
     }
 
     close(recurse = false) {
-
+        console.log('Fragment.close()');
     }
 
     setPosition(pos) {

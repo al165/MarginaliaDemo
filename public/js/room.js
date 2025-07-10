@@ -16,6 +16,7 @@ socket.on('connect', function () {
 socket.on('noteUpdated', function (noteId) {
     console.log("socket: noteUpdated: " + noteId);
     window.fetchNote(noteId, state.notes[noteId]);
+
 });
 
 socket.on('noteEditing', function (data) {
@@ -94,6 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const x = window.innerWidth / 2 - size.width / 2;
         const y = window.innerHeight / 2 - size.height / 2;
         newNote.setPosition({ left: x, top: y });
+
+        newNote.show();
     });
 
     for (const colourTheme of THEME_LIST) {

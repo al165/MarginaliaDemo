@@ -17,6 +17,7 @@ async function fetchNoteStatic(noteId, note) {
 
     note.setOptions(options);
     note.setHTML(data.noteHtml);
+    note.show();
 
     return note;
 }

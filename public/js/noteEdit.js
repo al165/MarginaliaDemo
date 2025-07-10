@@ -115,7 +115,7 @@ class EditableNote extends Note {
             if (this.closable) {
                 removeBtn.style.display = "block";
                 removeBtn.dataset.noteid = this.noteId;
-                if (this.parent.locked) {
+                if (this.parent && this.parent.locked) {
                     removeBtn.classList.add('tool-disabled');
                     removeBtn.title = "Cannot delete note while someone is editing the parent note";
                 } else {
@@ -228,7 +228,7 @@ class EditableNote extends Note {
                 this.parent.setLocked(false);
                 this.parent.setContents(JSON.stringify(parentContents.ops), 'api');
                 this.parent.save();
-
+                this.parent.enterEditMode();
             }
 
             delete this.noteEditor;
@@ -255,6 +255,7 @@ class EditableNote extends Note {
         newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
         newNote.toFront();
         newNote.parent = this;
+        newNote.show(false);
         newNote.enterEditMode();
     }
 
