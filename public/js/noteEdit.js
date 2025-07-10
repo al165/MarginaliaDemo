@@ -151,7 +151,13 @@ class EditableNote extends Note {
         if (this.lastSelection)
             this.noteEditor.setSelection(this.lastSelection,);
 
+        state.lockNote(this, true);
         state.enteredEditMode(this);
+
+        if (!this.noteId && this.parent) {
+            console.log(`new annotation, locking parent ${this.parent.noteId}`);
+            state.lockNote(this.parent, true);
+        }
     }
 
     exitEditMode(skip_save = false) {
@@ -159,8 +165,14 @@ class EditableNote extends Note {
         this.editing = false;
         this.noteWindow.classList.remove('note-editing');
 
-        if (!skip_save)
+        if (!skip_save) {
             this.save();
+            this.setLocked(false, true);
+        } else {
+            // keep locked
+            // this.setLocked(true, true);
+            state.lockNote(this, true);
+        }
 
         state.exitedEditMode(this);
     }
@@ -176,9 +188,19 @@ class EditableNote extends Note {
         this.noteEditor.enable(true);
     }
 
-    setLocked(lock) {
+    setLocked(lock, update_state = false) {
+        if (this.editing && !lock) {
+            console.log("trying to unlock but I am editing rn");
+            return;
+        }
+
         super.setLocked(lock);
+        console.log(`setLocked ${this.noteId} ${lock}`)
+
         this.noteEditor.enable(!lock);
+
+        if (update_state)
+            state.lockNote(this, lock);
     }
 
     delete() {
@@ -193,8 +215,8 @@ class EditableNote extends Note {
             return;
         }
 
-        this.setLocked(true);
-        this.parent.setLocked(true);
+        this.setLocked(true, true);
+        this.parent.setLocked(true, true);
 
         fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
             method: 'DELETE',
@@ -225,10 +247,11 @@ class EditableNote extends Note {
                 }
 
                 this.parent.restore();
-                this.parent.setLocked(false);
+                this.parent.setLocked(false, true);
                 this.parent.setContents(JSON.stringify(parentContents.ops), 'api');
                 this.parent.save();
-                this.parent.enterEditMode();
+                // state.currentEditingNote = undefined;
+                // state.lockNote(this.parent, false);
             }
 
             delete this.noteEditor;
@@ -256,7 +279,7 @@ class EditableNote extends Note {
         newNote.toFront();
         newNote.parent = this;
         newNote.show(false);
-        newNote.enterEditMode();
+        this.exitEditMode(true);
     }
 
     save(force = false) {
@@ -338,11 +361,18 @@ class EditableNote extends Note {
 
                     state.addNote(this);
                     this.lastContent = JSON.stringify(noteContent);
+
+                    if (this.parent)
+                        this.parent.setLocked(false, true);
                 }
                 else
                     console.log(json);
+
             }).catch(error => {
                 console.log("Error editing note: " + error);
+
+                if (this.parent)
+                    this.parent.setLocked(false, true);
             });
         }
     }

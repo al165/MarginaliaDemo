@@ -34,7 +34,7 @@ async function fetchNote(noteId, note) {
 
             return newNote;
         } else {
-            console.log('fetchNote: updating note');
+            console.log(`fetchNote: updating note ${note.noteId}`);
             note.setOptions(JSON.parse(data.noteOptions));
             note.setContents(data.noteContent);
 

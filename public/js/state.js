@@ -43,14 +43,6 @@ class MarginaliaRoomState {
         if (this.#currentEditingNote)
             this.#lastEditingNote = this.#currentEditingNote;
 
-        if (this.socket) {
-            if (note) {
-                this.socket.emit('editingNote', { roomId: this.roomId, noteId: note.noteId, lock: note != undefined });
-            } else if (this.#currentEditingNote) {
-                this.socket.emit('editingNote', { roomId: this.roomId, noteId: this.#currentEditingNote.noteId, lock: note != undefined });
-            }
-        }
-
         this.#currentEditingNote = note;
         for (const callback of this.callbacks) {
             if (callback.event === 'currentEditingNote')
@@ -108,6 +100,17 @@ class MarginaliaRoomState {
         for (const callback of this.callbacks) {
             if (callback.event === 'addNote')
                 callback.fn(val);
+        }
+    }
+
+    lockNote(note, lock) {
+        if (!note || !note.noteId)
+            return;
+
+        // console.log(`state.lockNote ${note.noteId}, ${lock}`);
+
+        if (this.socket) {
+            this.socket.emit('editingNote', { roomId: this.roomId, noteId: note.noteId, lock: lock });
         }
     }
 
