@@ -195,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const colourChoice = document.createElement('div');
         colourChoice.classList.add('colour-choice');
         colourChoice.style.backgroundColor = hiColour;
+        colourChoice.dataset.colour = hiColour;
 
         highlighterPallette.appendChild(colourChoice);
 
@@ -208,6 +209,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     highlighterColour.addEventListener('mousedown', (ev) => {
         ev.preventDefault();
+        for (const colourChoice of highlighterPallette.querySelectorAll('.colour-choice')) {
+            if (colourChoice.dataset.colour === state.highlightColour)
+                colourChoice.classList.add('selected');
+            else
+                colourChoice.classList.remove('selected');
+        }
         highlighterPallette.style.maxWidth = '10em';
     });
 

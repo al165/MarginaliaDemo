@@ -436,6 +436,10 @@ dialog {
     border: 1px black solid;
 }
 
+.colour-choice.selected {
+    border: 2px solid white;
+}
+
 #url-toolbar {
     box-sizing: border-box;
     position: absolute;
