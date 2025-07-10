@@ -73,6 +73,25 @@ class EditableNote extends Note {
             state.currentSelection = range;
         });
 
+        this.noteEditor.keyboard.addBinding({
+            key: 'Escape'
+        }, () => {
+            if (this.editing) {
+                this.noteEditor.blur();
+                return false;
+            }
+        });
+
+        this.noteEditor.keyboard.addBinding({
+            key: 's',
+            shortKey: true
+        }, (range, context) => {
+            if (this.editing) {
+                this.noteEditor.blur();
+                return false;
+            }
+        });
+
     }
 
     onHover() {
