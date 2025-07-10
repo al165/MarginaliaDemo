@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.addCallback('selectionChange', range => {
         const note = state.currentEditingNote;
 
-        if (!note || !range || range.length == 0) {
+        if (!note || !range) {
             // Hide highlight and url toolbars
             hightlightToolbar.style.visibility = 'hidden';
             highlighterPallette.style.maxWidth = '0em';
@@ -291,16 +291,21 @@ document.addEventListener('DOMContentLoaded', () => {
             updateFormatsToolbar(range);
 
             // Show highlight toolbar
-            let startSelection = {
-                index: range.index,
-                length: 1
-            };
-            const highlightBounds = note.noteEditor.getBounds(startSelection);
+            if (range.length > 0) {
+                let startSelection = {
+                    index: range.index,
+                    length: 1
+                };
+                const highlightBounds = note.noteEditor.getBounds(startSelection);
 
-            hightlightToolbar.style.left = highlightBounds.left + note.getPosition().left + 'px';
-            hightlightToolbar.style.top = highlightBounds.top + note.getPosition().top - hightlightToolbar.clientHeight + 'px';
+                hightlightToolbar.style.left = highlightBounds.left + note.getPosition().left + 'px';
+                hightlightToolbar.style.top = highlightBounds.top + note.getPosition().top - hightlightToolbar.clientHeight + 'px';
 
-            hightlightToolbar.style.visibility = 'visible';
+                hightlightToolbar.style.visibility = 'visible';
+            } else {
+                hightlightToolbar.style.visibility = 'hidden';
+                highlighterPallette.style.maxWidth = '0em';
+            }
 
             // Show URL bar
             if (currentFormat.link) {
