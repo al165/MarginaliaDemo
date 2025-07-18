@@ -22,11 +22,12 @@ async function fetchNoteStatic(noteId, note) {
     return note;
 }
 
+window.state = state;
 window.Note = NoteStatic;
 window.fetchNote = fetchNoteStatic;
 
 document.addEventListener('DOMContentLoaded', () => {
-    state.roomId = roomId;
+    window.state.roomId = roomId;
 
     // Clear any notes divs that might have been saved in the static HTML document
     document.getElementById("notes").innerHTML = "";
@@ -58,22 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("mouseup", (ev) => {
-    if (state.dragging) {
-        state.dragging = false;
+    if (window.state.dragging) {
+        window.state.dragging = false;
     }
 });
 
 document.addEventListener("mousemove", (ev) => {
-    if (state.dragging && state.draggingFragment) {
-        const fragmentSize = state.draggingFragment.getSize();
-        state.draggingFragment.setPosition({
-            left: ev.clientX + state.scrollX - fragmentSize.width + 20,
-            top: ev.clientY + state.scrollY - 20
+    if (window.state.dragging && window.state.draggingFragment) {
+        const fragmentSize = window.state.draggingFragment.getSize();
+        window.state.draggingFragment.setPosition({
+            left: ev.clientX + window.state.scrollX - fragmentSize.width + 20,
+            top: ev.clientY + window.state.scrollY - 20
         });
     }
 });
 
 document.addEventListener("scroll", () => {
-    state.scrollY = window.scrollY;
-    state.scrollX = window.scrollX;
+    window.state.scrollY = window.scrollY;
+    window.state.scrollX = window.scrollX;
 });

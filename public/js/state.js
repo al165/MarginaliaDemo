@@ -104,6 +104,7 @@ class MarginaliaRoomState {
     }
 
     lockNote(note, lock) {
+        return;
         if (!note || !note.noteId)
             return;
 

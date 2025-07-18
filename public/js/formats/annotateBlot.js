@@ -1,3 +1,5 @@
+import Quill from 'quill';
+
 const Inline = Quill.import('blots/inline');
 
 class AnnotateBlot extends Inline {
@@ -11,11 +13,6 @@ class AnnotateBlot extends Inline {
         node.setAttribute('data-color', data.color);
         return node;
     }
-
-    // static value(el) {
-    //     return el.getAttribute('data-id');
-    // }
-
     static formats(node) {
         return {
             id: node.getAttribute('data-id'),
@@ -24,4 +21,5 @@ class AnnotateBlot extends Inline {
     }
 }
 
-Quill.register(AnnotateBlot);
+// Quill.register(AnnotateBlot);
+export { AnnotateBlot };

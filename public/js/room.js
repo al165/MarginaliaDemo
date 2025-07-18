@@ -1,64 +1,21 @@
-import './formats/annotateBlot.js';
-import './formats/annotatePBlot.js';
-import { THEME_LIST, setTheme } from './data/colourschemes.js'
+import Quill from 'quill';
+import QuillCursors from 'quill-cursors';
 
+import { THEME_LIST, setTheme } from './data/colourschemes.js'
 import { fetchNote } from './note.js';
 import { state } from './state.js';
 
-const socket = io();
 
 let removeNoteBtn;
 
-socket.on('connect', function () {
-    socket.emit('roomId', roomId);
-});
-
-socket.on('noteUpdated', function (noteId) {
-    console.log("socket: noteUpdated: " + noteId);
-    window.fetchNote(noteId, state.notes[noteId]);
-
-});
-
-socket.on('noteEditing', function (data) {
-    console.log("socket: noteEditing: " + data.noteId);
-    if (!data.noteId)
-        return;
-
-    if (data.lock)
-        state.lockedNotes.add(data.noteId);
-    else
-        state.lockedNotes.delete(data.noteId);
-
-    if (state.notes[data.noteId])
-        state.notes[data.noteId].setLocked(data.lock);
-
-    if (removeNoteBtn && removeNoteBtn.dataset.noteid === data.noteId) {
-        if (data.lock) {
-            removeNoteBtn.classList.add('tool-disabled');
-            removeNoteBtn.title = "Cannot delete note while someone is editing the parent note";
-        } else {
-            removeNoteBtn.classList.remove('tool-disabled');
-            removeNoteBtn.title = "Delete note";
-        }
-    }
-});
-
-socket.on('lockedNotes', function (lockedNotes) {
-    for (const noteId of lockedNotes) {
-        state.lockedNotes.add(noteId);
-        if (state.notes[noteId]) {
-            state.notes[noteId].setLocked(true);
-        }
-    }
-});
-
-state.socket = socket;
-
 window.fetchNote = fetchNote;
+window.state = state;
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    state.roomId = roomId;
+    window.state.roomId = roomId;
+
+    // Quill.register('modules/cursors', QuillCursors);
 
     const FontAttributor = Quill.import('attributors/class/font');
     FontAttributor.whitelist = [
@@ -109,34 +66,34 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("scroll", () => {
-    state.scrollY = window.scrollY;
-    state.scrollX = window.scrollX;
+    window.state.scrollY = window.scrollY;
+    window.state.scrollX = window.scrollX;
 });
 
 document.addEventListener("mouseup", (ev) => {
-    if (state.resizing && state.notes[state.resizing]) {
-        const note = state.notes[state.resizing];
+    if (window.state.resizing && window.state.notes[window.state.resizing]) {
+        const note = window.state.notes[window.state.resizing];
         note.noteWindow.classList.add("grow");
         note.save(true);
 
-        state.resizing = undefined;
-    } else if (state.dragging) {
-        state.dragging = undefined;
+        window.state.resizing = undefined;
+    } else if (window.state.dragging) {
+        window.state.dragging = undefined;
     }
 });
 
 document.addEventListener("mousemove", (ev) => {
-    if (state.resizing) {
-        let newWidth = state.resizeStartWidth + (ev.clientX - state.resizeStartPosition);
+    if (window.state.resizing) {
+        let newWidth = window.state.resizeStartWidth + (ev.clientX - window.state.resizeStartPosition);
         newWidth = Math.min(800, Math.max(350, newWidth));
-        const noteId = state.resizing;
-        if (!state.notes[noteId])
+        const noteId = window.state.resizing;
+        if (!window.state.notes[noteId])
             return;
-        state.notes[noteId].setWidth(newWidth);
-    } else if (state.dragging && state.draggingFragment) {
-        state.draggingFragment.setPosition({
-            left: ev.clientX + state.scrollX - state.dragging.left,
-            top: ev.clientY + state.scrollY - state.dragging.top
+        window.state.notes[noteId].setWidth(newWidth);
+    } else if (window.state.dragging && window.state.draggingFragment) {
+        window.state.draggingFragment.setPosition({
+            left: ev.clientX + window.state.scrollX - window.state.dragging.left,
+            top: ev.clientY + window.state.scrollY - window.state.dragging.top
         });
     }
 });

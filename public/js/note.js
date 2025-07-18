@@ -1,11 +1,18 @@
-import { state } from './state.js';
 import { NoteStatic, updateHighlights } from './noteStatic.js'
+
+import Quill from 'quill';
+import { AnnotateBlot } from './formats/annotateBlot.js';
+Quill.register(AnnotateBlot);
+
+// import * as Y from 'yjs';
+// import { WebsocketProvider } from 'y-websocket';
+// import { QuillBinding } from 'y-quill';
 
 async function fetchNote(noteId, note) {
     console.log("fetchNote ", noteId);
     try {
         const response = await fetch(
-            `${baseURL}/room/${state.roomId}/note/${noteId}`
+            `${baseURL}/room/${window.state.roomId}/note/${noteId}`
         );
         const data = await response.json();
         if (data.msg) {
@@ -22,7 +29,7 @@ async function fetchNote(noteId, note) {
                 const options = JSON.parse(data.noteOptions) || {};
                 newNote.setOptions(options);
                 newNote.setContents(data.noteContent);
-                newNote.setLocked(state.lockedNotes.has(noteId));
+                // newNote.setLocked(window.state.lockedNotes.has(noteId));
             } else if (data.noteType == 1) {
                 newNote = new window.NoteStatic(noteId, data.noteType);
                 const options = JSON.parse(data.noteOptions) || {};
@@ -60,6 +67,14 @@ class Note extends NoteStatic {
         this.noteContainer.appendChild(this.notification);
         this.notification.innerText = "Someone is currently editing this note...";
 
+        // const ydoc = new Y.Doc()
+        // const provider = new WebsocketProvider(
+        //     `ws${location.protocol.slice(4)}//${location.host}/ws`, // alternatively: use the local ws server (run `npm start` in root directory)
+        //     noteId,
+        //     ydoc
+        // );
+        // const ytext = ydoc.getText('quill')
+
         this.noteEditor = new Quill(this.noteContents, {
             placeholder: 'Write your note here...',
             formats: [
@@ -82,6 +97,8 @@ class Note extends NoteStatic {
         });
         this.noteContents.classList.remove('ql-editor');
         this.noteEditor.enable(false);
+
+        // const binding = new QuillBinding(ytext, this.noteEditor, provider.awareness)
     }
 
     setContents(contents) {

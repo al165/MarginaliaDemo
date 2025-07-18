@@ -18,12 +18,19 @@
     "htmlfy": "^0.7.4",
     "multer": "^2.0.1",
     "nodemon": "^3.1.4",
+    "quill": "^2.0.3",
+    "quill-cursors": "^4.0.4",
     "quill-delta-to-html": "^0.12.1",
     "socket.io": "^4.8.1",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "y-quill": "^1.0.0",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
-    "esbuild": "^0.25.3"
+    "esbuild": "^0.25.3",
+    "webpack": "^5.100.2",
+    "webpack-cli": "^6.0.1"
   }
 }

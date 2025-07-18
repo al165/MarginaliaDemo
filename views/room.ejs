@@ -12,8 +12,7 @@
   <%- favicon %>
   <% } else { %>
   <link rel="icon" type="ico" href="<%= room.baseURL %>/favicon.ico">
-  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src="<%= room.baseURL %>/dist/main.js"></script>
   <% } %>
 
   <script>
@@ -100,11 +99,11 @@
     <%- include('partials/generated/roomStatic.ejs') %>
   </script>
   <% } else { %>
-  <script src="<%= room.baseURL %>/js/room.js" defer type="module"></script>
+  <!-- <script src="<%= room.baseURL %>/js/room.js" defer type="module"></script> -->
   <% } %>
 
   <% if(room.canEdit) { %>
-  <script src="<%= room.baseURL %>/js/noteEdit.js" defer type="module"></script>
+  <script src="<%= room.baseURL %>/dist/noteEdit.js" defer type="module"></script>
   <% } %>
 </body>
 

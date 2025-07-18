@@ -1,43 +1,51 @@
 // This module adds editing functionality to note.js. Only imported if editToken is correct
 // assumes note.js is already imported!
 
-import { state } from './state.js';
 import { Split, updateHighlights } from './noteStatic.js';
 import { Note } from './note.js';
 
-const noteButtons = document.querySelector("#note-buttons");
+let noteButtons;
+let removeBtn;
+let resizeHandle;
 
-const removeBtn = noteButtons.querySelector("#remove-note");
-const resizeHandle = document.querySelector("#resize-note");
+window.addEventListener('load', () => {
+    noteButtons = document.querySelector("#note-buttons");
+    removeBtn = noteButtons.querySelector("#remove-note");
+    resizeHandle = document.querySelector("#resize-note");
 
-if (canEdit && editToken) {
-    let roomHistory = JSON.parse(localStorage.getItem("history") || '{}');
-    roomHistory[roomId] = {
-        url: window.location.href,
-        roomName: roomName
+    if (canEdit && editToken) {
+        let roomHistory = JSON.parse(localStorage.getItem("history") || '{}');
+        roomHistory[roomId] = {
+            url: window.location.href,
+            roomName: roomName
+        }
+        localStorage.setItem('history', JSON.stringify(roomHistory));
     }
-    localStorage.setItem('history', JSON.stringify(roomHistory));
-}
 
-if (resizeHandle) {
-    resizeHandle.addEventListener('mousedown', (ev) => {
-        ev.preventDefault();
-        console.log("resize start");
-        const noteId = noteButtons.dataset.noteid;
-        if (!noteId)
-            return;
+    if (resizeHandle) {
+        resizeHandle.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            console.log("resize start");
 
-        const note = state.notes[noteId];
-        if (!(note instanceof Note))
-            return;
+            const noteId = noteButtons.dataset.noteid;
+            console.log(noteId);
+            if (!noteId)
+                return;
 
-        state.resizing = noteId;
-        state.resizeStartPosition = ev.clientX;
-        note.noteWindow.classList.remove("grow");
-        state.resizeStartWidth = note.width;
-        note.toFront();
-    });
-}
+            const note = window.state.notes[noteId];
+            console.log(note);
+            if (!(note instanceof Note))
+                return;
+
+            window.state.resizing = noteId;
+            window.state.resizeStartPosition = ev.clientX;
+            note.noteWindow.classList.remove("grow");
+            window.state.resizeStartWidth = note.width;
+            note.toFront();
+        });
+    }
+
+});
 
 class EditableNote extends Note {
 
@@ -47,20 +55,15 @@ class EditableNote extends Note {
         this.lastSelection;
         this.parentHighlight;
 
-        this.noteEditor.on('text-change', (delta, oldDelta, source) => {
+        this.noteEditor.on('text-change', (_delta, _oldDelta, _source) => {
             const range = this.noteEditor.getSelection();
-            state.currentSelection = range;
+            window.state.currentSelection = range;
         });
 
-        this.noteEditor.on('selection-change', (range, oldRange, source) => {
-            if (this.locked) {
-                this.noteEditor.blur();
-                return;
-            }
-
+        this.noteEditor.on('selection-change', (range, _oldRange, _source) => {
             if (!range) {
                 this.exitEditMode();
-                state.currentSelection = undefined;
+                window.state.currentSelection = undefined;
                 return;
             } else {
                 this.lastSelection = range;
@@ -70,7 +73,7 @@ class EditableNote extends Note {
             }
 
             this.lastHighlight = range;
-            state.currentSelection = range;
+            window.state.currentSelection = range;
         });
 
         this.noteEditor.keyboard.addBinding({
@@ -106,7 +109,7 @@ class EditableNote extends Note {
 
     onHover() {
         super.onHover();
-        if ((state.dragging) || state.resizing)
+        if ((window.state.dragging) || window.state.resizing)
             return;
 
         if (this.locked) {
@@ -135,8 +138,7 @@ class EditableNote extends Note {
         console.log(`${this.noteId} enterEditMode()`);
         if (this.locked) {
             console.log("enterEditMode: is locked so returning");
-            this.
-                return;
+            return;
         }
 
         if (!canEdit) {
@@ -151,12 +153,12 @@ class EditableNote extends Note {
         if (this.lastSelection)
             this.noteEditor.setSelection(this.lastSelection,);
 
-        state.lockNote(this, true);
-        state.enteredEditMode(this);
+        window.state.lockNote(this, true);
+        window.state.enteredEditMode(this);
 
         if (!this.noteId && this.parent) {
             console.log(`new annotation, locking parent ${this.parent.noteId}`);
-            state.lockNote(this.parent, true);
+            window.state.lockNote(this.parent, true);
         }
     }
 
@@ -171,10 +173,10 @@ class EditableNote extends Note {
         } else {
             // keep locked
             // this.setLocked(true, true);
-            state.lockNote(this, true);
+            window.state.lockNote(this, true);
         }
 
-        state.exitedEditMode(this);
+        window.state.exitedEditMode(this);
     }
 
     preSplit() {
@@ -200,7 +202,7 @@ class EditableNote extends Note {
         this.noteEditor.enable(!lock);
 
         if (update_state)
-            state.lockNote(this, lock);
+            window.state.lockNote(this, lock);
     }
 
     delete() {
@@ -218,7 +220,7 @@ class EditableNote extends Note {
         this.setLocked(true, true);
         this.parent.setLocked(true, true);
 
-        fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
+        fetch(`${baseURL}/room/${window.state.roomId}/note/${this.noteId}`, {
             method: 'DELETE',
             body: JSON.stringify({
                 editToken
@@ -250,12 +252,12 @@ class EditableNote extends Note {
                 this.parent.setLocked(false, true);
                 this.parent.setContents(JSON.stringify(parentContents.ops), 'api');
                 this.parent.save();
-                // state.currentEditingNote = undefined;
-                // state.lockNote(this.parent, false);
+                // window.state.currentEditingNote = undefined;
+                // window.state.lockNote(this.parent, false);
             }
 
             delete this.noteEditor;
-            delete state.deleteNote(this);
+            delete window.state.deleteNote(this);
         });
 
     }
@@ -296,7 +298,7 @@ class EditableNote extends Note {
 
         if (this.noteId) {
             // note already saved, update it
-            fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
+            fetch(`${baseURL}/room/${window.state.roomId}/note/${this.noteId}`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     editToken,
@@ -334,7 +336,7 @@ class EditableNote extends Note {
             if (this.parent)
                 lastHighlight = this.parent.parentHighlight;
 
-            fetch(`${baseURL}/room/${state.roomId}/note/`, {
+            fetch(`${baseURL}/room/${window.state.roomId}/note/`, {
                 method: 'POST',
                 body: JSON.stringify({
                     editToken,
@@ -354,12 +356,12 @@ class EditableNote extends Note {
                     this.noteId = json.noteId;
 
                     if (lastHighlight) {
-                        this.parent.noteEditor.formatText(lastHighlight.index, lastHighlight.length, 'annotate', { id: this.noteId, color: state.highlightColour });
+                        this.parent.noteEditor.formatText(lastHighlight.index, lastHighlight.length, 'annotate', { id: this.noteId, color: window.state.highlightColour });
                         updateHighlights(this.parent);
                         this.parent.save();
                     }
 
-                    state.addNote(this);
+                    window.state.addNote(this);
                     this.lastContent = JSON.stringify(noteContent);
 
                     if (this.parent)
@@ -388,7 +390,7 @@ class EditableNote extends Note {
 class EditableSplit extends Split {
     onHover() {
         super.onHover();
-        if (state.dragging || state.resizing)
+        if (window.state.dragging || window.state.resizing)
             return;
         removeBtn.style.display = "none";
         resizeHandle.style.display = "none";
