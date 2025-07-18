@@ -18,7 +18,17 @@ await db.run("DELETE FROM Rooms_Notes_XRef");
 const rooms = await db.all("SELECT * FROM Rooms");
 console.log(`Number of Rooms: ${rooms.length}`);
 
+// Keep track of notes parsed
+let parsed = new Set();
+
 async function parseNote(noteId) {
+    // Return list of noteIds contained in note
+
+    if (parsed.has(noteId))
+        return;
+
+    parsed.add(noteId);
+
     let noteList = [];
 
     const noteRow = await db.get("SELECT * FROM Notes WHERE id = ?", [noteId]);
@@ -27,24 +37,28 @@ async function parseNote(noteId) {
         return noteList;
     }
 
+    if (noteRow['noteType']) {
+        noteList.push(noteId);
+        return noteList;
+    }
+
     const noteOps = JSON.parse(noteRow.noteContent)['ops'];
 
     if (!noteOps) {
         console.warn(`Warning: 'ops' not defined for note ${noteId}. Skipping.`);
-        return noteList;
+        return;
     }
 
     noteList.push(noteId);
-
     for (const op of noteOps) {
         if (!op.attributes) continue;
 
         if (!op.attributes.annotate) continue;
 
         const noteReference = op.attributes.annotate.id;
-        // console.log(` - Found note ${noteReference}`);
         let nestedNotes = await parseNote(noteReference);
-        noteList = noteList.concat(nestedNotes);
+        if (nestedNotes)
+            noteList = noteList.concat(nestedNotes);
     }
 
     return noteList;
@@ -60,6 +74,8 @@ for (const room of rooms) {
     }
 
     const noteList = await parseNote(room.rootNote);
+    console.log("== Found these notes in room " + roomId);
+    console.log(noteList.join(", "));
 
     const stmt = await db.prepare(`
       INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)

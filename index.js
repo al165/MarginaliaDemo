@@ -251,7 +251,7 @@ app.get(
 
     const notes = await db.all(
       `
-        SELECT Notes.id, noteContent, noteOptions FROM Notes 
+        SELECT Notes.id, Notes.noteContent, Notes.noteOptions, Notes.noteType FROM Notes 
         JOIN Rooms_Notes_XRef ON Notes.id = Rooms_Notes_XRef.noteId 
         WHERE Rooms_Notes_XRef.roomId = ?`,
       roomId,
@@ -276,6 +276,16 @@ app.get(
 
     // Convert ops to HTML for easier editing
     for (const note of notes) {
+      console.log(note);
+      if (note.noteType) {
+        console.log("pure HTML note type");
+        note.noteHtml = note.noteContent;
+        note.noteContent = undefined;
+        note.noteOptions = JSON.parse(note.noteOptions) || {};
+        console.log(note.noteOptions);
+        continue;
+      }
+
       const ops = JSON.parse(note.noteContent)["ops"];
 
       // Convert image URLs to base64 strings
@@ -689,11 +699,12 @@ async function setup() {
         "./views/partials/generated/roomStatic.ejs",
         bundledCode,
       );
-      console.log("JS bundled to roomStatic.ejs");
+      console.log("JS bundled to roomStatic.ejs\n");
     });
 
   server.listen(PORT, () => {
     console.log("listening on http://localhost:" + PORT + BASE_URL);
+    console.log();
   });
 }
 
@@ -900,12 +911,13 @@ async function createHomeNote() {
 
   notes.map(async (noteData) => {
     await db.run(
-      "INSERT INTO Notes (id, createdOn, noteContent, noteType) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO NOTHING;",
+      "INSERT INTO Notes (id, createdOn, noteContent, noteType, noteOptions) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING;",
       [
         noteData.id,
         noteData.createdOn,
         noteData.noteContent,
         noteData.noteType ? noteData.noteType : 0,
+        '{}'
       ],
       function (err) {
         if (err) console.error(err);
