@@ -12,7 +12,8 @@
   <%- favicon %>
   <% } else { %>
   <link rel="icon" type="ico" href="<%= room.baseURL %>/favicon.ico">
-  <script src="<%= room.baseURL %>/dist/main.js"></script>
+  <script src="<%= room.baseURL %>/dist/common.js"></script>
+  <script src="<%= room.baseURL %>/dist/room.js"></script>
   <% } %>
 
   <script>
@@ -98,13 +99,8 @@
   <script type="module">
     <%- include('partials/generated/roomStatic.ejs') %>
   </script>
-  <% } else { %>
-  <!-- <script src="<%= room.baseURL %>/js/room.js" defer type="module"></script> -->
   <% } %>
 
-  <% if(room.canEdit) { %>
-  <script src="<%= room.baseURL %>/dist/noteEdit.js" defer type="module"></script>
-  <% } %>
 </body>
 
 </html>

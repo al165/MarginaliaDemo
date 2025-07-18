@@ -7,3 +7,5 @@ package-lock.json
 *.db
 *.backup
 /uploads
+
+dist/

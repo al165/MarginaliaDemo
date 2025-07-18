@@ -275,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.state.addCallback('selectionChange', range => {
-        console.log('editButtons selectionChange');
         const note = window.state.currentEditingNote;
 
         if (!note || !range) {

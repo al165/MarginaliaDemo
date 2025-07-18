@@ -1,5 +1,4 @@
-import Quill from 'quill';
-import QuillCursors from 'quill-cursors';
+// import Quill from 'quill';
 
 import { THEME_LIST, setTheme } from './data/colourschemes.js'
 import { fetchNote } from './note.js';
@@ -15,32 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.state.roomId = roomId;
 
-    // Quill.register('modules/cursors', QuillCursors);
-
-    const FontAttributor = Quill.import('attributors/class/font');
-    FontAttributor.whitelist = [
-        'sans-serif', 'serif', 'monospace'
-    ];
-    Quill.register(FontAttributor, true);
-    const Clipboard = Quill.import('modules/clipboard');
-    const Delta = Quill.import('delta');
-
-    class PlainClipboard extends Clipboard {
-        onPaste(range, { text, html }) {
-            const delta = new Delta()
-                .retain(range.index, { font: null })
-                .delete(range.length)
-                .insert(text);
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(
-                delta.length() - range.length,
-                Quill.sources.SILENT,
-            );
-            this.quill.scrollSelectionIntoView();
-        }
+    if (canEdit) {
+        import('./noteEdit.js');
     }
 
-    Quill.register('modules/clipboard', PlainClipboard, true);
 
     window.fetchNote(rootNote).then((newNote) => {
         if (!newNote) {

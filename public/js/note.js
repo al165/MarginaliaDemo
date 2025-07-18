@@ -1,12 +1,44 @@
 import { NoteStatic, updateHighlights } from './noteStatic.js'
 
 import Quill from 'quill';
-import { AnnotateBlot } from './formats/annotateBlot.js';
-Quill.register(AnnotateBlot);
+import QuillCursors from 'quill-cursors';
 
-// import * as Y from 'yjs';
-// import { WebsocketProvider } from 'y-websocket';
-// import { QuillBinding } from 'y-quill';
+import { AnnotateBlot } from './formats/annotateBlot.js';
+
+Quill.register(AnnotateBlot);
+Quill.register('modules/cursors', QuillCursors);
+
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { QuillBinding } from 'y-quill';
+
+
+window.addEventListener('load', () => {
+    const FontAttributor = Quill.import('attributors/class/font');
+    FontAttributor.whitelist = [
+        'sans-serif', 'serif', 'monospace'
+    ];
+    Quill.register(FontAttributor, true);
+    const Clipboard = Quill.import('modules/clipboard');
+    const Delta = Quill.import('delta');
+
+    class PlainClipboard extends Clipboard {
+        onPaste(range, { text, html }) {
+            const delta = new Delta()
+                .retain(range.index, { font: null })
+                .delete(range.length)
+                .insert(text);
+            this.quill.updateContents(delta, Quill.sources.USER);
+            this.quill.setSelection(
+                delta.length() - range.length,
+                Quill.sources.SILENT,
+            );
+            this.quill.scrollSelectionIntoView();
+        }
+    }
+
+    Quill.register('modules/clipboard', PlainClipboard, true);
+});
 
 async function fetchNote(noteId, note) {
     console.log("fetchNote ", noteId);
@@ -67,13 +99,13 @@ class Note extends NoteStatic {
         this.noteContainer.appendChild(this.notification);
         this.notification.innerText = "Someone is currently editing this note...";
 
-        // const ydoc = new Y.Doc()
-        // const provider = new WebsocketProvider(
-        //     `ws${location.protocol.slice(4)}//${location.host}/ws`, // alternatively: use the local ws server (run `npm start` in root directory)
-        //     noteId,
-        //     ydoc
-        // );
-        // const ytext = ydoc.getText('quill')
+        const ydoc = new Y.Doc()
+        const provider = new WebsocketProvider(
+            `ws${location.protocol.slice(4)}//${location.host}/ws`, // alternatively: use the local ws server (run `npm start` in root directory)
+            noteId,
+            ydoc
+        );
+        const ytext = ydoc.getText('quill')
 
         this.noteEditor = new Quill(this.noteContents, {
             placeholder: 'Write your note here...',
@@ -98,7 +130,7 @@ class Note extends NoteStatic {
         this.noteContents.classList.remove('ql-editor');
         this.noteEditor.enable(false);
 
-        // const binding = new QuillBinding(ytext, this.noteEditor, provider.awareness)
+        const binding = new QuillBinding(ytext, this.noteEditor, provider.awareness)
     }
 
     setContents(contents) {
