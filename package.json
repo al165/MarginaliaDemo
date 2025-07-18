@@ -27,7 +27,8 @@
     "sqlite3": "^5.1.7",
     "y-quill": "^1.0.0",
     "y-websocket": "^3.0.0",
-    "yjs": "^13.6.27"
+    "yjs": "^13.6.27",
+    "yjs-server": "^0.2.3"
   },
   "devDependencies": {
     "esbuild": "^0.25.3",

@@ -112,34 +112,20 @@ class EditableNote extends Note {
         if ((window.state.dragging) || window.state.resizing)
             return;
 
-        if (this.locked) {
-            noteButtons.style.visibility = "hidden";
+        if (this.closable) {
+            removeBtn.style.display = "block";
+            removeBtn.dataset.noteid = this.noteId;
         } else {
-            if (this.closable) {
-                removeBtn.style.display = "block";
-                removeBtn.dataset.noteid = this.noteId;
-                if (this.parent && this.parent.locked) {
-                    removeBtn.classList.add('tool-disabled');
-                    removeBtn.title = "Cannot delete note while someone is editing the parent note";
-                } else {
-                    removeBtn.classList.remove('tool-disabled');
-                    removeBtn.title = "Delete note";
-                }
-            } else {
-                removeBtn.style.display = "none";
-            }
-
-            resizeHandle.style.display = "block";
-            noteButtons.style.visibility = "visible";
+            removeBtn.style.display = "none";
         }
+
+        resizeHandle.style.display = "block";
+        noteButtons.style.visibility = "visible";
+
     }
 
     enterEditMode() {
         console.log(`${this.noteId} enterEditMode()`);
-        if (this.locked) {
-            console.log("enterEditMode: is locked so returning");
-            return;
-        }
 
         if (!canEdit) {
             console.log("enterEditMode: canEdit is false");
@@ -153,13 +139,7 @@ class EditableNote extends Note {
         if (this.lastSelection)
             this.noteEditor.setSelection(this.lastSelection,);
 
-        window.state.lockNote(this, true);
         window.state.enteredEditMode(this);
-
-        if (!this.noteId && this.parent) {
-            console.log(`new annotation, locking parent ${this.parent.noteId}`);
-            window.state.lockNote(this.parent, true);
-        }
     }
 
     exitEditMode(skip_save = false) {
@@ -169,11 +149,6 @@ class EditableNote extends Note {
 
         if (!skip_save) {
             this.save();
-            this.setLocked(false, true);
-        } else {
-            // keep locked
-            // this.setLocked(true, true);
-            window.state.lockNote(this, true);
         }
 
         window.state.exitedEditMode(this);
@@ -190,35 +165,11 @@ class EditableNote extends Note {
         this.noteEditor.enable(true);
     }
 
-    setLocked(lock, update_state = false) {
-        if (this.editing && !lock) {
-            console.log("trying to unlock but I am editing rn");
-            return;
-        }
-
-        super.setLocked(lock);
-        console.log(`setLocked ${this.noteId} ${lock}`)
-
-        this.noteEditor.enable(!lock);
-
-        if (update_state)
-            window.state.lockNote(this, lock);
-    }
-
     delete() {
-        if (!canEdit || !editToken || this.locked) {
-            console.log(`Cannot delete note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
+        if (!canEdit || !editToken) {
+            console.log(`Cannot delete note (canEdit: ${canEdit}, editToken: ${editToken})`);
             return;
         }
-
-        // check if parent is locked...
-        if (this.parent && this.parent.locked) {
-            console.log(`Cannot delete note since parent is locked`);
-            return;
-        }
-
-        this.setLocked(true, true);
-        this.parent.setLocked(true, true);
 
         fetch(`${baseURL}/room/${window.state.roomId}/note/${this.noteId}`, {
             method: 'DELETE',
@@ -249,11 +200,8 @@ class EditableNote extends Note {
                 }
 
                 this.parent.restore();
-                this.parent.setLocked(false, true);
                 this.parent.setContents(JSON.stringify(parentContents.ops), 'api');
                 this.parent.save();
-                // window.state.currentEditingNote = undefined;
-                // window.state.lockNote(this.parent, false);
             }
 
             delete this.noteEditor;
@@ -263,7 +211,7 @@ class EditableNote extends Note {
     }
 
     addHighlight() {
-        if (!canEdit || !editToken || this.locked || !this.editing)
+        if (!canEdit || !editToken || !this.editing)
             return;
 
         console.log("new note");
@@ -285,8 +233,8 @@ class EditableNote extends Note {
     }
 
     save(force = false) {
-        if (!canEdit || !editToken || this.locked) {
-            console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
+        if (!canEdit || !editToken) {
+            console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken})`);
             return;
         }
 
@@ -363,18 +311,12 @@ class EditableNote extends Note {
 
                     window.state.addNote(this);
                     this.lastContent = JSON.stringify(noteContent);
-
-                    if (this.parent)
-                        this.parent.setLocked(false, true);
                 }
                 else
                     console.log(json);
 
             }).catch(error => {
                 console.log("Error editing note: " + error);
-
-                if (this.parent)
-                    this.parent.setLocked(false, true);
             });
         }
     }

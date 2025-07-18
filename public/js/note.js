@@ -61,7 +61,6 @@ async function fetchNote(noteId, note) {
                 const options = JSON.parse(data.noteOptions) || {};
                 newNote.setOptions(options);
                 newNote.setContents(data.noteContent);
-                // newNote.setLocked(window.state.lockedNotes.has(noteId));
             } else if (data.noteType == 1) {
                 newNote = new window.NoteStatic(noteId, data.noteType);
                 const options = JSON.parse(data.noteOptions) || {};
@@ -91,7 +90,6 @@ class Note extends NoteStatic {
 
         this.lastContent = "";
         this.lastHighlight;
-        this.locked = false;
 
         this.notification = document.createElement('div');
         this.notification.classList.add('notification');
@@ -125,15 +123,27 @@ class Note extends NoteStatic {
                 'image',
                 'video',
                 'link',
-            ]
+            ],
+            modules: {
+                cursors: true
+            },
+            history: {
+                // Local undo shouldn't undo changes
+                // from remote users
+                userOnly: true
+            }
         });
         this.noteContents.classList.remove('ql-editor');
         this.noteEditor.enable(false);
 
-        const binding = new QuillBinding(ytext, this.noteEditor, provider.awareness)
+        const binding = new QuillBinding(ytext, this.noteEditor, provider.awareness);
+        provider.awareness.setLocalStateField('user', {
+            color: window.state.highlightColour
+        });
     }
 
     setContents(contents) {
+        return;
         if (!contents)
             return;
 
@@ -154,24 +164,8 @@ class Note extends NoteStatic {
         this.height = this.noteContents.offsetHeight;
     }
 
-    setLocked(lock) {
-        this.locked = lock;
-
-        if (lock) {
-            this.noteContainer.classList.add('note-locked');
-            if (this.open)
-                this.notification.style.visibility = 'visible';
-        }
-        else {
-            this.noteContainer.classList.remove('note-locked');
-            this.notification.style.visibility = 'hidden';
-        }
-    }
-
     show(animate = true) {
         super.show(animate);
-        if (this.locked)
-            this.notification.style.visibility = 'visible';
     }
 
     close() {

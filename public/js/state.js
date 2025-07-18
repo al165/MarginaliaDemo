@@ -4,7 +4,6 @@ class MarginaliaRoomState {
     #currentSelection = undefined;
     #roomId = undefined;
     notes = {};
-    lockedNotes = new Set();
     lastZIndex = 0;
     scrollX = 0;
     scrollY = 0;
@@ -100,18 +99,6 @@ class MarginaliaRoomState {
         for (const callback of this.callbacks) {
             if (callback.event === 'addNote')
                 callback.fn(val);
-        }
-    }
-
-    lockNote(note, lock) {
-        return;
-        if (!note || !note.noteId)
-            return;
-
-        // console.log(`state.lockNote ${note.noteId}, ${lock}`);
-
-        if (this.socket) {
-            this.socket.emit('editingNote', { roomId: this.roomId, noteId: note.noteId, lock: lock });
         }
     }
 

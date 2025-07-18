@@ -18,7 +18,51 @@ import { prettify, trimify } from "htmlfy";
 
 import multer, { diskStorage } from "multer";
 
-import { Server } from "socket.io";
+// import { WebSocketServer } from "ws";
+// import { setupWSConnection } from '@y/websocket-server/utils';
+
+// const wss = new WebSocketServer({ noServer: true });
+// wss.on('connection', (conn, req, args) => {
+//   console.log("CONNECTION");
+//   console.log(conn);
+//   console.log(req);
+//   console.log(args);
+
+//   setupWSConnection(conn, req, args)
+// });
+
+import * as Y from 'yjs';
+import { WebSocketServer } from 'ws'
+import { createYjsServer } from 'yjs-server'
+
+const memoryStorage = new Map();
+
+const wss = new WebSocketServer({ noServer: true });
+const yjss = createYjsServer({
+  createDoc: () => new Y.Doc(),
+  docStorage: {
+    loadDoc: async (docName, doc) => {
+      if (memoryStorage.has(docName)) {
+        const yText = doc.getText('quill');
+        yText.applyDelta(memoryStorage.get(docName));
+      }
+    },
+    storeDoc: async (docName, doc) => {
+      console.log(`storeDoc ${docName}`);
+      console.log(doc.getText('quill').toDelta());
+      memoryStorage.set(docName, doc.getText('quill').toDelta());
+    },
+    onUpdate: async (docName, update, doc) => {
+      console.log(`onUpdate ${docName}`);
+    }
+  },
+});
+
+wss.on('connection', (socket, request) => {
+  yjss.handleConnection(socket, request)
+});
+
+
 
 // For generating static marginalia
 import esbuild from "esbuild";
@@ -59,7 +103,6 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
-const io = new Server(server);
 
 let HAS_MAGICK = false;
 
@@ -538,6 +581,8 @@ app.put(
   checkEditToken,
   asyncHandler(async (req, res) => {
     // Edit a note in the room
+
+    return res.sendStatus(200);
     const { roomId, noteId } = req.params;
     console.log(`Updating note ${noteId}`);
     const { noteContent, noteOptions } = req.body;
@@ -560,7 +605,6 @@ app.put(
 
     console.log(`UPDATED NOTE: id ${noteId}`);
 
-    io.in(roomId).emit("noteUpdated", noteId);
     res.sendStatus(200);
   }),
 );
@@ -622,48 +666,6 @@ app.use((err, _req, res, _next) => {
 
 let usersEditingNotes = {};
 
-io.on("connection", (socket) => {
-  console.log("a user connected, id = " + socket.id);
-
-  socket.on("roomId", function (roomId) {
-    console.log("user in room " + roomId);
-    socket.join(roomId);
-
-    // get currently locked notes and send list
-    let lockedNotes = [];
-    for (const data of Object.values(usersEditingNotes)) {
-      if (data.roomId !== roomId) continue;
-
-      if (data.lock) lockedNotes.push(data.noteId);
-    }
-
-    if (lockedNotes.length > 0) {
-      socket.emit("lockedNotes", lockedNotes);
-    }
-  });
-
-  socket.on("editingNote", function (data) {
-    if (data.lock) {
-      if (usersEditingNotes[socket.id])
-        console.log("User already editing a note!");
-      usersEditingNotes[socket.id] = data;
-    } else delete usersEditingNotes[socket.id];
-
-    socket.broadcast.to(data.roomId).emit("noteEditing", data);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
-    if (usersEditingNotes[socket.id]) {
-      const { roomId, noteId } = usersEditingNotes[socket.id];
-      socket.broadcast
-        .to(roomId)
-        .emit("noteEditing", { roomId, noteId, lock: false });
-      delete usersEditingNotes[socket.id];
-    }
-  });
-});
-
 let db;
 
 async function setup() {
@@ -701,6 +703,12 @@ async function setup() {
       );
       console.log("JS bundled to roomStatic.ejs\n");
     });
+
+  server.on('upgrade', (request, socket, head) => {
+    wss.handleUpgrade(request, socket, head, /** @param {any} ws */ ws => {
+      wss.emit('connection', ws, request)
+    })
+  });
 
   server.listen(PORT, () => {
     console.log("listening on http://localhost:" + PORT + BASE_URL);
