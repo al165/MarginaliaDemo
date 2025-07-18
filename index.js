@@ -48,7 +48,7 @@ if (BASE_URL && BASE_URL.slice(-1) === "/") BASE_URL = BASE_URL.slice(0, -1);
 console.log("BaseURL: " + BASE_URL);
 
 import sqlite3 from "sqlite3";
-import { open } from "node:sqlite";
+import { open } from "sqlite";
 
 const dbPromise = open({
   filename: "./db/marginalia.db",
