@@ -72,7 +72,6 @@ const yjss = createYjsServer({
       } else {
         if (row.noteOptions) {
           for (const [key, value] of Object.entries(JSON.parse(row.noteOptions))) {
-            console.log(`setting ${key} to ${value}`);
             ymap.set(key, value);
           }
         }
@@ -80,25 +79,23 @@ const yjss = createYjsServer({
     },
     storeDoc: async (docName, doc) => {
       console.log(`storeDoc ${docName}`);
+      // last connection to doc closed
+    },
+    onUpdate: async (docName, update, doc) => {
+      // console.log(`onUpdate ${docName}`);
+      const ymap = doc.getMap('note-options');
 
-      // TODO: handle noteType != 1 (i.e. HTML notes)
+      if (ymap.noteType)
+        return;
 
       const yjsState = Y.encodeStateAsUpdate(doc);
       const ytext = doc.getText('quill');
-      const ymap = doc.getMap('note-options');
 
       const noteId = docName.split('/')[1];
       const noteContent = {
         ops: ytext.toDelta()
       };
       const noteOptions = ymap.toJSON();
-
-      if (!noteContent) {
-        console.log("Note is empty, deleting");
-
-        await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
-        return;
-      }
 
       await db.run(
         "UPDATE Notes SET noteContent = ?, noteOptions = ?, yjsState = ? WHERE id = ?",
@@ -108,15 +105,13 @@ const yjss = createYjsServer({
       // Check if any images are in the noteContent
       await updateUploadsXRefTable(db, noteId, noteContent);
 
-      console.log(`UPDATED NOTE: id ${noteId}`);
-    },
-    onUpdate: async (docName, update, doc) => {
-      // console.log(`onUpdate ${docName}`);
+      // console.log(`UPDATED NOTE: id ${noteId}`);
     }
   },
 });
 
 wss.on('connection', (socket, request) => {
+  // TODO: authenticate!
   yjss.handleConnection(socket, request)
 });
 
@@ -304,6 +299,9 @@ app.get(
     );
 
     if (!row || !row.noteContent) throw new Error(`Note ${noteId} not found`);
+
+    console.log("Readonly get noteContent:");
+    console.log(row.noteContent);
 
     res.json(row);
   }),
@@ -505,9 +503,27 @@ app.get(
 );
 
 app.get(
-  BASE_URL + "/newnote",
+  BASE_URL + "/room/:roomId/newnote",
+  checkEditToken,
   asyncHandler(async (req, res) => {
+    const { roomId } = req.params;
+
     const noteId = generateId(16);
+    const createdOn = new Date();
+
+    await db.run(
+      "INSERT INTO Notes (id, createdOn) VALUES (?, ?)",
+      [
+        noteId,
+        createdOn,
+      ],
+    );
+
+    await db.run(
+      "INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)",
+      [roomId, noteId],
+    );
+
     res.json({ noteId });
   }),
 );
@@ -523,60 +539,6 @@ app.delete(
     // TODO: delete all notes from Notes and Rooms_notes_XRef...
 
     res.status(204);
-  }),
-);
-
-app.post(
-  BASE_URL + "/room/:roomId/note",
-  checkEditToken,
-  asyncHandler(async (req, res) => {
-    // Create a new note in the room
-
-    const { roomId } = req.params;
-    const { noteContent, noteOptions } = req.body;
-    console.log("Creating new note in room " + roomId);
-
-    if (!noteContent) throw new Error("noteContent is empty");
-
-    const noteId = generateId(16);
-    const createdOn = new Date();
-
-    await db.run(
-      "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
-      [
-        noteId,
-        createdOn,
-        JSON.stringify(noteContent),
-        JSON.stringify(noteOptions),
-      ],
-    );
-
-    console.log(`NEW NOTE: id ${noteId}`);
-
-    // Add to cross-reference table
-    await db.run(
-      "INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)",
-      [roomId, noteId],
-    );
-
-    const row = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [
-      roomId,
-    ]);
-
-    if (!row) throw new Error("Error when checking rootNote: row is empty");
-
-    if (!row.rootNote) {
-      await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [
-        noteId,
-        roomId,
-      ]);
-      console.log(`Set rootNote to ${noteId}`);
-    }
-
-    // Check if any images are in the noteContent
-    await updateUploadsXRefTable(db, noteId, noteContent);
-
-    res.status(201).json({ noteId });
   }),
 );
 
@@ -630,39 +592,6 @@ app.delete(
     await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
 
     res.sendStatus(204);
-  }),
-);
-
-app.put(
-  BASE_URL + "/room/:roomId/note/:noteId",
-  checkEditToken,
-  asyncHandler(async (req, res) => {
-    // Edit a note in the room
-
-    return res.sendStatus(200);
-    const { roomId, noteId } = req.params;
-    console.log(`Updating note ${noteId}`);
-    const { noteContent, noteOptions } = req.body;
-
-    if (!noteContent) {
-      console.log("Note is empty, deleting");
-
-      await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
-      res.status(204);
-      return;
-    }
-
-    await db.run(
-      "UPDATE Notes SET noteContent = ?, noteOptions = ? WHERE id = ?",
-      [JSON.stringify(noteContent), JSON.stringify(noteOptions), noteId],
-    );
-
-    // Check if any images are in the noteContent
-    await updateUploadsXRefTable(db, noteId, noteContent);
-
-    console.log(`UPDATED NOTE: id ${noteId}`);
-
-    res.sendStatus(200);
   }),
 );
 

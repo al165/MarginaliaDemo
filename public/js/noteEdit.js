@@ -124,6 +124,7 @@ class EditableNote extends Note {
         );
         this.ytext = ydoc.getText('quill');
         this.ymap = ydoc.getMap('note-options');
+        // this.ymap.set('roomId', window.state.roomId);
 
         ydoc.on("update", (update, origin, tr) => {
             updateHighlights(this);
@@ -171,7 +172,6 @@ class EditableNote extends Note {
 
         resizeHandle.style.display = "block";
         noteButtons.style.visibility = "visible";
-
     }
 
     enterEditMode() {
@@ -198,6 +198,11 @@ class EditableNote extends Note {
         this.noteWindow.classList.remove('note-editing');
 
         window.state.exitedEditMode(this);
+
+        if (this.noteEditor.getText().trimEnd().length == 0) {
+            console.log("Length 0, deleting note");
+            this.delete();
+        }
     }
 
     preSplit() {
@@ -226,7 +231,6 @@ class EditableNote extends Note {
                 "Content-type": "application/json"
             }
         }).then(res => {
-            this.exitEditMode(true);
             this.close(false);
 
             if (!res.ok) {
@@ -260,7 +264,7 @@ class EditableNote extends Note {
         if (!canEdit || !editToken || !this.editing)
             return;
 
-        fetch(`${baseURL}/newnote`)
+        fetch(`${baseURL}/room/${window.state.roomId}/newnote?editToken=${editToken}`)
             .then(res => res.json())
             .then(data => {
                 const { noteId } = data;

@@ -239,7 +239,6 @@ class Fragment {
     }
 
     show(animate = true) {
-        console.log('Fragment.show()');
         this.open = true;
         this.noteContainer.style.visibility = 'visible';
         if (animate) {
@@ -253,7 +252,6 @@ class Fragment {
     }
 
     close(recurse = false) {
-        console.log('Fragment.close()');
     }
 
     setPosition(pos) {
