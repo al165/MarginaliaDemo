@@ -61,6 +61,13 @@ const yjss = createYjsServer({
             ops = ops['ops']
 
           ytext.applyDelta(ops);
+
+          // Update database immediately with the yjsState
+          const yjsState = Y.encodeStateAsUpdate(doc);
+          await db.run(
+            "UPDATE Notes SET yjsState = ? WHERE id = ?",
+            [yjsState, noteId],
+          );
         }
       } else {
         if (row.noteOptions) {
@@ -247,18 +254,6 @@ const DEFAULT_NOTE = {
 };
 
 app.get(
-  BASE_URL + "/room",
-  asyncHandler(async (_req, res) => {
-    const rows = await db.all(
-      "SELECT id roomId, name, editToken FROM Rooms",
-      [],
-    );
-
-    res.json(rows);
-  }),
-);
-
-app.get(
   BASE_URL + "/room/:roomId",
   asyncHandler(async (req, res) => {
     const { roomId } = req.params;
@@ -289,7 +284,12 @@ app.get(
 app.get(
   BASE_URL + "/roomlist",
   asyncHandler(async (_req, res) => {
-    res.render("roomlist", { baseURL: BASE_URL });
+    const rooms = await db.all(
+      "SELECT id roomId, name, editToken FROM Rooms",
+      [],
+    );
+
+    res.render("roomlist", { baseURL: BASE_URL, rooms });
   }),
 );
 

@@ -15,67 +15,20 @@
 <body>
   <div>
     <h1>Welcome to Marginalia</h1>
-    <input type="text" name="roomname" id="room-name" placeholder="room name...">
-    <button disabled id="create-room-btn">
-      Create Room
-    </button>
+
+    <form action="<%= baseURL %>/newroom"><input type="text" name="roomname" style="margin: 0.5em 0.5em 0.5em 0em" placeholder="Name of your room">
+      <input type="submit" value="Create a room">
+    </form>
+
     <h3>Current rooms:</h3>
-    <ul id="rooms"></ul>
+    <ul id="rooms">
+      <% for(const room of rooms) { %>
+      <li>
+        <a href="<%= baseURL %>/room/<%= room.roomId %>"><%= room.name %></a> [<a href="<%= baseURL %>/room/<%= room.roomId %>?editToken=<%= room.editToken %>">edit</a>]
+      </li>
+      <% } %>
+    </ul>
   </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const roomNameField = document.querySelector("#room-name");
-      const createRoomBtn = document.querySelector("#create-room-btn");
-
-      roomNameField.addEventListener('input', function(ev) {
-        if (roomNameField.value)
-          createRoomBtn.disabled = false;
-        else
-          createRoomBtn.disabled = true;
-      });
-
-      roomNameField.addEventListener('keydown', function(ev) {
-        if (event.key == 'Enter') {
-          createRoom();
-        }
-      })
-
-      function createRoom() {
-        fetch("<%= baseURL %>/room", {
-          method: 'POST',
-          body: JSON.stringify({
-            roomName: roomNameField.value
-          }),
-          headers: {
-            "Content-type": "application/json"
-          }
-        }).then((res) => res.json()).then((json) => {
-          console.log(json);
-          console.log(window.location);
-          window.location.replace("<%= baseURL %>/room/" + json.roomId + "?editToken=" + json.editToken);
-        });
-      }
-
-      createRoomBtn.addEventListener('click', createRoom);
-
-      const roomList = document.querySelector("#rooms");
-
-      fetch("<%= baseURL %>/room").then(res => {
-        if (res.status != 200)
-          throw new Error('Room list not avaliable');
-        return res.json()
-      }).then(json => {
-        for (const room of json) {
-          const el = document.createElement('li');
-          el.innerHTML = `<a href="<%= baseURL %>/room/${room.roomId}">${room.name}</a> [<a href="<%= baseURL %>/room/${room.roomId}?editToken=${room.editToken}">edit</a>]`;
-          roomList.appendChild(el);
-        }
-      }).catch(err => {
-        console.error(err);
-      });
-    });
-  </script>
 </body>
 
 </html>
