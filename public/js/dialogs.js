@@ -1,3 +1,5 @@
+let isFormatting = false;
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Highlight toolbar
@@ -18,24 +20,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlTextInput = document.getElementById('link-editor-url');
 
     function addURL() {
+        console.log("addURL");
+        if (!urlTextInput.value)
+            return;
+
         let newURL = urlTextInput.value.trim();
+
+        isFormatting = true;
 
         if (!newURL) {
             window.state.lastEditingNote.enterEditMode();
             window.state.currentEditingNote.noteEditor.format('link', undefined, 'user');
-            urlTextInput.value = "";
-            linkEditorPopup.close();
-            return;
+        } else {
+            if (!/^https?:\/\//i.test(newURL))
+                newURL = 'http://' + newURL;
+            window.state.lastEditingNote.enterEditMode();
+            window.state.currentEditingNote.noteEditor.format('link', newURL, 'user');
         }
-
-        if (!/^https?:\/\//i.test(newURL))
-            newURL = 'http://' + newURL;
-
-        window.state.lastEditingNote.enterEditMode();
-        window.state.currentEditingNote.noteEditor.format('link', newURL, 'user');
 
         urlTextInput.value = "";
         linkEditorPopup.close();
+
+        setTimeout(() => {
+            isFormatting = false;
+        }, 50);
     }
 
     addLinkBtn.onclick = addURL;
@@ -44,13 +52,30 @@ document.addEventListener('DOMContentLoaded', () => {
             addURL();
     });
 
-    linkEditBtn.addEventListener('click', function () {
+    linkEditBtn.addEventListener('click', function (event) {
         if (!window.state.currentEditingNote || !window.state.currentEditingNote.noteEditor)
+            return;
+
+        if (isFormatting)
             return;
 
         const selection = window.state.currentEditingNote.noteEditor.getSelection();
         if (!selection || !selection.length)
             return;
+
+        const selectedText = window.state.currentEditingNote.noteEditor.getText(selection.index, selection.length);
+        const trimmedText = selectedText.replace(/\n+$/, ''); // Remove trailing newlines
+        const trimmedLength = trimmedText.length;
+
+        // If we trimmed something, update the selection
+        if (trimmedLength < selection.length) {
+            selection = {
+                index: selection.index,
+                length: trimmedLength
+            };
+            // Optionally update the actual selection in the editor
+            window.state.currentEditingNote.noteEditor.setSelection(selection.index, selection.length);
+        }
 
         const selectionBounds = window.state.currentEditingNote.noteEditor.getBounds(selection.index, selection.length);
         const noteEditorBounds = window.state.currentEditingNote.noteContainer.getBoundingClientRect();
@@ -64,10 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
         linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + window.state.scrollX + "px";
         linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + window.state.scrollY + selectionBounds.height + 2 + "px";
 
+        console.log("linkEditorPopup.showModal();");
         linkEditorPopup.showModal();
 
         urlTextInput.value = "";
-        // urlTextInput.focus();
     });
 
     linkEditorPopup.addEventListener('click', () => {
@@ -92,11 +117,16 @@ document.addEventListener('DOMContentLoaded', () => {
             newURL = extractVideoUrl(newURL);
 
         if (newURL && window.state.lastEditingNote) {
+            isFormatting = true;
             window.state.lastEditingNote.enterEditMode();
             const selection = window.state.currentEditingNote.lastSelection;
             window.state.currentEditingNote.noteEditor.insertEmbed(selection.index + 1, 'video', newURL, 'user');
             window.state.currentEditingNote.noteEditor.formatText(selection.index + 1, 1, { height: '170', width: '400' });
             window.state.currentEditingNote.noteEditor.setSelection(selection.index + 2, Quill.sources.SILENT);
+
+            setTimeout(() => {
+                isFormatting = false;
+            }, 50);
         }
         videoUrlInput.value = "";
         videoEditorPopup.close();
@@ -110,6 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     videoEmbedBtn.addEventListener('click', function () {
         if (!window.state.currentEditingNote)// || !window.state.currentEditingNote.noteEditor)
+            return;
+
+        if (isFormatting)
             return;
 
         videoEditorPopup.showModal();
@@ -141,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        isFormatting = true;
         window.state.lastEditingNote.enterEditMode();
         const { noteEditor } = window.state.currentEditingNote;
         const range = noteEditor.getSelection(true);
@@ -149,9 +183,16 @@ document.addEventListener('DOMContentLoaded', () => {
         noteEditor.setSelection(range.index + 2, 'silent');
 
         imageAddPopup.close();
+
+        setTimeout(() => {
+            isFormatting = false;
+        }, 50);
     }
 
     imageAddBtn.addEventListener('click', () => {
+        if (isFormatting)
+            return;
+
         if (window.state.currentEditingNote) {
             window.state.currentEditingNote.exitEditMode(true);
             imageAddPopup.showModal();

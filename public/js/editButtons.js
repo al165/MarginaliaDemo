@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Show URL bar
             if (currentFormat.link) {
-                const linkRange = expandSelection(note.noteEditor, range);
+                const linkRange = expandSelection(note.noteEditor, range, true);
                 const linkBounds = note.noteEditor.getBounds(linkRange);
                 urlToolbar.style.left = linkBounds.left + note.getPosition().left + 'px';
                 urlToolbar.style.top = linkBounds.top + linkBounds.height + note.getPosition().top + 'px';
@@ -317,9 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 linkElement.innerText = currentFormat.link;
 
                 linkDeleteBtn.onclick = () => {
-                    this.noteEditor.formatText(linkRange.index, linkRange.length, 'link', false, 'user');
+                    note.noteEditor.formatText(linkRange.index, linkRange.length, 'link', false, 'user');
                     this.save();
-                    this.noteEditor.setSelection(linkRange);
                 };
 
                 urlToolbar.style.visibility = 'visible';

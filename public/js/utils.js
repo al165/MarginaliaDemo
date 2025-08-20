@@ -66,7 +66,7 @@ export function compareObjects(fmt1, fmt2) {
     return true;
 }
 
-export function expandSelection(editor, range) {
+export function expandSelection(editor, range, stopOnNewline = false) {
     // Expand a range to select the current format
 
     const format = editor.getFormat(range);
@@ -75,6 +75,7 @@ export function expandSelection(editor, range) {
     let length = range.length;
 
     const totalLength = editor.getLength();
+    let selectionText = editor.getText({ index, length });
 
     // Expand left...
     while (index > 0) {
@@ -86,6 +87,16 @@ export function expandSelection(editor, range) {
             break;
         }
 
+        if (stopOnNewline) {
+            if (stopOnNewline) {
+                selectionText = editor.getText({ index, length });
+                if (selectionText.startsWith('\n')) {
+                    index += 1;
+                    length -= 1;
+                    break;
+                }
+            }
+        }
 
         index -= 1;
         length += 1;
@@ -97,6 +108,12 @@ export function expandSelection(editor, range) {
 
         if (!compareObjects(format, newFormat)) {
             break;
+        }
+
+        if (stopOnNewline) {
+            selectionText = editor.getText({ index, length });
+            if (selectionText.endsWith('\n'))
+                break;
         }
 
         length += 1;
