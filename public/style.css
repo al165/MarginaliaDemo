@@ -5,7 +5,7 @@
     --text-menu-bg-color: #cccccc;
     --glow-color: #C2C1FF;
     --text-color: #000000;
-    --link-color: #6e6e7e;
+    --link-color: #0000FF;
     --tool-size: 3em;
 }
 
@@ -240,6 +240,10 @@ a:visited {
 
 .ql-editor ol li[data-list="bullet"] {
     list-style-type: disc;
+}
+
+.ql-editor ul {
+    padding-left: 1.5em;
 }
 
 .ql-editor mark {

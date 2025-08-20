@@ -14,7 +14,8 @@ import express from "express";
 import { createServer } from "http";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import { prettify, trimify } from "htmlfy";
+// import { prettify, trimify } from "htmlfy";
+import beautify from 'js-beautify';
 
 import multer, { diskStorage } from "multer";
 
@@ -341,7 +342,7 @@ app.get(
 
     const notes = await db.all(
       `
-        SELECT Notes.id, Notes.noteContent, Notes.noteOptions, Notes.noteType FROM Notes 
+        SELECT * FROM Notes 
         JOIN Rooms_Notes_XRef ON Notes.id = Rooms_Notes_XRef.noteId 
         WHERE Rooms_Notes_XRef.roomId = ?`,
       roomId,
@@ -366,13 +367,12 @@ app.get(
 
     // Convert ops to HTML for easier editing
     for (const note of notes) {
-      console.log(note);
+      // console.log(note);
+      note.noteOptions = JSON.parse(note.noteOptions) || {};
       if (note.noteType) {
         console.log("pure HTML note type");
         note.noteHtml = note.noteContent;
         note.noteContent = undefined;
-        note.noteOptions = JSON.parse(note.noteOptions) || {};
-        console.log(note.noteOptions);
         continue;
       }
 
@@ -414,13 +414,20 @@ app.get(
       };
       const converter = new QuillDeltaToHtmlConverter(ops, cfg);
 
-      const html = converter.convert();
-      note.noteHtml = trimify(prettify(html, { ignore: ["mark", "br"] }), [
-        "br",
-        "p",
-      ]);
+      console.log(note.noteOptions);
+      const rawHtml = converter.convert();
+      const divTag = `<div class="static-note" data-id="${note.noteId}" data-width="${note.noteOptions.width || 340}">`
+      const html = `${divTag}${rawHtml}</div>`;
+      const tidyHtml = beautify.html(html, {
+        indent_size: 2,
+        wrap_line_length: 120,
+        preserve_newlines: false,
+        max_preserve_newlines: 1,
+      });
+
+      console.log(tidyHtml);
+      note.noteHtml = tidyHtml;
       note.noteContent = undefined;
-      note.noteOptions = JSON.parse(note.noteOptions);
     }
 
     // get static resources

@@ -27,7 +27,7 @@ window.state = state;
 window.Note = NoteStatic;
 window.fetchNote = fetchNoteStatic;
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', () => {
     window.state.roomId = roomId;
 
     // Clear any notes divs that might have been saved in the static HTML document
@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
             noteOptions: { width },
             noteHtml: noteHtml.innerHTML
         };
+
+        console.log(noteHtml.innerHTML);
     }
 
     window.fetchNote(rootNote).then((newNote) => {
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newNote.setCloseable(false);
         const size = newNote.getSize();
         const x = window.innerWidth / 2 - size.width / 2;
-        const y = window.innerHeight / 2 - size.height / 2;
+        const y = window.innerHeight / 5;
         newNote.setPosition({ left: x, top: y });
     });
 

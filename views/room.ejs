@@ -65,11 +65,13 @@
 
   <% if(room.renderStatic) { %>
   <!-- Here are the HTML contents of each annotation. Feel free to edit them! -->
+  <!-- Custom notes should have the following structure: -->
+  <!--   <div class="static-note" data-id="<some unique id string>" data-width="<width in pixels>" -->
+  <!--     <p>Your note HTML here!</p> -->
+  <!--     <p>Links to other <mark data-id="<target note id string>" data-color="<CSS color of highlight>">notes</mark> look like this</p> -->
+  <!--   </div> -->
   <% for(const [noteId, noteData] of Object.entries(notes)) { %>
-  <div class="static-note" data-id="<%= noteId %>" data-width="<%= noteData.noteOptions.width || 340 %>">
-    <%- noteData.noteHtml %>
-  </div>
-
+  <%- noteData.noteHtml %>
   <% } %>
   <!-- End of note data -->
   <% } %>

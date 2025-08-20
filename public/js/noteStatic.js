@@ -377,9 +377,17 @@ class NoteStatic extends Fragment {
     }
 
     setHTML(html) {
-        this.noteContents.innerHTML = html.trim().replaceAll("\n", "");
+        function cleanupHtmlWhitespace(html) {
+            return html
+                .trim()
+                .replace(/>\s+</g, '><')  // Remove whitespace between tags
+                .replace(/\s+/g, ' ')     // Normalize multiple spaces to single space
+                .trim();
+        }
 
-        // execture <script> tags
+        this.noteContents.innerHTML = cleanupHtmlWhitespace(html);
+
+        // execute <script> tags
         Array.from(this.noteContents.querySelectorAll("script"))
             .forEach(oldScriptEl => {
                 const newScriptEl = document.createElement("script");
