@@ -348,11 +348,15 @@ a:visited {
     padding-bottom: 0.5em;
 }
 
-#text-toolbar {
-    max-width: 95vw;
+#text-toolbar-scroll {
+    max-width: 100vw;
     position: fixed;
     bottom: 0;
     right: 0;
+    overflow-y: scroll;
+}
+
+#text-toolbar {
     display: flex;
     align-items: center;
     background-color: var(--text-menu-bg-color);
