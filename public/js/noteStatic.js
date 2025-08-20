@@ -26,6 +26,7 @@ function split(fragment, vertical, newNote, hRect) {
 
     const pos = fragment.getPosition();
     const size = fragment.getSize();
+    console.log(`split, size ${size.width}`);
 
     const mainAxisN = vertical ? "left" : "top";
     const mainAxisP = vertical ? "right" : "bottom";
@@ -194,7 +195,7 @@ class Fragment {
         this.noteContents = document.createElement('div');
         this.noteContents.classList.add('note');
         this.noteContents.classList.add('note-content');
-        this.noteContents.classList.add('ql-container');
+        // this.noteContents.classList.add('ql-container');
 
         this.noteWindow.appendChild(this.noteContents);
         this.noteContainer.appendChild(this.noteWindow);
