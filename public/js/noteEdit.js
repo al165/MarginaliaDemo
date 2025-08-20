@@ -1,51 +1,55 @@
-// This module adds editing functionality to note.js. Only imported if editToken is correct
-// assumes note.js is already imported!
+// This module adds editing functionality to noteReadOnly.js. Only imported if editToken is correct
+// assumes noteReadOnly.js is already imported!
 
 import { Split, updateHighlights } from './noteStatic.js';
-import { Note } from './note.js';
+import { Note } from './noteReadOnly.js';
 
-let noteButtons;
-let removeBtn;
-let resizeHandle;
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { QuillBinding } from 'y-quill';
 
-window.addEventListener('load', () => {
-    noteButtons = document.querySelector("#note-buttons");
-    removeBtn = noteButtons.querySelector("#remove-note");
-    resizeHandle = document.querySelector("#resize-note");
+import Quill from 'quill';
+import QuillCursors from 'quill-cursors';
+Quill.register('modules/cursors', QuillCursors, true);
 
-    if (canEdit && editToken) {
-        let roomHistory = JSON.parse(localStorage.getItem("history") || '{}');
-        roomHistory[roomId] = {
-            url: window.location.href,
-            roomName: roomName
-        }
-        localStorage.setItem('history', JSON.stringify(roomHistory));
+let noteButtons = document.querySelector("#note-buttons");
+let removeBtn = noteButtons.querySelector("#remove-note");
+let resizeHandle = document.querySelector("#resize-note");
+
+window.quillOptions.modules = {
+    cursors: true
+};
+
+if (canEdit && editToken) {
+    let roomHistory = JSON.parse(localStorage.getItem("history") || '{}');
+    roomHistory[roomId] = {
+        url: window.location.href,
+        roomName: roomName
     }
+    localStorage.setItem('history', JSON.stringify(roomHistory));
+}
 
-    if (resizeHandle) {
-        resizeHandle.addEventListener('mousedown', (ev) => {
-            ev.preventDefault();
-            console.log("resize start");
+if (resizeHandle) {
+    resizeHandle.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        console.log("resize start");
 
-            const noteId = noteButtons.dataset.noteid;
-            console.log(noteId);
-            if (!noteId)
-                return;
+        const noteId = noteButtons.dataset.noteid;
+        if (!noteId)
+            return;
 
-            const note = window.state.notes[noteId];
-            console.log(note);
-            if (!(note instanceof Note))
-                return;
+        const note = window.state.notes[noteId];
+        if (!(note instanceof Note))
+            return;
 
-            window.state.resizing = noteId;
-            window.state.resizeStartPosition = ev.clientX;
-            note.noteWindow.classList.remove("grow");
-            window.state.resizeStartWidth = note.width;
-            note.toFront();
-        });
-    }
-
-});
+        window.state.resizing = noteId;
+        window.state.resizeStartPosition = ev.clientX;
+        note.noteWindow.classList.remove("grow");
+        window.state.resizeStartWidth = note.width;
+        note.toFront();
+    });
+}
+// });
 
 class EditableNote extends Note {
 
@@ -60,7 +64,14 @@ class EditableNote extends Note {
             window.state.currentSelection = range;
         });
 
-        this.noteEditor.on('selection-change', (range, _oldRange, _source) => {
+        this.noteEditor.on('selection-change', (range, _oldRange, source) => {
+            if (source === 'api')
+                return;
+
+            this.provider.awareness.setLocalStateField('user', {
+                color: window.state.highlightColour
+            });
+
             if (!range) {
                 this.exitEditMode();
                 window.state.currentSelection = undefined;
@@ -105,6 +116,45 @@ class EditableNote extends Note {
             }
         });
 
+        const ydoc = new Y.Doc()
+        this.provider = new WebsocketProvider(
+            `ws${location.protocol.slice(4)}//${location.host}/ws`,
+            noteId,
+            ydoc,
+        );
+        this.ytext = ydoc.getText('quill');
+        this.ymap = ydoc.getMap('note-options');
+
+        ydoc.on("update", (update, origin, tr) => {
+            updateHighlights(this);
+            this.width = this.noteContents.offsetWidth;
+            this.height = this.noteContents.offsetHeight;
+            this.addLoadCallbacks();
+        });
+
+        this.ymap.observe(ymapEvent => {
+            for (const key of ymapEvent.keysChanged) {
+                if (key === 'width') {
+                    this.setWidth(this.ymap.get('width'));
+                }
+            }
+        });
+
+        this.binding = new QuillBinding(this.ytext, this.noteEditor, this.provider.awareness);
+        this.provider.awareness.setLocalStateField('user', {
+            color: window.state.highlightColour
+        });
+
+        this.provider.on("status", (event) => {
+            console.log("provider status " + event.status);
+            if (event.status === 'disconnected') {
+
+            } else if (event.status === 'connecting') {
+
+            } else if (event.status === 'connected') {
+
+            }
+        });
     }
 
     onHover() {
@@ -146,10 +196,6 @@ class EditableNote extends Note {
         console.log(`${this.noteId} exitEditMode, skip_save: ${skip_save}`);
         this.editing = false;
         this.noteWindow.classList.remove('note-editing');
-
-        if (!skip_save) {
-            this.save();
-        }
 
         window.state.exitedEditMode(this);
     }
@@ -214,111 +260,36 @@ class EditableNote extends Note {
         if (!canEdit || !editToken || !this.editing)
             return;
 
-        console.log("new note");
-        const selection = this.noteEditor.getSelection();
-        if (!selection || selection.length == 0) {
-            console.log("selection is undefined or 0");
-            return;
-        }
-        const bounds = this.noteEditor.getBounds(selection);
-        const parentPos = this.getPosition();
-        this.parentHighlight = selection;
+        fetch(`${baseURL}/newnote`)
+            .then(res => res.json())
+            .then(data => {
+                const { noteId } = data;
+                console.log("new note id: " + noteId);
 
-        const newNote = new EditableNote();
-        newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
-        newNote.toFront();
-        newNote.parent = this;
-        newNote.show(false);
-        this.exitEditMode(true);
+                const selection = this.noteEditor.getSelection();
+                if (!selection || selection.length == 0)
+                    return;
+
+                this.noteEditor.formatText(
+                    selection.index,
+                    selection.length,
+                    'annotate',
+                    { id: noteId, color: window.state.highlightColour }
+                );
+                const bounds = this.noteEditor.getBounds(selection);
+                const parentPos = this.getPosition();
+
+                const newNote = new EditableNote(noteId);
+                newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
+                newNote.toFront();
+                newNote.parent = this;
+                newNote.show(false);
+                newNote.noteEditor.focus();
+            });
     }
 
     save(force = false) {
-        if (!canEdit || !editToken) {
-            console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken})`);
-            return;
-        }
-
-        const noteContent = this.noteEditor.getContents();
-        const noteOptions = this.options;
-
-        if (!force && JSON.stringify(noteContent) === this.lastContent)
-            return;
-
-        if (this.noteId) {
-            // note already saved, update it
-            fetch(`${baseURL}/room/${window.state.roomId}/note/${this.noteId}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    editToken,
-                    noteContent,
-                    noteOptions
-                }),
-                headers: {
-                    "Content-type": "application/json"
-                }
-            }).then(res => {
-                if (res.status != 200)
-                    return res.json();
-                else
-                    return {}
-            }).then(json => {
-                this.lastContent = JSON.stringify(noteContent);
-                if (json.msg)
-                    console.log(json.msg);
-            }).catch(error => {
-                console.log("Error editing note: " + error);
-            });
-        } else {
-            // note not saved yet, create new
-            console.log("note not saved, creating new");
-
-            // if empty, ignore...
-            if (this.noteEditor.getText().trim().length == 0) {
-                this.delete();
-                return;
-            }
-
-            // get the lastHighlight of the parent note
-            // to set the annotation format...
-            let lastHighlight;
-            if (this.parent)
-                lastHighlight = this.parent.parentHighlight;
-
-            fetch(`${baseURL}/room/${window.state.roomId}/note/`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    editToken,
-                    noteContent,
-                    noteOptions
-                }),
-                headers: {
-                    "Content-type": "application/json"
-                }
-            }).then(res => {
-                return res.json();
-            }).then(json => {
-                if (json.msg)
-                    console.log(json.msg);
-                else if (json.noteId) {
-                    // update the highlight with the assigned noteId
-                    this.noteId = json.noteId;
-
-                    if (lastHighlight) {
-                        this.parent.noteEditor.formatText(lastHighlight.index, lastHighlight.length, 'annotate', { id: this.noteId, color: window.state.highlightColour });
-                        updateHighlights(this.parent);
-                        this.parent.save();
-                    }
-
-                    window.state.addNote(this);
-                    this.lastContent = JSON.stringify(noteContent);
-                }
-                else
-                    console.log(json);
-
-            }).catch(error => {
-                console.log("Error editing note: " + error);
-            });
-        }
+        return;
     }
 
     setContents(contents) {
@@ -339,8 +310,19 @@ class EditableSplit extends Split {
     }
 }
 
+async function fetchNoteEdit(noteId, note) {
+    console.log("fetchNoteEdit ", noteId);
+
+    if (!note) {
+        let newNote = new window.Note(noteId);
+
+        return newNote;
+    }
+}
+
 
 window.Note = EditableNote;
 window.Split = EditableSplit;
+window.fetchNote = fetchNoteEdit;
 
 export { EditableNote, EditableSplit };

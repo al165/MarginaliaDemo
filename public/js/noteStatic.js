@@ -1,32 +1,22 @@
 let lastVertical = false;
 
-let noteButtons;
+const noteButtons = document.querySelector("#note-buttons");
 
-let closeBtn;
-let restoreBtn;
-let dragHandle;
+const closeBtn = noteButtons.querySelector("#close-note");
+const restoreBtn = noteButtons.querySelector("#restore-note");
+const dragHandle = document.querySelector("#drag-note");
 
+dragHandle.addEventListener('mousedown', (ev) => {
+    ev.preventDefault();
+    window.state.draggingFragment.noteContainer.classList.remove('slide');
+    window.state.draggingFragment.toFront();
 
-window.addEventListener('load', () => {
+    const notePos = window.state.draggingFragment.getPosition();
+    let mouseOffset = {}; // relative to noteContainer
+    mouseOffset.left = ev.clientX - notePos.left + window.state.scrollX;
+    mouseOffset.top = ev.clientY - notePos.top + window.state.scrollY;
 
-    noteButtons = document.querySelector("#note-buttons");
-
-    closeBtn = noteButtons.querySelector("#close-note");
-    restoreBtn = noteButtons.querySelector("#restore-note");
-    dragHandle = document.querySelector("#drag-note");
-
-    dragHandle.addEventListener('mousedown', (ev) => {
-        ev.preventDefault();
-        window.state.draggingFragment.noteContainer.classList.remove('slide');
-        window.state.draggingFragment.toFront();
-
-        const notePos = window.state.draggingFragment.getPosition();
-        let mouseOffset = {}; // relative to noteContainer
-        mouseOffset.left = ev.clientX - notePos.left + window.state.scrollX;
-        mouseOffset.top = ev.clientY - notePos.top + window.state.scrollY;
-
-        window.state.dragging = mouseOffset;
-    });
+    window.state.dragging = mouseOffset;
 });
 
 
@@ -416,10 +406,13 @@ class NoteStatic extends Fragment {
         const elements = this.noteContents.querySelectorAll('img,iframe');
 
         for (const element of elements) {
+            if (element.dataset.loadcb)
+                continue
             element.addEventListener('load', () => {
                 this.width = this.noteContents.offsetWidth;
                 this.height = this.noteContents.offsetHeight;
             });
+            element.dataset.loadcb = true;
         }
     }
 
@@ -438,6 +431,7 @@ class NoteStatic extends Fragment {
     }
 
     setWidth(width) {
+        console.log(`NoteStatic setWidth: ${width}`);
         this.width = width;
         this.options.width = width;
         this.noteWindow.style.width = width + "px";

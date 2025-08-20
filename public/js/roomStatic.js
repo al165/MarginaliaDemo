@@ -3,6 +3,7 @@ import { NoteStatic } from './noteStatic.js'
 
 
 async function fetchNoteStatic(noteId, note) {
+    console.log(`fetchNoteStatic ${noteId}`);
     const data = window.notes[noteId];
     if (!data) {
         console.error(`Error: ${noteId} not found in window.notes`);

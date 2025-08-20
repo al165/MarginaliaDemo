@@ -18,42 +18,93 @@ import { prettify, trimify } from "htmlfy";
 
 import multer, { diskStorage } from "multer";
 
-// import { WebSocketServer } from "ws";
-// import { setupWSConnection } from '@y/websocket-server/utils';
-
-// const wss = new WebSocketServer({ noServer: true });
-// wss.on('connection', (conn, req, args) => {
-//   console.log("CONNECTION");
-//   console.log(conn);
-//   console.log(req);
-//   console.log(args);
-
-//   setupWSConnection(conn, req, args)
-// });
-
 import * as Y from 'yjs';
 import { WebSocketServer } from 'ws'
 import { createYjsServer } from 'yjs-server'
 
-const memoryStorage = new Map();
-
 const wss = new WebSocketServer({ noServer: true });
 const yjss = createYjsServer({
-  createDoc: () => new Y.Doc(),
+  createDoc: () => {
+    return new Y.Doc();
+  },
   docStorage: {
     loadDoc: async (docName, doc) => {
-      if (memoryStorage.has(docName)) {
-        const yText = doc.getText('quill');
-        yText.applyDelta(memoryStorage.get(docName));
+      console.log(`loadDoc ${docName}`);
+
+      const noteId = docName.split('/')[1];
+      const row = await db.get(
+        "SELECT noteContent, noteOptions, noteType, yjsState FROM Notes WHERE id = ?",
+        [noteId],
+      );
+
+      if (!row || !row.noteContent) {
+        console.error(`loadDoc: Note ${noteId} not found`);
+        return;
+      }
+
+      const ytext = doc.getText('quill');
+      const ymap = doc.getMap('note-options');
+
+      if (row.noteType == 0) {
+        if (row.yjsState) {
+          Y.applyUpdate(doc, row.yjsState);
+        } else {
+          if (row.noteOptions) {
+            for (const [key, value] of Object.entries(JSON.parse(row.noteOptions))) {
+              console.log(`setting ${key} to ${value}`);
+              ymap.set(key, value);
+            }
+          }
+
+          let ops = JSON.parse(row.noteContent);
+          if (ops['ops'])
+            ops = ops['ops']
+
+          ytext.applyDelta(ops);
+        }
+      } else {
+        if (row.noteOptions) {
+          for (const [key, value] of Object.entries(JSON.parse(row.noteOptions))) {
+            console.log(`setting ${key} to ${value}`);
+            ymap.set(key, value);
+          }
+        }
       }
     },
     storeDoc: async (docName, doc) => {
       console.log(`storeDoc ${docName}`);
-      console.log(doc.getText('quill').toDelta());
-      memoryStorage.set(docName, doc.getText('quill').toDelta());
+
+      // TODO: handle noteType != 1 (i.e. HTML notes)
+
+      const yjsState = Y.encodeStateAsUpdate(doc);
+      const ytext = doc.getText('quill');
+      const ymap = doc.getMap('note-options');
+
+      const noteId = docName.split('/')[1];
+      const noteContent = {
+        ops: ytext.toDelta()
+      };
+      const noteOptions = ymap.toJSON();
+
+      if (!noteContent) {
+        console.log("Note is empty, deleting");
+
+        await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
+        return;
+      }
+
+      await db.run(
+        "UPDATE Notes SET noteContent = ?, noteOptions = ?, yjsState = ? WHERE id = ?",
+        [JSON.stringify(noteContent), JSON.stringify(noteOptions), yjsState, noteId],
+      );
+
+      // Check if any images are in the noteContent
+      await updateUploadsXRefTable(db, noteId, noteContent);
+
+      console.log(`UPDATED NOTE: id ${noteId}`);
     },
     onUpdate: async (docName, update, doc) => {
-      console.log(`onUpdate ${docName}`);
+      // console.log(`onUpdate ${docName}`);
     }
   },
 });
@@ -61,8 +112,6 @@ const yjss = createYjsServer({
 wss.on('connection', (socket, request) => {
   yjss.handleConnection(socket, request)
 });
-
-
 
 // For generating static marginalia
 import esbuild from "esbuild";
@@ -452,6 +501,14 @@ app.get(
 
     // res.status(201).json({ roomId, editToken });
     res.redirect(`${BASE_URL}/room/${roomId}?editToken=${editToken}`);
+  }),
+);
+
+app.get(
+  BASE_URL + "/newnote",
+  asyncHandler(async (req, res) => {
+    const noteId = generateId(16);
+    res.json({ noteId });
   }),
 );
 

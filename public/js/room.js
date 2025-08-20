@@ -1,23 +1,18 @@
-// import Quill from 'quill';
-
 import { THEME_LIST, setTheme } from './data/colourschemes.js'
-import { fetchNote } from './note.js';
 import { state } from './state.js';
 
-
-let removeNoteBtn;
-
-window.fetchNote = fetchNote;
 window.state = state;
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', async () => {
+    console.log('room.js window load');
 
     window.state.roomId = roomId;
 
-    if (canEdit) {
-        import('./noteEdit.js');
-    }
+    await import('./noteReadOnly.js');
 
+    if (canEdit) {
+        await import('./noteEdit.js');
+    }
 
     window.fetchNote(rootNote).then((newNote) => {
         if (!newNote) {
@@ -27,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newNote.setCloseable(false);
         const size = newNote.getSize();
         const x = window.innerWidth / 2 - size.width / 2;
-        const y = window.innerHeight / 2 - size.height / 2;
+        const y = window.innerHeight / 5;
         newNote.setPosition({ left: x, top: y });
 
         newNote.show();
@@ -38,8 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
             continue;
         setTheme(colourTheme);
     }
-
-    removeNoteBtn = document.querySelector("#remove-note");
 });
 
 document.addEventListener("scroll", () => {
@@ -51,9 +44,12 @@ document.addEventListener("mouseup", (ev) => {
     if (window.state.resizing && window.state.notes[window.state.resizing]) {
         const note = window.state.notes[window.state.resizing];
         note.noteWindow.classList.add("grow");
-        note.save(true);
-
         window.state.resizing = undefined;
+
+        if (!note.ymap)
+            return;
+
+        note.ymap.set('width', note.width);
     } else if (window.state.dragging) {
         window.state.dragging = undefined;
     }
