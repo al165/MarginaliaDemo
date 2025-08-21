@@ -6,7 +6,12 @@ dotenv.configDotenv();
 let UPLOADS_DIR = process.env.UPLOADS_DIR ?? "./uploads";
 
 async function updateUploadsXRefTable(db, noteId, noteContent) {
-    const ops = noteContent.ops;
+    let ops;
+    if (!noteContent.ops)
+        ops = noteContent
+    else
+        ops = noteContent.ops;
+
     for (const op of ops) {
         if (!op.insert)
             continue;
@@ -16,7 +21,7 @@ async function updateUploadsXRefTable(db, noteId, noteContent) {
 
         let row = await db.get("SELECT * FROM Uploads WHERE fileUrl = ?", [op.insert.image]);
         if (!row) {
-            console.warn(`Warning: upload with URL ${op.insert.image} not found in Uploads.`);
+            console.warn(`Warning: upload with URL ${op.insert.image} not found in Uploads table.`);
             // Check if it exists in uploads dir
             const filename = path.basename(op.insert.image);
             const uploadPath = path.join('..', UPLOADS_DIR, filename);

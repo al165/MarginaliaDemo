@@ -81,6 +81,14 @@ const yjss = createYjsServer({
     storeDoc: async (docName, doc) => {
       console.log(`storeDoc ${docName}`);
       // last connection to doc closed
+
+      // Check if any images are in the noteContent
+      const ytext = doc.getText('quill');
+      const noteId = docName.split('/')[1];
+      const noteContent = {
+        ops: ytext.toDelta()
+      };
+      await updateUploadsXRefTable(db, noteId, noteContent);
     },
     onUpdate: async (docName, update, doc) => {
       // console.log(`onUpdate ${docName}`);
@@ -102,9 +110,6 @@ const yjss = createYjsServer({
         "UPDATE Notes SET noteContent = ?, noteOptions = ?, yjsState = ? WHERE id = ?",
         [JSON.stringify(noteContent), JSON.stringify(noteOptions), yjsState, noteId],
       );
-
-      // Check if any images are in the noteContent
-      await updateUploadsXRefTable(db, noteId, noteContent);
 
       // console.log(`UPDATED NOTE: id ${noteId}`);
     }
