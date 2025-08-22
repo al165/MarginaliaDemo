@@ -12,8 +12,8 @@
   <%- favicon %>
   <% } else { %>
   <link rel="icon" type="ico" href="<%= room.baseURL %>/favicon.ico">
-  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src="<%= room.baseURL %>/dist/common.js"></script>
+  <script src="<%= room.baseURL %>/dist/room.js"></script>
   <% } %>
 
   <script>
@@ -39,6 +39,9 @@
   </style>
   <% } else {%>
   <link rel="stylesheet" href="<%= room.baseURL %>/style.css">
+  <% if(room.canEdit) {%>
+  <link rel="stylesheet" href="<%= room.baseURL %>/styleEdit.css">
+  <% } %>
   <% } %>
 </head>
 
@@ -65,11 +68,13 @@
 
   <% if(room.renderStatic) { %>
   <!-- Here are the HTML contents of each annotation. Feel free to edit them! -->
+  <!-- Custom notes should have the following structure: -->
+  <!--   <div class="static-note" data-id="<some unique id string>" data-width="<width in pixels>" -->
+  <!--     <p>Your note HTML here!</p> -->
+  <!--     <p>Links to other <mark data-id="<target note id string>" data-color="<CSS color of highlight>">notes</mark> look like this</p> -->
+  <!--   </div> -->
   <% for(const [noteId, noteData] of Object.entries(notes)) { %>
-  <div class="static-note" data-id="<%= noteId %>" data-width="<%= noteData.noteOptions.width || 340 %>">
-    <%- noteData.noteHtml %>
-  </div>
-
+  <%- noteData.noteHtml %>
   <% } %>
   <!-- End of note data -->
   <% } %>
@@ -99,13 +104,8 @@
   <script type="module">
     <%- include('partials/generated/roomStatic.ejs') %>
   </script>
-  <% } else { %>
-  <script src="<%= room.baseURL %>/js/room.js" defer type="module"></script>
   <% } %>
 
-  <% if(room.canEdit) { %>
-  <script src="<%= room.baseURL %>/js/noteEdit.js" defer type="module"></script>
-  <% } %>
 </body>
 
 </html>

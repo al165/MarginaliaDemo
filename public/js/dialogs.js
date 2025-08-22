@@ -1,14 +1,14 @@
-import { state } from './state.js';
+let isFormatting = false;
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Highlight toolbar
     const newNoteBtn = document.querySelector("#highlight");
     newNoteBtn.addEventListener('click', function (ev) {
-        if (!state.currentEditingNote)
+        if (!window.state.currentEditingNote)
             return;
 
-        state.currentEditingNote.addHighlight();
+        window.state.currentEditingNote.addHighlight();
 
         ev.stopPropagation();
     });
@@ -20,24 +20,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlTextInput = document.getElementById('link-editor-url');
 
     function addURL() {
+        console.log("addURL");
+        if (!urlTextInput.value)
+            return;
+
         let newURL = urlTextInput.value.trim();
 
+        isFormatting = true;
+
         if (!newURL) {
-            state.lastEditingNote.enterEditMode();
-            state.currentEditingNote.noteEditor.format('link', undefined, 'user');
-            urlTextInput.value = "";
-            linkEditorPopup.close();
-            return;
+            window.state.lastEditingNote.enterEditMode();
+            window.state.currentEditingNote.noteEditor.format('link', undefined, 'user');
+        } else {
+            if (!/^https?:\/\//i.test(newURL))
+                newURL = 'http://' + newURL;
+            window.state.lastEditingNote.enterEditMode();
+            window.state.currentEditingNote.noteEditor.format('link', newURL, 'user');
         }
-
-        if (!/^https?:\/\//i.test(newURL))
-            newURL = 'http://' + newURL;
-
-        state.lastEditingNote.enterEditMode();
-        state.currentEditingNote.noteEditor.format('link', newURL, 'user');
 
         urlTextInput.value = "";
         linkEditorPopup.close();
+
+        setTimeout(() => {
+            isFormatting = false;
+        }, 50);
     }
 
     addLinkBtn.onclick = addURL;
@@ -46,30 +52,47 @@ document.addEventListener('DOMContentLoaded', () => {
             addURL();
     });
 
-    linkEditBtn.addEventListener('click', function () {
-        if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+    linkEditBtn.addEventListener('click', function (event) {
+        if (!window.state.currentEditingNote || !window.state.currentEditingNote.noteEditor)
             return;
 
-        const selection = state.currentEditingNote.noteEditor.getSelection();
+        if (isFormatting)
+            return;
+
+        const selection = window.state.currentEditingNote.noteEditor.getSelection();
         if (!selection || !selection.length)
             return;
 
-        const selectionBounds = state.currentEditingNote.noteEditor.getBounds(selection.index, selection.length);
-        const noteEditorBounds = state.currentEditingNote.noteContainer.getBoundingClientRect();
-        const format = state.currentEditingNote.noteEditor.getFormat(selection.index, selection.length);
+        const selectedText = window.state.currentEditingNote.noteEditor.getText(selection.index, selection.length);
+        const trimmedText = selectedText.replace(/\n+$/, ''); // Remove trailing newlines
+        const trimmedLength = trimmedText.length;
+
+        // If we trimmed something, update the selection
+        if (trimmedLength < selection.length) {
+            selection = {
+                index: selection.index,
+                length: trimmedLength
+            };
+            // Optionally update the actual selection in the editor
+            window.state.currentEditingNote.noteEditor.setSelection(selection.index, selection.length);
+        }
+
+        const selectionBounds = window.state.currentEditingNote.noteEditor.getBounds(selection.index, selection.length);
+        const noteEditorBounds = window.state.currentEditingNote.noteContainer.getBoundingClientRect();
+        const format = window.state.currentEditingNote.noteEditor.getFormat(selection.index, selection.length);
 
         if (format.link)
             document.getElementById("link-editor-url").value = format.link;
         else
             document.getElementById("link-editor-url").value = '';
 
-        linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + state.scrollX + "px";
-        linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + state.scrollY + selectionBounds.height + 2 + "px";
+        linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + window.state.scrollX + "px";
+        linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + window.state.scrollY + selectionBounds.height + 2 + "px";
 
+        console.log("linkEditorPopup.showModal();");
         linkEditorPopup.showModal();
 
         urlTextInput.value = "";
-        // urlTextInput.focus();
     });
 
     linkEditorPopup.addEventListener('click', () => {
@@ -77,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     linkEditorPopup.addEventListener('close', () => {
-        if (state.lastEditingNote)
-            state.lastEditingNote.enterEditMode();
+        if (window.state.lastEditingNote)
+            window.state.lastEditingNote.enterEditMode();
     });
     document.querySelector("#link-editor>div").addEventListener('click', ev => ev.stopPropagation());
 
@@ -93,12 +116,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newURL)
             newURL = extractVideoUrl(newURL);
 
-        if (newURL && state.lastEditingNote) {
-            state.lastEditingNote.enterEditMode();
-            const selection = state.currentEditingNote.lastSelection;
-            state.currentEditingNote.noteEditor.insertEmbed(selection.index + 1, 'video', newURL, 'user');
-            state.currentEditingNote.noteEditor.formatText(selection.index + 1, 1, { height: '170', width: '400' });
-            state.currentEditingNote.noteEditor.setSelection(selection.index + 2, Quill.sources.SILENT);
+        if (newURL && window.state.lastEditingNote) {
+            isFormatting = true;
+            window.state.lastEditingNote.enterEditMode();
+            const selection = window.state.currentEditingNote.lastSelection;
+            window.state.currentEditingNote.noteEditor.insertEmbed(selection.index + 1, 'video', newURL, 'user');
+            window.state.currentEditingNote.noteEditor.formatText(selection.index + 1, 1, { height: '170', width: '400' });
+            window.state.currentEditingNote.noteEditor.setSelection(selection.index + 2, Quill.sources.SILENT);
+
+            setTimeout(() => {
+                isFormatting = false;
+            }, 50);
         }
         videoUrlInput.value = "";
         videoEditorPopup.close();
@@ -111,7 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     videoEmbedBtn.addEventListener('click', function () {
-        if (!state.currentEditingNote)// || !state.currentEditingNote.noteEditor)
+        if (!window.state.currentEditingNote)// || !window.state.currentEditingNote.noteEditor)
+            return;
+
+        if (isFormatting)
             return;
 
         videoEditorPopup.showModal();
@@ -121,8 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     videoEditorPopup.addEventListener('click', () => { videoEditorPopup.close() });
     videoEditorPopup.addEventListener('close', () => {
-        if (state.lastEditingNote) {
-            state.lastEditingNote.enterEditMode();
+        if (window.state.lastEditingNote) {
+            window.state.lastEditingNote.enterEditMode();
         }
     });
     document.querySelector("#video-editor>div").addEventListener('click', ev => ev.stopPropagation());
@@ -138,24 +169,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addImage(url) {
         console.log("addImage url: " + url);
-        if (!url || !state.lastEditingNote) {
-            console.log("!url || !state.lastEditingNote");
+        if (!url || !window.state.lastEditingNote) {
+            console.log("!url || !window.state.lastEditingNote");
             return;
         }
 
-        state.lastEditingNote.enterEditMode();
-        const { noteEditor } = state.currentEditingNote;
+        isFormatting = true;
+        window.state.lastEditingNote.enterEditMode();
+        const { noteEditor } = window.state.currentEditingNote;
         const range = noteEditor.getSelection(true);
         noteEditor.insertText(range.index, '\n', 'user');
         noteEditor.insertEmbed(range.index + 1, 'image', url, 'user');
         noteEditor.setSelection(range.index + 2, 'silent');
 
         imageAddPopup.close();
+
+        setTimeout(() => {
+            isFormatting = false;
+        }, 50);
     }
 
     imageAddBtn.addEventListener('click', () => {
-        if (state.currentEditingNote) {
-            state.currentEditingNote.exitEditMode(true);
+        if (isFormatting)
+            return;
+
+        if (window.state.currentEditingNote) {
+            window.state.currentEditingNote.exitEditMode(true);
             imageAddPopup.showModal();
             document.activeElement.blur();
 
@@ -217,8 +256,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     imageAddPopup.addEventListener('click', () => imageAddPopup.close());
     imageAddPopup.addEventListener('close', () => {
-        if (state.lastEditingNote) {
-            state.lastEditingNote.enterEditMode();
+        if (window.state.lastEditingNote) {
+            window.state.lastEditingNote.enterEditMode();
         }
     });
     document.querySelector("#image-editor>div").addEventListener('click', ev => ev.stopPropagation());
@@ -230,10 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     deleteBtn.addEventListener('click', function () {
         const noteId = deleteBtn.dataset.noteid;
-        if (!noteId || !state.notes[noteId])
+        if (!noteId || !window.state.notes[noteId])
             return;
 
-        if (state.notes[noteId].parent.locked)
+        if (window.state.notes[noteId].parent.locked)
             return;
 
         deleteNotePopup.showModal();
@@ -241,9 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmDeleteBtn.addEventListener('click', function () {
         const noteId = deleteBtn.dataset.noteid;
-        if (noteId && state.notes[noteId]) {
+        if (noteId && window.state.notes[noteId]) {
             console.log("delete note " + noteId);
-            state.notes[noteId].delete();
+            window.state.notes[noteId].delete();
             deleteNotePopup.close();
         }
     });

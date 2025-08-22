@@ -1,89 +1,16 @@
-import './formats/annotateBlot.js';
-import './formats/annotatePBlot.js';
 import { THEME_LIST, setTheme } from './data/colourschemes.js'
-
-import { fetchNote } from './note.js';
 import { state } from './state.js';
 
-const socket = io();
+window.state = state;
 
-let removeNoteBtn;
+window.addEventListener('load', async () => {
+    window.state.roomId = roomId;
 
-socket.on('connect', function () {
-    socket.emit('roomId', roomId);
-});
+    await import('./noteReadOnly.js');
 
-socket.on('noteUpdated', function (noteId) {
-    console.log("socket: noteUpdated: " + noteId);
-    window.fetchNote(noteId, state.notes[noteId]);
-
-});
-
-socket.on('noteEditing', function (data) {
-    console.log("socket: noteEditing: " + data.noteId);
-    if (!data.noteId)
-        return;
-
-    if (data.lock)
-        state.lockedNotes.add(data.noteId);
-    else
-        state.lockedNotes.delete(data.noteId);
-
-    if (state.notes[data.noteId])
-        state.notes[data.noteId].setLocked(data.lock);
-
-    if (removeNoteBtn && removeNoteBtn.dataset.noteid === data.noteId) {
-        if (data.lock) {
-            removeNoteBtn.classList.add('tool-disabled');
-            removeNoteBtn.title = "Cannot delete note while someone is editing the parent note";
-        } else {
-            removeNoteBtn.classList.remove('tool-disabled');
-            removeNoteBtn.title = "Delete note";
-        }
+    if (canEdit) {
+        await import('./noteEdit.js');
     }
-});
-
-socket.on('lockedNotes', function (lockedNotes) {
-    for (const noteId of lockedNotes) {
-        state.lockedNotes.add(noteId);
-        if (state.notes[noteId]) {
-            state.notes[noteId].setLocked(true);
-        }
-    }
-});
-
-state.socket = socket;
-
-window.fetchNote = fetchNote;
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    state.roomId = roomId;
-
-    const FontAttributor = Quill.import('attributors/class/font');
-    FontAttributor.whitelist = [
-        'sans-serif', 'serif', 'monospace'
-    ];
-    Quill.register(FontAttributor, true);
-    const Clipboard = Quill.import('modules/clipboard');
-    const Delta = Quill.import('delta');
-
-    class PlainClipboard extends Clipboard {
-        onPaste(range, { text, html }) {
-            const delta = new Delta()
-                .retain(range.index, { font: null })
-                .delete(range.length)
-                .insert(text);
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(
-                delta.length() - range.length,
-                Quill.sources.SILENT,
-            );
-            this.quill.scrollSelectionIntoView();
-        }
-    }
-
-    Quill.register('modules/clipboard', PlainClipboard, true);
 
     window.fetchNote(rootNote).then((newNote) => {
         if (!newNote) {
@@ -93,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newNote.setCloseable(false);
         const size = newNote.getSize();
         const x = window.innerWidth / 2 - size.width / 2;
-        const y = window.innerHeight / 2 - size.height / 2;
+        const y = window.innerHeight / 5;
         newNote.setPosition({ left: x, top: y });
 
         newNote.show();
@@ -104,39 +31,40 @@ document.addEventListener('DOMContentLoaded', () => {
             continue;
         setTheme(colourTheme);
     }
-
-    removeNoteBtn = document.querySelector("#remove-note");
 });
 
 document.addEventListener("scroll", () => {
-    state.scrollY = window.scrollY;
-    state.scrollX = window.scrollX;
+    window.state.scrollY = window.scrollY;
+    window.state.scrollX = window.scrollX;
 });
 
 document.addEventListener("mouseup", (ev) => {
-    if (state.resizing && state.notes[state.resizing]) {
-        const note = state.notes[state.resizing];
+    if (window.state.resizing && window.state.notes[window.state.resizing]) {
+        const note = window.state.notes[window.state.resizing];
         note.noteWindow.classList.add("grow");
-        note.save(true);
+        window.state.resizing = undefined;
 
-        state.resizing = undefined;
-    } else if (state.dragging) {
-        state.dragging = undefined;
+        if (!note.ymap)
+            return;
+
+        note.ymap.set('width', note.width);
+    } else if (window.state.dragging) {
+        window.state.dragging = undefined;
     }
 });
 
 document.addEventListener("mousemove", (ev) => {
-    if (state.resizing) {
-        let newWidth = state.resizeStartWidth + (ev.clientX - state.resizeStartPosition);
+    if (window.state.resizing) {
+        let newWidth = window.state.resizeStartWidth + (ev.clientX - window.state.resizeStartPosition);
         newWidth = Math.min(800, Math.max(350, newWidth));
-        const noteId = state.resizing;
-        if (!state.notes[noteId])
+        const noteId = window.state.resizing;
+        if (!window.state.notes[noteId])
             return;
-        state.notes[noteId].setWidth(newWidth);
-    } else if (state.dragging && state.draggingFragment) {
-        state.draggingFragment.setPosition({
-            left: ev.clientX + state.scrollX - state.dragging.left,
-            top: ev.clientY + state.scrollY - state.dragging.top
+        window.state.notes[noteId].setWidth(newWidth);
+    } else if (window.state.dragging && window.state.draggingFragment) {
+        window.state.draggingFragment.setPosition({
+            left: ev.clientX + window.state.scrollX - window.state.dragging.left,
+            top: ev.clientY + window.state.scrollY - window.state.dragging.top
         });
     }
 });

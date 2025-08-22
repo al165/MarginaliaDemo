@@ -1,5 +1,3 @@
-import { state } from './state.js';
-
 import { THEME_LIST, setTheme, HIGHLIGHT_COLOURS } from './data/colourschemes.js';
 import { expandSelection } from './utils.js';
 import { TOOLTIPS } from './data/tooltips.js';
@@ -10,27 +8,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleFormat(btn, value) {
         btn.addEventListener('click', function () {
-            if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+            if (!window.state.currentEditingNote || !window.state.currentEditingNote.noteEditor)
                 return;
 
-            const format = state.currentEditingNote.noteEditor.getFormat();
-            state.currentEditingNote.noteEditor.format(value, format[value] ? false : true, 'user');
+            const format = window.state.currentEditingNote.noteEditor.getFormat();
+            window.state.currentEditingNote.noteEditor.format(value, format[value] ? false : true, 'user');
         });
     }
 
     function cycleFormat(btn, format, values) {
         btn.addEventListener('click', function () {
-            if (!state.currentEditingNote || !state.currentEditingNote.noteEditor)
+            if (!window.state.currentEditingNote || !window.state.currentEditingNote.noteEditor)
                 return;
 
-            const currentFormat = state.currentEditingNote.noteEditor.getFormat();
+            const currentFormat = window.state.currentEditingNote.noteEditor.getFormat();
             if (!currentFormat || !currentFormat[format]) {
-                state.currentEditingNote.noteEditor.format(format, values[0], 'user');
+                window.state.currentEditingNote.noteEditor.format(format, values[0], 'user');
                 console.log("Setting format " + format + " to " + values[0]);
             } else {
                 let nextIndex = values.indexOf(currentFormat[format]) + 1;
                 nextIndex = nextIndex % values.length;
-                state.currentEditingNote.noteEditor.format(format, values[nextIndex], 'user');
+                window.state.currentEditingNote.noteEditor.format(format, values[nextIndex], 'user');
                 console.log("Setting format " + format + " to " + values[nextIndex]);
             }
         });
@@ -94,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
 
         console.log("updating theme...");
-        fetch(`${baseURL}/room/${state.roomId}`, {
+        fetch(`${baseURL}/room/${window.state.roomId}`, {
             method: 'PUT',
             body: JSON.stringify({
                 name: roomName,
@@ -177,17 +175,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    state.addCallback('currentEditingNote', note => {
+    window.state.addCallback('currentEditingNote', note => {
         availableNoteTools.forEach(btn => btn.disabled = note === undefined);
     });
 
     availableNoteTools.forEach(btn => btn.disabled = true);
 
     // Color management
-    state.highlightColour = HIGHLIGHT_COLOURS[0];
+    window.state.highlightColour = HIGHLIGHT_COLOURS[0];
 
     const highlighterColour = document.querySelector("#highlight-colour");
-    highlighterColour.style.backgroundColor = state.highlightColour;
+    highlighterColour.style.backgroundColor = window.state.highlightColour;
 
     const highlighterPallette = document.querySelector("#highlight-colour-pallette");
 
@@ -201,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         colourChoice.addEventListener('mousedown', (ev) => {
             ev.preventDefault();
-            state.highlightColour = hiColour;
+            window.state.highlightColour = hiColour;
             highlighterColour.style.backgroundColor = hiColour;
             highlighterPallette.style.maxWidth = '0em';
         });
@@ -210,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     highlighterColour.addEventListener('mousedown', (ev) => {
         ev.preventDefault();
         for (const colourChoice of highlighterPallette.querySelectorAll('.colour-choice')) {
-            if (colourChoice.dataset.colour === state.highlightColour)
+            if (colourChoice.dataset.colour === window.state.highlightColour)
                 colourChoice.classList.add('selected');
             else
                 colourChoice.classList.remove('selected');
@@ -225,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hightlightToolbar = document.querySelector("#highlight-toolbar");
 
     function updateFormatsToolbar(range) {
-        const note = state.currentEditingNote;
+        const note = window.state.currentEditingNote;
         const headingsBtnIcon = headingsBtn.querySelector("img");
         const justificationBtnIcon = justificationBtn.querySelector("img");
         const writingDirectionBtnIcon = writingDirectionBtn.querySelector("img");
@@ -276,8 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    state.addCallback('selectionChange', range => {
-        const note = state.currentEditingNote;
+    window.state.addCallback('selectionChange', range => {
+        const note = window.state.currentEditingNote;
 
         if (!note || !range) {
             // Hide highlight and url toolbars
@@ -309,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Show URL bar
             if (currentFormat.link) {
-                const linkRange = expandSelection(note.noteEditor, range);
+                const linkRange = expandSelection(note.noteEditor, range, true);
                 const linkBounds = note.noteEditor.getBounds(linkRange);
                 urlToolbar.style.left = linkBounds.left + note.getPosition().left + 'px';
                 urlToolbar.style.top = linkBounds.top + linkBounds.height + note.getPosition().top + 'px';
@@ -319,9 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 linkElement.innerText = currentFormat.link;
 
                 linkDeleteBtn.onclick = () => {
-                    this.noteEditor.formatText(linkRange.index, linkRange.length, 'link', false, 'user');
+                    note.noteEditor.formatText(linkRange.index, linkRange.length, 'link', false, 'user');
                     this.save();
-                    this.noteEditor.setSelection(linkRange);
                 };
 
                 urlToolbar.style.visibility = 'visible';

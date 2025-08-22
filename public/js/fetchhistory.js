@@ -1,9 +1,6 @@
-console.log("hello from fetchhistory.js");
-
 const historyDiv = document.getElementById("room-history");
 
 const history = JSON.parse(localStorage.getItem("history") || '{}');
-console.log(history);
 
 if (!history || Object.keys(history).length == 0) {
     historyDiv.remove();

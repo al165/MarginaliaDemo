@@ -1,24 +1,4 @@
-// const Block = Quill.import('blots/block');
-
-// class AnnotatePBlot extends Block {
-//     static blotName = 'annotateP';
-//     static tagName = 'p';
-//     static className = 'noteP';
-
-//     static create(data) {
-//         let node = super.create();
-//         node.setAttribute('data-id', data.id);
-//         node.setAttribute('data-color', data.color);
-//         return node;
-//     }
-
-//     static formats(node) {
-//         return {
-//             id: node.getAttribute('data-id'),
-//             color: node.getAttribute('data-color')
-//         };
-//     }
-// }
+import Quill from 'quill';
 const Parchment = Quill.import('parchment');
 
 const config = {

@@ -1,5 +1,3 @@
-import { state } from './state.js';
-
 let lastVertical = false;
 
 const noteButtons = document.querySelector("#note-buttons");
@@ -10,29 +8,31 @@ const dragHandle = document.querySelector("#drag-note");
 
 dragHandle.addEventListener('mousedown', (ev) => {
     ev.preventDefault();
-    state.draggingFragment.noteContainer.classList.remove('slide');
-    state.draggingFragment.toFront();
+    window.state.draggingFragment.noteContainer.classList.remove('slide');
+    window.state.draggingFragment.toFront();
 
-    const notePos = state.draggingFragment.getPosition();
+    const notePos = window.state.draggingFragment.getPosition();
     let mouseOffset = {}; // relative to noteContainer
-    mouseOffset.left = ev.clientX - notePos.left + state.scrollX;
-    mouseOffset.top = ev.clientY - notePos.top + state.scrollY;
+    mouseOffset.left = ev.clientX - notePos.left + window.state.scrollX;
+    mouseOffset.top = ev.clientY - notePos.top + window.state.scrollY;
 
-    state.dragging = mouseOffset;
+    window.state.dragging = mouseOffset;
 });
 
+
 function split(fragment, vertical, newNote, hRect) {
-    const lastScrollX = state.scrollX;
-    const lastScrollY = state.scrollY;
+    const lastScrollX = window.state.scrollX;
+    const lastScrollY = window.state.scrollY;
 
     const pos = fragment.getPosition();
     const size = fragment.getSize();
+    console.log(`split, size ${size.width}`);
 
     const mainAxisN = vertical ? "left" : "top";
     const mainAxisP = vertical ? "right" : "bottom";
     const crossAxisN = vertical ? "top" : "left";
-    const scrollMainAxis = vertical ? state.scrollX : state.scrollY;
-    const scrollCrossAxis = vertical ? state.scrollY : state.scrollX;
+    const scrollMainAxis = vertical ? window.state.scrollX : window.state.scrollY;
+    const scrollCrossAxis = vertical ? window.state.scrollY : window.state.scrollX;
     const mainDim = vertical ? "width" : "height";
     const crossDim = vertical ? "height" : "width";
     const offset = newNote.getSize()[mainDim];
@@ -139,7 +139,7 @@ function updateHighlights(note) {
             const targetId = highlight.dataset.id;
             const hRect = highlight.getBoundingClientRect();
 
-            if (typeof state.notes[targetId] === 'undefined') {
+            if (typeof window.state.notes[targetId] === 'undefined') {
                 window.fetchNote(targetId).then(newNote => {
                     if (!newNote)
                         return;
@@ -151,8 +151,8 @@ function updateHighlights(note) {
                 return;
             }
 
-            state.notes[targetId].show();
-            split(note, lastVertical, state.notes[targetId], hRect);
+            window.state.notes[targetId].show();
+            split(note, lastVertical, window.state.notes[targetId], hRect);
         };
     }
 }
@@ -170,8 +170,8 @@ class Fragment {
 
         this.noteContainer = document.createElement('div');
         this.noteContainer.classList.add('note-container');
-        this.noteContainer.style.zIndex = state.lastZIndex;
-        state.lastZIndex++;
+        this.noteContainer.style.zIndex = window.state.lastZIndex;
+        window.state.lastZIndex++;
 
         this.notePaddingTop = document.createElement('div');
         this.notePaddingTop.classList.add('note-padding-v');
@@ -195,7 +195,7 @@ class Fragment {
         this.noteContents = document.createElement('div');
         this.noteContents.classList.add('note');
         this.noteContents.classList.add('note-content');
-        this.noteContents.classList.add('ql-container');
+        // this.noteContents.classList.add('ql-container');
 
         this.noteWindow.appendChild(this.noteContents);
         this.noteContainer.appendChild(this.noteWindow);
@@ -203,7 +203,7 @@ class Fragment {
         this.noteContainer.addEventListener('mouseenter', () => this.onHover());
 
         this.noteContainer.onmouseleave = (ev) => {
-            if (state.dragging || state.resizing)
+            if (window.state.dragging || window.state.resizing)
                 return;
             noteButtons.style.visibility = "hidden";
         };
@@ -216,7 +216,7 @@ class Fragment {
     }
 
     onHover() {
-        if ((state.dragging && state.draggingFragment !== this) || state.resizing)
+        if ((window.state.dragging && window.state.draggingFragment !== this) || window.state.resizing)
             return;
 
         this.noteContainer.appendChild(noteButtons);
@@ -224,8 +224,8 @@ class Fragment {
 
         noteButtons.dataset.noteid = this.noteId;
 
-        if (!state.dragging)
-            state.draggingFragment = this;
+        if (!window.state.dragging)
+            window.state.draggingFragment = this;
 
         closeBtn.onclick = () => {
             this.close(true);
@@ -239,7 +239,6 @@ class Fragment {
     }
 
     show(animate = true) {
-        console.log('Fragment.show()');
         this.open = true;
         this.noteContainer.style.visibility = 'visible';
         if (animate) {
@@ -253,7 +252,6 @@ class Fragment {
     }
 
     close(recurse = false) {
-        console.log('Fragment.close()');
     }
 
     setPosition(pos) {
@@ -326,8 +324,8 @@ class Fragment {
     }
 
     toFront() {
-        state.lastZIndex++;
-        this.noteContainer.style.zIndex = state.lastZIndex;
+        window.state.lastZIndex++;
+        this.noteContainer.style.zIndex = window.state.lastZIndex;
     }
 }
 
@@ -342,13 +340,13 @@ class NoteStatic extends Fragment {
         this.closable = true;
         this.width = this.noteWindow.clientWidth;
 
-        state.addNote(this);
+        window.state.addNote(this);
     }
 
     onHover() {
         super.onHover();
 
-        if (state.resizing || state.dragging)
+        if (window.state.resizing || window.state.dragging)
             return;
 
         restoreBtn.style.display = "none";
@@ -379,9 +377,18 @@ class NoteStatic extends Fragment {
     }
 
     setHTML(html) {
-        this.noteContents.innerHTML = html.trim().replaceAll("\n", "");
+        function cleanupHtmlWhitespace(html) {
+            return html
+                .trim()
+                // Remove whitespace between block elements only
+                .replace(/(<\/?(ol|ul|li|p|div|h[1-6]|blockquote)[^>]*>)\s+/g, '$1')
+                .replace(/\s+(<\/?(ol|ul|li|p|div|h[1-6]|blockquote)[^>]*>)/g, '$1')
+                .trim();
+        }
 
-        // execture <script> tags
+        this.noteContents.innerHTML = cleanupHtmlWhitespace(html);
+
+        // execute <script> tags
         Array.from(this.noteContents.querySelectorAll("script"))
             .forEach(oldScriptEl => {
                 const newScriptEl = document.createElement("script");
@@ -407,10 +414,13 @@ class NoteStatic extends Fragment {
         const elements = this.noteContents.querySelectorAll('img,iframe');
 
         for (const element of elements) {
+            if (element.dataset.loadcb)
+                continue
             element.addEventListener('load', () => {
                 this.width = this.noteContents.offsetWidth;
                 this.height = this.noteContents.offsetHeight;
             });
+            element.dataset.loadcb = true;
         }
     }
 
@@ -429,6 +439,7 @@ class NoteStatic extends Fragment {
     }
 
     setWidth(width) {
+        console.log(`NoteStatic setWidth: ${width}`);
         this.width = width;
         this.options.width = width;
         this.noteWindow.style.width = width + "px";
@@ -454,7 +465,7 @@ class Split extends Fragment {
     onHover() {
         super.onHover();
 
-        if (state.dragging || state.resizing)
+        if (window.state.dragging || window.state.resizing)
             return;
 
         restoreBtn.onclick = () => this.restore();

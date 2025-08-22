@@ -1,14 +1,24 @@
-// This module adds editing functionality to note.js. Only imported if editToken is correct
-// assumes note.js is already imported!
+// This module adds editing functionality to noteReadOnly.js. Only imported if editToken is correct
+// assumes noteReadOnly.js is already imported!
 
-import { state } from './state.js';
 import { Split, updateHighlights } from './noteStatic.js';
-import { Note } from './note.js';
+import { Note } from './noteReadOnly.js';
 
-const noteButtons = document.querySelector("#note-buttons");
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { QuillBinding } from 'y-quill';
 
-const removeBtn = noteButtons.querySelector("#remove-note");
-const resizeHandle = document.querySelector("#resize-note");
+import Quill from 'quill';
+import QuillCursors from 'quill-cursors';
+Quill.register('modules/cursors', QuillCursors, true);
+
+let noteButtons = document.querySelector("#note-buttons");
+let removeBtn = noteButtons.querySelector("#remove-note");
+let resizeHandle = document.querySelector("#resize-note");
+
+window.quillOptions.modules = {
+    cursors: true
+};
 
 if (canEdit && editToken) {
     let roomHistory = JSON.parse(localStorage.getItem("history") || '{}');
@@ -23,21 +33,23 @@ if (resizeHandle) {
     resizeHandle.addEventListener('mousedown', (ev) => {
         ev.preventDefault();
         console.log("resize start");
+
         const noteId = noteButtons.dataset.noteid;
         if (!noteId)
             return;
 
-        const note = state.notes[noteId];
+        const note = window.state.notes[noteId];
         if (!(note instanceof Note))
             return;
 
-        state.resizing = noteId;
-        state.resizeStartPosition = ev.clientX;
+        window.state.resizing = noteId;
+        window.state.resizeStartPosition = ev.clientX;
         note.noteWindow.classList.remove("grow");
-        state.resizeStartWidth = note.width;
+        window.state.resizeStartWidth = note.width;
         note.toFront();
     });
 }
+// });
 
 class EditableNote extends Note {
 
@@ -47,20 +59,25 @@ class EditableNote extends Note {
         this.lastSelection;
         this.parentHighlight;
 
-        this.noteEditor.on('text-change', (delta, oldDelta, source) => {
+        this.notificationTimeout = null;
+        this.notification = document.createElement('div');
+        this.notification.classList.add('notification');
+        this.noteContainer.appendChild(this.notification);
+        this.showNotification('Loading...');
+
+        this.noteEditor.on('text-change', (_delta, _oldDelta, _source) => {
             const range = this.noteEditor.getSelection();
-            state.currentSelection = range;
+            window.state.currentSelection = range;
         });
 
-        this.noteEditor.on('selection-change', (range, oldRange, source) => {
-            if (this.locked) {
-                this.noteEditor.blur();
-                return;
-            }
+        this.noteEditor.on('selection-change', (range, _oldRange, source) => {
+            this.provider.awareness.setLocalStateField('user', {
+                color: window.state.highlightColour
+            });
 
             if (!range) {
                 this.exitEditMode();
-                state.currentSelection = undefined;
+                window.state.currentSelection = undefined;
                 return;
             } else {
                 this.lastSelection = range;
@@ -70,7 +87,7 @@ class EditableNote extends Note {
             }
 
             this.lastHighlight = range;
-            state.currentSelection = range;
+            window.state.currentSelection = range;
         });
 
         this.noteEditor.keyboard.addBinding({
@@ -102,42 +119,77 @@ class EditableNote extends Note {
             }
         });
 
+        const ydoc = new Y.Doc()
+        this.provider = new WebsocketProvider(
+            `ws${location.protocol.slice(4)}//${location.host}/ws`,
+            noteId,
+            ydoc,
+            { params: { editToken, roomId, noteId } }
+        );
+        this.ytext = ydoc.getText('quill');
+        this.ymap = ydoc.getMap('note-options');
+
+        ydoc.on("update", (update, origin, tr) => {
+            updateHighlights(this);
+            this.width = this.noteContents.offsetWidth;
+            this.height = this.noteContents.offsetHeight;
+            this.addLoadCallbacks();
+        });
+
+        this.ymap.observe(ymapEvent => {
+            for (const key of ymapEvent.keysChanged) {
+                if (key === 'width') {
+                    this.setWidth(this.ymap.get('width'));
+                }
+            }
+        });
+
+        this.binding = new QuillBinding(this.ytext, this.noteEditor, this.provider.awareness);
+        this.provider.awareness.setLocalStateField('user', {
+            color: window.state.highlightColour
+        });
+
+        this.provider.on("status", (event) => {
+            console.log("provider status " + event.status);
+            if (event.status === 'disconnected') {
+                this.showNotification('Disconnected', false);
+            } else if (event.status === 'connecting') {
+                this.showNotification('Connecting...', false);
+            } else if (event.status === 'connected') {
+                this.notification.innerHTML = 'Connected';
+                this.hideNotification(true);
+            }
+        });
+
+        this.provider.on("connection-close", (event) => {
+            if (event.code == 4001) {
+                console.log(event.reason);
+                this.provider.shouldConnect = false;
+                this.noteEditor.setContents([
+                    { insert: `Error connecting to note: ${event.reason}`, attributes: { color: 'red', italic: true } }
+                ], 'api');
+            }
+        });
     }
 
     onHover() {
         super.onHover();
-        if ((state.dragging) || state.resizing)
+        if ((window.state.dragging) || window.state.resizing)
             return;
 
-        if (this.locked) {
-            noteButtons.style.visibility = "hidden";
+        if (this.closable) {
+            removeBtn.style.display = "block";
+            removeBtn.dataset.noteid = this.noteId;
         } else {
-            if (this.closable) {
-                removeBtn.style.display = "block";
-                removeBtn.dataset.noteid = this.noteId;
-                if (this.parent && this.parent.locked) {
-                    removeBtn.classList.add('tool-disabled');
-                    removeBtn.title = "Cannot delete note while someone is editing the parent note";
-                } else {
-                    removeBtn.classList.remove('tool-disabled');
-                    removeBtn.title = "Delete note";
-                }
-            } else {
-                removeBtn.style.display = "none";
-            }
-
-            resizeHandle.style.display = "block";
-            noteButtons.style.visibility = "visible";
+            removeBtn.style.display = "none";
         }
+
+        resizeHandle.style.display = "block";
+        noteButtons.style.visibility = "visible";
     }
 
     enterEditMode() {
         console.log(`${this.noteId} enterEditMode()`);
-        if (this.locked) {
-            console.log("enterEditMode: is locked so returning");
-            this.
-                return;
-        }
 
         if (!canEdit) {
             console.log("enterEditMode: canEdit is false");
@@ -151,13 +203,7 @@ class EditableNote extends Note {
         if (this.lastSelection)
             this.noteEditor.setSelection(this.lastSelection,);
 
-        state.lockNote(this, true);
-        state.enteredEditMode(this);
-
-        if (!this.noteId && this.parent) {
-            console.log(`new annotation, locking parent ${this.parent.noteId}`);
-            state.lockNote(this.parent, true);
-        }
+        window.state.enteredEditMode(this);
     }
 
     exitEditMode(skip_save = false) {
@@ -165,16 +211,29 @@ class EditableNote extends Note {
         this.editing = false;
         this.noteWindow.classList.remove('note-editing');
 
-        if (!skip_save) {
-            this.save();
-            this.setLocked(false, true);
-        } else {
-            // keep locked
-            // this.setLocked(true, true);
-            state.lockNote(this, true);
-        }
+        window.state.exitedEditMode(this);
 
-        state.exitedEditMode(this);
+        if (this.noteEditor.getText().trimEnd().length == 0) {
+            console.log("Length 0, deleting note");
+            this.delete();
+        }
+    }
+
+    showNotification(message, instant = false) {
+        clearTimeout(this.notificationTimeout);
+
+        this.notification.innerText = message;
+        this.notificationTimeout = setTimeout(() => {
+            this.notification.style.visibility = 'visible';
+        }, instant ? 0 : 1000);
+    }
+
+    hideNotification(instant = false) {
+        clearTimeout(this.notificationTimeout);
+
+        this.notificationTimeout = setTimeout(() => {
+            this.notification.style.visibility = 'hidden';
+        }, instant ? 0 : 1000);
     }
 
     preSplit() {
@@ -188,37 +247,13 @@ class EditableNote extends Note {
         this.noteEditor.enable(true);
     }
 
-    setLocked(lock, update_state = false) {
-        if (this.editing && !lock) {
-            console.log("trying to unlock but I am editing rn");
-            return;
-        }
-
-        super.setLocked(lock);
-        console.log(`setLocked ${this.noteId} ${lock}`)
-
-        this.noteEditor.enable(!lock);
-
-        if (update_state)
-            state.lockNote(this, lock);
-    }
-
     delete() {
-        if (!canEdit || !editToken || this.locked) {
-            console.log(`Cannot delete note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
+        if (!canEdit || !editToken) {
+            console.log(`Cannot delete note (canEdit: ${canEdit}, editToken: ${editToken})`);
             return;
         }
 
-        // check if parent is locked...
-        if (this.parent && this.parent.locked) {
-            console.log(`Cannot delete note since parent is locked`);
-            return;
-        }
-
-        this.setLocked(true, true);
-        this.parent.setLocked(true, true);
-
-        fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
+        fetch(`${baseURL}/room/${window.state.roomId}/note/${this.noteId}`, {
             method: 'DELETE',
             body: JSON.stringify({
                 editToken
@@ -227,7 +262,6 @@ class EditableNote extends Note {
                 "Content-type": "application/json"
             }
         }).then(res => {
-            this.exitEditMode(true);
             this.close(false);
 
             if (!res.ok) {
@@ -247,134 +281,50 @@ class EditableNote extends Note {
                 }
 
                 this.parent.restore();
-                this.parent.setLocked(false, true);
                 this.parent.setContents(JSON.stringify(parentContents.ops), 'api');
                 this.parent.save();
-                // state.currentEditingNote = undefined;
-                // state.lockNote(this.parent, false);
             }
 
             delete this.noteEditor;
-            delete state.deleteNote(this);
+            delete window.state.deleteNote(this);
         });
 
     }
 
     addHighlight() {
-        if (!canEdit || !editToken || this.locked || !this.editing)
+        if (!canEdit || !editToken || !this.editing)
             return;
 
-        console.log("new note");
-        const selection = this.noteEditor.getSelection();
-        if (!selection || selection.length == 0) {
-            console.log("selection is undefined or 0");
-            return;
-        }
-        const bounds = this.noteEditor.getBounds(selection);
-        const parentPos = this.getPosition();
-        this.parentHighlight = selection;
+        fetch(`${baseURL}/room/${window.state.roomId}/newnote?editToken=${editToken}`)
+            .then(res => res.json())
+            .then(data => {
+                const { noteId } = data;
+                console.log("new note id: " + noteId);
 
-        const newNote = new EditableNote();
-        newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
-        newNote.toFront();
-        newNote.parent = this;
-        newNote.show(false);
-        this.exitEditMode(true);
+                const selection = this.noteEditor.getSelection();
+                if (!selection || selection.length == 0)
+                    return;
+
+                this.noteEditor.formatText(
+                    selection.index,
+                    selection.length,
+                    'annotate',
+                    { id: noteId, color: window.state.highlightColour }
+                );
+                const bounds = this.noteEditor.getBounds(selection);
+                const parentPos = this.getPosition();
+
+                const newNote = new EditableNote(noteId);
+                newNote.setPosition({ left: bounds.left + parentPos.left, top: bounds.top + bounds.height + parentPos.top });
+                newNote.toFront();
+                newNote.parent = this;
+                newNote.show(false);
+                newNote.noteEditor.focus();
+            });
     }
 
     save(force = false) {
-        if (!canEdit || !editToken || this.locked) {
-            console.log(`Cannot edit note (canEdit: ${canEdit}, editToken: ${editToken}, locked: ${this.locked})`);
-            return;
-        }
-
-        const noteContent = this.noteEditor.getContents();
-        const noteOptions = this.options;
-
-        if (!force && JSON.stringify(noteContent) === this.lastContent)
-            return;
-
-        if (this.noteId) {
-            // note already saved, update it
-            fetch(`${baseURL}/room/${state.roomId}/note/${this.noteId}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    editToken,
-                    noteContent,
-                    noteOptions
-                }),
-                headers: {
-                    "Content-type": "application/json"
-                }
-            }).then(res => {
-                if (res.status != 200)
-                    return res.json();
-                else
-                    return {}
-            }).then(json => {
-                this.lastContent = JSON.stringify(noteContent);
-                if (json.msg)
-                    console.log(json.msg);
-            }).catch(error => {
-                console.log("Error editing note: " + error);
-            });
-        } else {
-            // note not saved yet, create new
-            console.log("note not saved, creating new");
-
-            // if empty, ignore...
-            if (this.noteEditor.getText().trim().length == 0) {
-                this.delete();
-                return;
-            }
-
-            // get the lastHighlight of the parent note
-            // to set the annotation format...
-            let lastHighlight;
-            if (this.parent)
-                lastHighlight = this.parent.parentHighlight;
-
-            fetch(`${baseURL}/room/${state.roomId}/note/`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    editToken,
-                    noteContent,
-                    noteOptions
-                }),
-                headers: {
-                    "Content-type": "application/json"
-                }
-            }).then(res => {
-                return res.json();
-            }).then(json => {
-                if (json.msg)
-                    console.log(json.msg);
-                else if (json.noteId) {
-                    // update the highlight with the assigned noteId
-                    this.noteId = json.noteId;
-
-                    if (lastHighlight) {
-                        this.parent.noteEditor.formatText(lastHighlight.index, lastHighlight.length, 'annotate', { id: this.noteId, color: state.highlightColour });
-                        updateHighlights(this.parent);
-                        this.parent.save();
-                    }
-
-                    state.addNote(this);
-                    this.lastContent = JSON.stringify(noteContent);
-
-                    if (this.parent)
-                        this.parent.setLocked(false, true);
-                }
-                else
-                    console.log(json);
-
-            }).catch(error => {
-                console.log("Error editing note: " + error);
-
-                if (this.parent)
-                    this.parent.setLocked(false, true);
-            });
-        }
+        return;
     }
 
     setContents(contents) {
@@ -388,15 +338,26 @@ class EditableNote extends Note {
 class EditableSplit extends Split {
     onHover() {
         super.onHover();
-        if (state.dragging || state.resizing)
+        if (window.state.dragging || window.state.resizing)
             return;
         removeBtn.style.display = "none";
         resizeHandle.style.display = "none";
     }
 }
 
+async function fetchNoteEdit(noteId, note) {
+    console.log("fetchNoteEdit ", noteId);
+
+    if (!note) {
+        let newNote = new window.Note(noteId);
+
+        return newNote;
+    }
+}
+
 
 window.Note = EditableNote;
 window.Split = EditableSplit;
+window.fetchNote = fetchNoteEdit;
 
 export { EditableNote, EditableSplit };
