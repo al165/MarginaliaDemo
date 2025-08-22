@@ -4,8 +4,6 @@ import { state } from './state.js';
 window.state = state;
 
 window.addEventListener('load', async () => {
-    console.log('room.js window load');
-
     window.state.roomId = roomId;
 
     await import('./noteReadOnly.js');

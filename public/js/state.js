@@ -94,7 +94,6 @@ class MarginaliaRoomState {
     }
 
     addNote(note) {
-        console.log("state.addNote " + note.noteId);
         this.notes[note.noteId] = note;
         for (const callback of this.callbacks) {
             if (callback.event === 'addNote')
@@ -115,6 +114,5 @@ class MarginaliaRoomState {
     }
 
 }
-
 
 export const state = new MarginaliaRoomState();

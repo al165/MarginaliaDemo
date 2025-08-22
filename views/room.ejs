@@ -39,6 +39,9 @@
   </style>
   <% } else {%>
   <link rel="stylesheet" href="<%= room.baseURL %>/style.css">
+  <% if(room.canEdit) {%>
+  <link rel="stylesheet" href="<%= room.baseURL %>/styleEdit.css">
+  <% } %>
   <% } %>
 </head>
 

@@ -55,7 +55,7 @@ class EditableNote extends Note {
 
     constructor(noteId, noteType = 0) {
         super(noteId, noteType);
-        this.noteEditor.enable(false);
+        this.noteEditor.enable(canEdit);
         this.lastSelection;
         this.parentHighlight;
 
@@ -65,9 +65,6 @@ class EditableNote extends Note {
         });
 
         this.noteEditor.on('selection-change', (range, _oldRange, source) => {
-            if (source === 'api')
-                return;
-
             this.provider.awareness.setLocalStateField('user', {
                 color: window.state.highlightColour
             });
@@ -153,7 +150,7 @@ class EditableNote extends Note {
             } else if (event.status === 'connecting') {
 
             } else if (event.status === 'connected') {
-                this.noteEditor.enable(true);
+
             }
         });
 

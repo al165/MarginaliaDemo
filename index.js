@@ -5,7 +5,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import crypto from "crypto";
 import util from "util";
 import { exec } from "child_process";
 const execPromise = util.promisify(exec);
@@ -14,146 +13,18 @@ import express from "express";
 import { createServer } from "http";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import beautify from 'js-beautify';
 
 import multer, { diskStorage } from "multer";
 
-import * as Y from 'yjs';
-import { WebSocketServer } from 'ws'
-import { createYjsServer } from 'yjs-server'
-
-const wss = new WebSocketServer({ noServer: true });
-const yjss = createYjsServer({
-  createDoc: () => {
-    return new Y.Doc();
-  },
-  docStorage: {
-    loadDoc: async (docName, doc) => {
-      console.log(`loadDoc ${docName}`);
-
-      const noteId = docName.split('/')[1];
-      const row = await db.get(
-        "SELECT noteContent, noteOptions, noteType, yjsState FROM Notes WHERE id = ?",
-        [noteId],
-      );
-
-      if (!row || !row.noteContent) {
-        console.error(`loadDoc: Note ${noteId} not found`);
-        return;
-      }
-
-      const ytext = doc.getText('quill');
-      const ymap = doc.getMap('note-options');
-
-      if (row.noteType == 0) {
-        if (row.yjsState) {
-          Y.applyUpdate(doc, row.yjsState);
-        } else {
-          if (row.noteOptions) {
-            for (const [key, value] of Object.entries(JSON.parse(row.noteOptions))) {
-              console.log(`setting ${key} to ${value}`);
-              ymap.set(key, value);
-            }
-          }
-
-          let ops = JSON.parse(row.noteContent);
-          if (ops['ops'])
-            ops = ops['ops']
-
-          ytext.applyDelta(ops);
-
-          // Update database immediately with the yjsState
-          const yjsState = Y.encodeStateAsUpdate(doc);
-          await db.run(
-            "UPDATE Notes SET yjsState = ? WHERE id = ?",
-            [yjsState, noteId],
-          );
-        }
-      } else {
-        if (row.noteOptions) {
-          for (const [key, value] of Object.entries(JSON.parse(row.noteOptions))) {
-            ymap.set(key, value);
-          }
-        }
-      }
-    },
-    storeDoc: async (docName, doc) => {
-      console.log(`storeDoc ${docName}`);
-      // last connection to doc closed
-
-      // Check if any images are in the noteContent
-      const ytext = doc.getText('quill');
-      const noteId = docName.split('/')[1];
-      const noteContent = {
-        ops: ytext.toDelta()
-      };
-      await updateUploadsXRefTable(db, noteId, noteContent);
-    },
-    onUpdate: async (docName, update, doc) => {
-      // console.log(`onUpdate ${docName}`);
-      const ymap = doc.getMap('note-options');
-
-      if (ymap.noteType)
-        return;
-
-      const yjsState = Y.encodeStateAsUpdate(doc);
-      const ytext = doc.getText('quill');
-
-      const noteId = docName.split('/')[1];
-      const noteContent = {
-        ops: ytext.toDelta()
-      };
-      const noteOptions = ymap.toJSON();
-
-      await db.run(
-        "UPDATE Notes SET noteContent = ?, noteOptions = ?, yjsState = ? WHERE id = ?",
-        [JSON.stringify(noteContent), JSON.stringify(noteOptions), yjsState, noteId],
-      );
-
-      // console.log(`UPDATED NOTE: id ${noteId}`);
-    }
-  },
-});
-
-wss.on('connection', (socket, request) => {
-  const whenAuthorised = authorise(socket, request).catch((error) => {
-    console.log(`Error authorising connection: ${error.message}`);
-    socket.close(4001, 'Unauthorised connection');
-    return false
-  })
-  yjss.handleConnection(socket, request, whenAuthorised);
-});
-
-async function authorise(socket, req) {
-  const url = new URL(req.url, 'http://localhost');
-
-  const editToken = url.searchParams.get('editToken');
-  const roomId = url.searchParams.get('roomId');
-  const noteId = url.searchParams.get('noteId');
-
-  // 1. check if note belongs in room
-  const roomNotesRow = await db.get("SELECT * FROM Rooms_Notes_XRef WHERE noteId = ?", [noteId]);
-  if (!roomNotesRow) {
-    console.log("authorise: notes not found");
-    return true;
-  }
-
-  if (roomNotesRow.roomId !== roomId)
-    throw new Error('Wrong room');
-
-  // 2. check editToken
-  const noteRow = await db.get("SELECT editToken FROM Rooms WHERE id = ?", [roomId]);
-  if (noteRow.editToken !== editToken)
-    throw new Error('Wrong editToken');
-
-  return true
-}
+import { createHomeNote, DEFAULT_NOTE } from "./server/initialise.js";
+import { generateId } from "./server/utils.js";
 
 // For generating static marginalia
 import esbuild from "esbuild";
-import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
+import { createStatic } from "./server/createStatic.js";
 
-import { updateUploadsXRefTable } from "./utils/utils.js";
+// Setup collaboration server
+import { setupYjsServer } from "./server/collaboration.js";
 
 dotenv.configDotenv();
 
@@ -188,55 +59,12 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
-
 let HAS_MAGICK = false;
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-function loadSvg(filePath, attrs = {}) {
-  let svg = fs.readFileSync(path.resolve(filePath), "utf8");
-
-  // Strip XML/DOCTYPE headers
-  svg = svg.replace(/<\?xml.*?\?>|<!DOCTYPE.*?>|<!--.*?-->/gs, "").trim();
-
-  // Inject attributes into <svg ...>
-  svg = svg.replace(/<svg\b([^>]*)>/, (_match, existingAttrs) => {
-    const attrString = Object.entries(attrs)
-      .map(([k, v]) => `${k}="${v}"`)
-      .join(" ");
-    return `<svg ${existingAttrs} ${attrString}>`;
-  });
-
-  return svg;
-}
-
-function svgToBase64(filepath, attrs = {}) {
-  const svg = loadSvg(filepath, attrs);
-  const base64 = Buffer.from(svg).toString("base64");
-  return `data:image/svg+xml;base64,${base64}`;
-}
-
-function imageToBase64(filepath) {
-  const ext = path.extname(filepath).slice(1); // 'png', 'ico', 'svg'
-  const mimeMap = {
-    jpg: "image/jpeg",
-    png: "image/png",
-    ico: "image/x-icon",
-    svg: "image/svg+xml",
-  };
-
-  const mime = mimeMap[ext];
-  if (!mime) throw new Error(`Unsupported image type: .${ext}`);
-
-  const buffer = fs.readFileSync(filepath);
-  const base64 = buffer.toString("base64");
-  const src = `data:${mime};base64,${base64}`;
-
-  return { mime, src };
-}
 
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
@@ -276,22 +104,6 @@ async function checkEditToken(req, _res, next) {
 
   next();
 }
-
-function generateId(length) {
-  const charset =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const randomBytes = crypto.randomBytes(length);
-  let id = "";
-  for (let i = 0; i < randomBytes.length; i++) {
-    id += charset[randomBytes[i] % charset.length];
-  }
-  return id;
-}
-
-const DEFAULT_NOTE = {
-  insert:
-    "Welcome to your room.\n\n\n\nClick to start writing...\n\n\n\nTo publish, click on the envelope icon to be redirected to a public URL that you can share with the world.\n",
-};
 
 app.get(
   BASE_URL + "/room/:roomId",
@@ -382,121 +194,9 @@ app.get(
   asyncHandler(async (req, res) => {
     const { roomId } = req.params;
 
-    console.log("Rendering static room " + roomId);
+    const result = await createStatic(db, roomId, BASE_URL);
 
-    const notes = await db.all(
-      `
-        SELECT * FROM Notes 
-        JOIN Rooms_Notes_XRef ON Notes.id = Rooms_Notes_XRef.noteId 
-        WHERE Rooms_Notes_XRef.roomId = ?`,
-      roomId,
-    );
-
-    if (!notes || notes.length === 0) {
-      console.error(`No notes found in room ${roomId}`);
-      return res.sendStatus(404);
-    }
-
-    const row = await db.get(
-      "SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?",
-      [roomId],
-    );
-
-    if (!row) throw new Error(`room ${roomId} not found`);
-
-    const noteData = {};
-    for (const note of notes) {
-      noteData[note.id] = note;
-    }
-
-    // Convert ops to HTML for easier editing
-    for (const note of notes) {
-      // console.log(note);
-      note.noteOptions = JSON.parse(note.noteOptions) || {};
-      if (note.noteType) {
-        console.log("pure HTML note type");
-        note.noteHtml = note.noteContent;
-        note.noteContent = undefined;
-        continue;
-      }
-
-      const ops = JSON.parse(note.noteContent)["ops"];
-
-      // Convert image URLs to base64 strings
-      for (const op of ops) {
-        if (!op.insert || !op.insert.image) continue;
-
-        let row = await db.get("SELECT * FROM Uploads WHERE fileUrl = ?", [
-          op.insert.image,
-        ]);
-        if (!row) {
-          console.log(
-            `image with src ${fileURL} not in Uploads table, external?`,
-          );
-          continue;
-        }
-
-        const filepath = path.join(row.path, row.filename);
-        const imgBase64 = imageToBase64(filepath).src;
-        op.insert.image = imgBase64;
-      }
-
-      const cfg = {
-        customTag: function (format, _op) {
-          if (format === "annotate") {
-            return "mark";
-          }
-        },
-        customTagAttributes: function (op) {
-          if (op.attributes.annotate) {
-            return {
-              "data-id": op.attributes.annotate.id,
-              "data-color": op.attributes.annotate.color,
-            };
-          }
-        },
-      };
-      const converter = new QuillDeltaToHtmlConverter(ops, cfg);
-
-      console.log(note.noteOptions);
-      const rawHtml = converter.convert();
-      const divTag = `<div class="static-note" data-id="${note.noteId}" data-width="${note.noteOptions.width || 340}">`
-      const html = `${divTag}${rawHtml}</div>`;
-      const tidyHtml = beautify.html(html, {
-        indent_size: 2,
-        wrap_line_length: 120,
-        preserve_newlines: false,
-        max_preserve_newlines: 1,
-      });
-
-      console.log(tidyHtml);
-      note.noteHtml = tidyHtml;
-      note.noteContent = undefined;
-    }
-
-    // get static resources
-    const css = fs.readFileSync("./public/style.css").toString();
-    const closeIcon = svgToBase64("./public/icons/close.svg");
-    const dragIcon = svgToBase64("./public/icons/28_drag.svg");
-    const unbreakIcon = svgToBase64("./public/icons/29_unbreak.svg");
-    const logo = svgToBase64("./public/logo.svg");
-
-    const favicon = imageToBase64("./public/favicon.ico");
-    const faviconHtml = `<link rel="icon" type="${favicon.mime}" href="${favicon.src}">`;
-
-    row.roomId = roomId;
-    row.canEdit = false;
-    row.editToken = undefined;
-    row.baseURL = BASE_URL;
-    row.renderStatic = true;
-
-    return res.render("room", {
-      room: row,
-      notes: noteData,
-      css,
-      icons: { close: closeIcon, unbreak: unbreakIcon, drag: dragIcon, logo },
-      favicon: faviconHtml,
-    });
+    return res.render("room", result);
   }),
 );
 
@@ -696,12 +396,13 @@ app.get(
 );
 
 app.use(BASE_URL, express.static(path.join(__dirname, "public")));
+
 app.use(
   BASE_URL + "/uploads",
   express.static(path.join(__dirname, UPLOADS_DIR)),
 );
 
-// Error handling middlewares
+// Error handling middleware
 app.use((err, _req, res, _next) => {
   console.error("Error:", err.message);
   console.error("Stack trace:", err.stack);
@@ -718,7 +419,8 @@ async function setup() {
   db = await dbPromise;
   await db.migrate();
   await db.run("PRAGMA foreign_keys = ON;");
-  await createHomeNote();
+  await createHomeNote(db, BASE_URL);
+  const wss = setupYjsServer(db);
 
   fs.mkdirSync(path.join(UPLOADS_DIR, "tmp"), { recursive: true });
 
@@ -750,7 +452,7 @@ async function setup() {
     });
 
   server.on('upgrade', (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, /** @param {any} ws */ ws => {
+    wss.handleUpgrade(request, socket, head, ws => {
       wss.emit('connection', ws, request)
     })
   });
@@ -759,243 +461,6 @@ async function setup() {
     console.log("listening on http://localhost:" + PORT + BASE_URL);
     console.log();
   });
-}
-
-async function createHomeNote() {
-  console.log("Creating Homepage note");
-  const roomEditToken = generateId(16);
-  console.log(`Homepage editToken (keep it secret!): ${roomEditToken}`);
-
-  const createdOn = new Date();
-
-  const roomData = {
-    id: "welcome",
-    name: "home",
-    createdOn,
-    editToken: roomEditToken,
-    rootNote: "welcomeNote",
-  };
-
-  const welcomeNoteData = {
-    id: "welcomeNote",
-    createdOn,
-    noteContent: JSON.stringify({
-      ops: [
-        {
-          insert: "Welcome to ",
-        },
-        {
-          attributes: {
-            annotate: {
-              color: "oklch(0.65 0.4 312)",
-              id: "about",
-            },
-            italic: true,
-          },
-          insert: "Marginalia",
-        },
-        {
-          attributes: {
-            header: 2,
-          },
-          insert: "\n",
-        },
-        {
-          insert:
-            "The annotation and publishing platform that encourages writing in the margins. \n\nThis is a space for you to create notes, comment, annotate and elaborate your thoughts, and publish them for anyone else to see (or optionally edit!).\n\nWe believe that the ",
-        },
-        {
-          attributes: {
-            annotate: {
-              color: "oklch(0.65 0.4 95",
-              id: "marginquote",
-            },
-          },
-          insert: "margins",
-        },
-        {
-          insert:
-            ", the footnotes and asides are as important as the main text, and we aim to foster a discourse within the messy organisation of thoughts and ideas in a free and open space.\n\n",
-        },
-        {
-          attributes: {
-            annotate: {
-              color: "oklch(0.65 0.4 193)",
-              id: "howtouse",
-            },
-          },
-          insert: "Take a look around",
-        },
-        {
-          insert: "! Or, ",
-        },
-        {
-          attributes: {
-            annotate: {
-              color: "oklch(0.65 0.4 312)",
-              id: "createroom",
-            },
-          },
-          insert: "create a room of ones own...",
-        },
-        {
-          insert: "\n\n",
-        },
-        {
-          attributes: {
-            italic: true,
-          },
-          insert:
-            "Marginalia is still in early development and will be updated soon!",
-        },
-        {
-          insert: "\n",
-        },
-      ],
-    }),
-  };
-
-  const createRoomNote = {
-    id: "createroom",
-    createdOn,
-    noteContent: `<form action="${BASE_URL}/newroom"><input type="text" name="roomname" style="margin: 0.5em 0.5em 0.5em 0em" placeholder="Name of your room">
-  <input type="submit" value="Create your room"></form>
-  <p>Tip: bookmark or save the URL of your room so that you can return to it later!</p><div id="room-history"></div><script src="${BASE_URL}/js/fetchhistory.js"></script>`,
-    noteType: 1,
-  };
-
-  const aboutNoteData = {
-    id: "about",
-    createdOn,
-    noteContent: JSON.stringify({
-      ops: [
-        {
-          insert:
-            "Marginalia is an open source project designed, created and developed by Senka and Arran.\n\nSupport from ",
-        },
-        {
-          attributes: {
-            link: "https://www.stimuleringsfonds.nl/",
-          },
-          insert: "Stimulerings Fonds",
-        },
-        {
-          insert: ".\n",
-        },
-      ],
-    }),
-  };
-
-  const marginNote = {
-    id: "marginquote",
-    createdOn,
-    noteContent: JSON.stringify({
-      ops: [
-        {
-          insert: "Marginality as a site of resistance",
-        },
-        {
-          attributes: {
-            blockquote: true,
-          },
-          insert: "\n",
-        },
-        {
-          attributes: {
-            italic: true,
-          },
-          insert: "bell hooks",
-        },
-        {
-          attributes: {
-            align: "right",
-          },
-          insert: "\n",
-        },
-      ],
-    }),
-  };
-
-  const howToUseNote = {
-    id: "howtouse",
-    createdOn,
-    noteContent: JSON.stringify({
-      ops: [
-        {
-          insert:
-            "Clicking on highlighted text opens the annotation, and deliberately disrupts the main flow of text.\n\n",
-        },
-        {
-          attributes: {
-            size: "small",
-          },
-          insert: "(",
-        },
-        {
-          attributes: {
-            italic: true,
-            size: "small",
-          },
-          insert:
-            "don't worry, you can close a note by hovering over it and clicking the little X icon. You can also restore a split note by clicking the arrow icon on the upper right of any segment",
-        },
-        {
-          attributes: {
-            size: "small",
-          },
-          insert: ")",
-        },
-        {
-          insert: "\n",
-        },
-      ],
-    }),
-  };
-
-  const notes = [
-    welcomeNoteData,
-    aboutNoteData,
-    marginNote,
-    howToUseNote,
-    createRoomNote,
-  ];
-  const db = await dbPromise;
-  await db.run("BEGIN TRANSACTION;");
-
-  notes.map(async (noteData) => {
-    await db.run(
-      "INSERT INTO Notes (id, createdOn, noteContent, noteType, noteOptions) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING;",
-      [
-        noteData.id,
-        noteData.createdOn,
-        noteData.noteContent,
-        noteData.noteType ? noteData.noteType : 0,
-        '{}'
-      ],
-      function (err) {
-        if (err) console.error(err);
-        console.log("added note");
-      },
-    );
-  });
-
-  await db.run(
-    "INSERT INTO Rooms(id, name, editToken, createdOn, rootNote) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING;",
-    [
-      roomData.id,
-      roomData.name,
-      roomData.editToken,
-      roomData.createdOn,
-      roomData.rootNote,
-    ],
-    function (err) {
-      if (err) console.error(err);
-      console.log("Homepage finished");
-    },
-  );
-
-  await db.run("COMMIT;");
-  console.log("finished making homepage");
 }
 
 setup();

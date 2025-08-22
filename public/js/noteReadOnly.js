@@ -54,8 +54,6 @@ window.quillOptions = {
 }
 
 async function fetchNoteReadOnly(noteId, note) {
-    console.log("fetchNoteReadOnly ", noteId);
-
     try {
         const response = await fetch(
             `${baseURL}/room/${window.state.roomId}/note/${noteId}`
@@ -66,7 +64,6 @@ async function fetchNoteReadOnly(noteId, note) {
         }
 
         if (!note) {
-            console.log('fetchNote: creating note');
             let newNote;
             if (data.noteType == 0) {
                 newNote = new window.Note(noteId, data.noteType);
@@ -78,9 +75,7 @@ async function fetchNoteReadOnly(noteId, note) {
                 const options = JSON.parse(data.noteOptions) || {};
                 newNote.setOptions(options);
                 newNote.setHTML(data.noteContent);
-                // newNote.show();
             }
-            // newNote.close();
 
             return newNote;
         } else {

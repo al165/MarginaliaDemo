@@ -380,8 +380,9 @@ class NoteStatic extends Fragment {
         function cleanupHtmlWhitespace(html) {
             return html
                 .trim()
-                .replace(/>\s+</g, '><')  // Remove whitespace between tags
-                .replace(/\s+/g, ' ')     // Normalize multiple spaces to single space
+                // Remove whitespace between block elements only
+                .replace(/(<\/?(ol|ul|li|p|div|h[1-6]|blockquote)[^>]*>)\s+/g, '$1')
+                .replace(/\s+(<\/?(ol|ul|li|p|div|h[1-6]|blockquote)[^>]*>)/g, '$1')
                 .trim();
         }
 
