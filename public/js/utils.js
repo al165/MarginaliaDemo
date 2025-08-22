@@ -121,3 +121,25 @@ export function expandSelection(editor, range, stopOnNewline = false) {
 
     return { index, length }
 }
+
+export function getTargetedNote() {
+    const hash = window.location.hash;
+    if (hash.length > 0) {
+        const targetNoteId = hash.substring(1);
+        console.log("Fetching target note " + targetNoteId);
+
+        window.fetchNote(targetNoteId).then((newNote) => {
+            if (!newNote) {
+                console.log("Could not fetch note " + targetNoteId);
+                return;
+            }
+            const size = newNote.getSize();
+            const x = window.innerWidth / 2 - size.width / 2 + 100;
+            const y = window.innerHeight / 5 + 100;
+            newNote.setPosition({ left: x, top: y });
+
+            newNote.show();
+            newNote.toFront();
+        });
+    }
+}

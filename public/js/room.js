@@ -1,5 +1,6 @@
 import { THEME_LIST, setTheme } from './data/colourschemes.js'
 import { state } from './state.js';
+import { getTargetedNote } from './utils.js';
 
 window.state = state;
 
@@ -24,6 +25,8 @@ window.addEventListener('load', async () => {
         newNote.setPosition({ left: x, top: y });
 
         newNote.show();
+
+        getTargetedNote();
     });
 
     for (const colourTheme of THEME_LIST) {

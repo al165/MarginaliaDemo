@@ -348,6 +348,11 @@ class EditableSplit extends Split {
 async function fetchNoteEdit(noteId, note) {
     console.log("fetchNoteEdit ", noteId);
 
+    // check if note exists
+    const res = await fetch(`${baseURL}/room/${window.state.roomId}/note/${noteId}`);
+    if (!res.ok)
+        return null;
+
     if (!note) {
         let newNote = new window.Note(noteId);
 

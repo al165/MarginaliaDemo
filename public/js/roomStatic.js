@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { NoteStatic } from './noteStatic.js'
-
+import { getTargetedNote } from './utils.js';
 
 async function fetchNoteStatic(noteId, note) {
     console.log(`fetchNoteStatic ${noteId}`);
@@ -43,8 +43,6 @@ window.addEventListener('load', () => {
             noteOptions: { width },
             noteHtml: noteHtml.innerHTML
         };
-
-        console.log(noteHtml.innerHTML);
     }
 
     window.fetchNote(rootNote).then((newNote) => {
@@ -57,6 +55,8 @@ window.addEventListener('load', () => {
         const x = window.innerWidth / 2 - size.width / 2;
         const y = window.innerHeight / 5;
         newNote.setPosition({ left: x, top: y });
+
+        getTargetedNote();
     });
 
 });

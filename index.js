@@ -402,7 +402,7 @@ app.use(
 
 // Error handling middleware
 app.use((err, _req, res, _next) => {
-  console.error("Error:", err.message);
+  console.error("Error caught by middleware:", err.message);
   console.error("Stack trace:", err.stack);
   res.status(500).render("error", {
     message: err.message || "Internal Server Error",

@@ -81,7 +81,6 @@ export async function createStatic(db, roomId, baseURL) {
         };
         const converter = new QuillDeltaToHtmlConverter(ops, cfg);
 
-        console.log(note.noteOptions);
         const rawHtml = converter.convert();
         const divTag = `<div class="static-note" data-id="${note.noteId}" data-width="${note.noteOptions.width || 340}">`
         const html = `${divTag}${rawHtml}</div>`;
@@ -92,7 +91,6 @@ export async function createStatic(db, roomId, baseURL) {
             max_preserve_newlines: 1,
         });
 
-        console.log(tidyHtml);
         note.noteHtml = tidyHtml;
         note.noteContent = undefined;
     }
