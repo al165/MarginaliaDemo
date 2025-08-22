@@ -340,6 +340,9 @@ class NoteStatic extends Fragment {
         this.closable = true;
         this.width = this.noteWindow.clientWidth;
 
+        this.loaded = false;
+        this.contentLoadedCallbacks = [];
+
         window.state.addNote(this);
     }
 
@@ -408,6 +411,10 @@ class NoteStatic extends Fragment {
 
         this.width = this.noteContents.offsetWidth;
         this.height = this.noteContents.offsetHeight;
+
+        this.loaded = true;
+        for (const fn of this.contentLoadedCallbacks)
+            fn(this);
     }
 
     addLoadCallbacks() {
@@ -426,6 +433,21 @@ class NoteStatic extends Fragment {
 
     getHTML() {
         return this.noteContents.innerHTML;
+    }
+
+    openNote(noteId) {
+        // Finds the <mark> with `noteId` and triggers open
+
+        setTimeout(() => {
+            for (const mark of this.noteContents.querySelectorAll('mark')) {
+                if (mark.dataset.id !== noteId)
+                    continue;
+
+                console.log(`Found and opening note ${noteId}`);
+                mark.click();
+                break;
+            }
+        }, 400);
     }
 
     setOptions(options) {

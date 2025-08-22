@@ -4,6 +4,38 @@ import { getTargetedNote } from './utils.js';
 
 window.state = state;
 
+let targetPath = [];
+
+window.fetchPath = function (noteId) {
+    fetch(`${baseURL}/room/${window.state.roomId}/path/${noteId}`)
+        .then(res => res.json())
+        .then(path => {
+            targetPath = path;
+
+            window.state.addCallback('addNote', (note) => {
+                console.log("addNote callback");
+                const inPath = targetPath.findIndex(el => el === note.noteId);
+                if (inPath >= 0 && inPath < targetPath.length - 1) {
+                    const nextNoteId = targetPath[inPath + 1];
+                    note.openNote(nextNoteId);
+                }
+            });
+
+            if (targetPath.length > 1) {
+                const rootNote = state.notes[path[0]];
+                if (rootNote.loaded)
+                    rootNote.openNote(path[1]);
+                else
+                    rootNote.contentLoadedCallbacks.push((note) => {
+                        console.log(`${note.id} loaded, opening next annotation`);
+                        note.openNote(path[1]);
+                    });
+            }
+        });
+}
+
+
+
 window.addEventListener('load', async () => {
     window.state.roomId = roomId;
 

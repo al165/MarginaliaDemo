@@ -97,7 +97,7 @@ class MarginaliaRoomState {
         this.notes[note.noteId] = note;
         for (const callback of this.callbacks) {
             if (callback.event === 'addNote')
-                callback.fn(val);
+                callback.fn(note);
         }
     }
 

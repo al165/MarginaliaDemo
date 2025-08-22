@@ -123,6 +123,10 @@ class Note extends NoteStatic {
 
         this.width = this.noteContents.offsetWidth;
         this.height = this.noteContents.offsetHeight;
+
+        this.loaded = true;
+        for (const fn of this.contentLoadedCallbacks)
+            fn(this);
     }
 
     show(animate = true) {

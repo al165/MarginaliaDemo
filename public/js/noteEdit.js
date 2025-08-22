@@ -158,6 +158,9 @@ class EditableNote extends Note {
             } else if (event.status === 'connected') {
                 this.notification.innerHTML = 'Connected';
                 this.hideNotification(true);
+                this.loaded = true;
+                for (const fn of this.contentLoadedCallbacks)
+                    fn(this);
             }
         });
 

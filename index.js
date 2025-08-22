@@ -17,7 +17,7 @@ import dotenv from "dotenv";
 import multer, { diskStorage } from "multer";
 
 import { createHomeNote, DEFAULT_NOTE } from "./server/initialise.js";
-import { generateId } from "./server/utils.js";
+import { generateId, buildNoteTree } from "./server/utils.js";
 
 // For generating static marginalia
 import esbuild from "esbuild";
@@ -274,6 +274,23 @@ app.get(
     );
 
     res.json({ noteId });
+  }),
+);
+
+app.get(
+  BASE_URL + "/room/:roomId/path/:noteId",
+  asyncHandler(async (req, res) => {
+    const { roomId, noteId } = req.params;
+
+    const roomRow = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
+
+    if (!roomRow || !roomRow.rootNote)
+      return res.sendStatus(404);
+
+    const tree = await buildNoteTree(db, roomRow.rootNote);
+    const path = tree.path(noteId);
+
+    return res.json(path);
   }),
 );
 

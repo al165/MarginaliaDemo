@@ -23,9 +23,27 @@ async function fetchNoteStatic(noteId, note) {
     return note;
 }
 
+function fetchPathStatic(noteId) {
+    window.fetchNote(noteId)
+        .then((newNote) => {
+            if (!newNote) {
+                console.log("Could not fetch note " + noteId);
+                return;
+            }
+            const size = newNote.getSize();
+            const x = window.innerWidth / 2 - size.width / 2 + 100;
+            const y = window.innerHeight / 5 + 100;
+            newNote.setPosition({ left: x, top: y });
+
+            newNote.show();
+            newNote.toFront();
+        });
+}
+
 window.state = state;
 window.Note = NoteStatic;
 window.fetchNote = fetchNoteStatic;
+window.fetchPath = fetchPathStatic;
 
 window.addEventListener('load', () => {
     window.state.roomId = roomId;
