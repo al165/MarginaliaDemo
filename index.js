@@ -155,10 +155,8 @@ app.get(
       [noteId],
     );
 
-    if (!row || !row.noteContent) throw new Error(`Note ${noteId} not found`);
-
-    console.log("Readonly get noteContent:");
-    console.log(row.noteContent);
+    if (!row || !row.noteContent)
+      throw new Error(`Note ${noteId} not found`);
 
     res.json(row);
   }),

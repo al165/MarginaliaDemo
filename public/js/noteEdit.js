@@ -59,6 +59,12 @@ class EditableNote extends Note {
         this.lastSelection;
         this.parentHighlight;
 
+        this.notificationTimeout = null;
+        this.notification = document.createElement('div');
+        this.notification.classList.add('notification');
+        this.noteContainer.appendChild(this.notification);
+        this.showNotification('Loading...');
+
         this.noteEditor.on('text-change', (_delta, _oldDelta, _source) => {
             const range = this.noteEditor.getSelection();
             window.state.currentSelection = range;
@@ -146,11 +152,12 @@ class EditableNote extends Note {
         this.provider.on("status", (event) => {
             console.log("provider status " + event.status);
             if (event.status === 'disconnected') {
-
+                this.showNotification('Disconnected', false);
             } else if (event.status === 'connecting') {
-
+                this.showNotification('Connecting...', false);
             } else if (event.status === 'connected') {
-
+                this.notification.innerHTML = 'Connected';
+                this.hideNotification(true);
             }
         });
 
@@ -210,6 +217,23 @@ class EditableNote extends Note {
             console.log("Length 0, deleting note");
             this.delete();
         }
+    }
+
+    showNotification(message, instant = false) {
+        clearTimeout(this.notificationTimeout);
+
+        this.notification.innerText = message;
+        this.notificationTimeout = setTimeout(() => {
+            this.notification.style.visibility = 'visible';
+        }, instant ? 0 : 1000);
+    }
+
+    hideNotification(instant = false) {
+        clearTimeout(this.notificationTimeout);
+
+        this.notificationTimeout = setTimeout(() => {
+            this.notification.style.visibility = 'hidden';
+        }, instant ? 0 : 1000);
     }
 
     preSplit() {
