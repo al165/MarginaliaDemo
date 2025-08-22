@@ -14,7 +14,6 @@ import express from "express";
 import { createServer } from "http";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-// import { prettify, trimify } from "htmlfy";
 import beautify from 'js-beautify';
 
 import multer, { diskStorage } from "multer";
@@ -117,9 +116,38 @@ const yjss = createYjsServer({
 });
 
 wss.on('connection', (socket, request) => {
-  // TODO: authenticate!
-  yjss.handleConnection(socket, request)
+  const whenAuthorised = authorise(socket, request).catch((error) => {
+    console.log(`Error authorising connection: ${error.message}`);
+    socket.close(4001, 'Unauthorised connection');
+    return false
+  })
+  yjss.handleConnection(socket, request, whenAuthorised);
 });
+
+async function authorise(socket, req) {
+  const url = new URL(req.url, 'http://localhost');
+
+  const editToken = url.searchParams.get('editToken');
+  const roomId = url.searchParams.get('roomId');
+  const noteId = url.searchParams.get('noteId');
+
+  // 1. check if note belongs in room
+  const roomNotesRow = await db.get("SELECT * FROM Rooms_Notes_XRef WHERE noteId = ?", [noteId]);
+  if (!roomNotesRow) {
+    console.log("authorise: notes not found");
+    return true;
+  }
+
+  if (roomNotesRow.roomId !== roomId)
+    throw new Error('Wrong room');
+
+  // 2. check editToken
+  const noteRow = await db.get("SELECT editToken FROM Rooms WHERE id = ?", [roomId]);
+  if (noteRow.editToken !== editToken)
+    throw new Error('Wrong editToken');
+
+  return true
+}
 
 // For generating static marginalia
 import esbuild from "esbuild";
@@ -217,23 +245,34 @@ const asyncHandler = (fn) => (req, res, next) => {
 // Authentication middleware
 async function checkEditToken(req, _res, next) {
   if (!req.body.editToken && !req.query.editToken)
-    throw new Error("editToken missing!");
+    return next(new Error("editToken missing!"));
 
-  const { roomId } = req.params;
+  const { roomId, noteId } = req.params;
 
   const editToken = req.body.editToken || req.query.editToken;
-  console.log(editToken);
 
-  if (!roomId) throw new Error("roomId missing!");
+  if (!editToken)
+    return next(new Error("editToken missing"));
+
+  if (!roomId)
+    return next(new Error("roomId missing"));
 
   const row = await db.get("SELECT editToken FROM Rooms WHERE id = ?", [
     roomId,
   ]);
 
   if (!row || !row.editToken)
-    throw new Error(`Error: roomId ${roomId} not found.`);
+    return next(new Error(`Error: roomId ${roomId} not found.`));
 
-  if (row.editToken != editToken) throw new Error("incorrect editToken");
+  if (row.editToken != editToken)
+    return next(new Error("Incorrect editToken"));
+
+  if (noteId) {
+    // check if note is in same room
+    const roomNotesRow = await db.get("SELECT * FROM Rooms_Notes_XRef WHERE noteId = ?", [noteId]);
+    if (!roomNotesRow || roomNotesRow.roomId !== roomId)
+      return next(new Error('Note in wrong room'));
+  }
 
   next();
 }
@@ -598,8 +637,18 @@ app.delete(
   checkEditToken,
   asyncHandler(async (req, res) => {
     // Delete note
-    const { noteId } = req.params;
+    const { noteId, roomId } = req.params;
     console.log("Deleting note " + noteId);
+
+    // Check if not root note
+    const roomRow = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
+
+    if (!roomRow)
+      throw new Error(`Room ${roomId} not found`);
+
+    if (roomRow.rootNote === noteId) {
+      return res.sendStatus(403);
+    }
 
     await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
 
@@ -654,15 +703,13 @@ app.use(
 
 // Error handling middlewares
 app.use((err, _req, res, _next) => {
-  console.error("Unhandled Error:", err.message);
+  console.error("Error:", err.message);
   console.error("Stack trace:", err.stack);
   res.status(500).render("error", {
     message: err.message || "Internal Server Error",
     rootURL: BASE_URL,
   });
 });
-
-let usersEditingNotes = {};
 
 let db;
 

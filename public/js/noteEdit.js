@@ -55,7 +55,7 @@ class EditableNote extends Note {
 
     constructor(noteId, noteType = 0) {
         super(noteId, noteType);
-        this.noteEditor.enable(canEdit);
+        this.noteEditor.enable(false);
         this.lastSelection;
         this.parentHighlight;
 
@@ -121,10 +121,10 @@ class EditableNote extends Note {
             `ws${location.protocol.slice(4)}//${location.host}/ws`,
             noteId,
             ydoc,
+            { params: { editToken, roomId, noteId } }
         );
         this.ytext = ydoc.getText('quill');
         this.ymap = ydoc.getMap('note-options');
-        // this.ymap.set('roomId', window.state.roomId);
 
         ydoc.on("update", (update, origin, tr) => {
             updateHighlights(this);
@@ -153,7 +153,17 @@ class EditableNote extends Note {
             } else if (event.status === 'connecting') {
 
             } else if (event.status === 'connected') {
+                this.noteEditor.enable(true);
+            }
+        });
 
+        this.provider.on("connection-close", (event) => {
+            if (event.code == 4001) {
+                console.log(event.reason);
+                this.provider.shouldConnect = false;
+                this.noteEditor.setContents([
+                    { insert: `Error connecting to note: ${event.reason}`, attributes: { color: 'red', italic: true } }
+                ], 'api');
             }
         });
     }
