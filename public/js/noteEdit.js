@@ -70,7 +70,7 @@ class EditableNote extends Note {
             window.state.currentSelection = range;
         });
 
-        this.noteEditor.on('selection-change', (range, _oldRange, source) => {
+        this.noteEditor.on('selection-change', (range, _oldRange, _source) => {
             this.provider.awareness.setLocalStateField('user', {
                 color: window.state.highlightColour
             });
@@ -129,11 +129,15 @@ class EditableNote extends Note {
         this.ytext = ydoc.getText('quill');
         this.ymap = ydoc.getMap('note-options');
 
-        ydoc.on("update", (update, origin, tr) => {
-            updateHighlights(this);
-            this.width = this.noteContents.offsetWidth;
-            this.height = this.noteContents.offsetHeight;
-            this.addLoadCallbacks();
+        this.ready = new Promise((resolve, _reject) => {
+            ydoc.on("update", (_update, _origin) => {
+                updateHighlights(this);
+                this.width = this.noteContents.offsetWidth;
+                this.height = this.noteContents.offsetHeight;
+                this.addLoadCallbacks();
+                this.loaded = true;
+                resolve(this);
+            });
         });
 
         this.ymap.observe(ymapEvent => {
@@ -158,7 +162,6 @@ class EditableNote extends Note {
             } else if (event.status === 'connected') {
                 this.notification.innerHTML = 'Connected';
                 this.hideNotification(true);
-                this.loaded = true;
                 for (const fn of this.contentLoadedCallbacks)
                     fn(this);
             }
@@ -250,6 +253,13 @@ class EditableNote extends Note {
         this.noteEditor.enable(true);
     }
 
+    getSize() {
+        if (!this.loaded)
+            console.log("getSize() on EditableNote that is not ready yet...");
+
+        return super.getSize();
+    }
+
     delete() {
         if (!canEdit || !editToken) {
             console.log(`Cannot delete note (canEdit: ${canEdit}, editToken: ${editToken})`);
@@ -287,6 +297,9 @@ class EditableNote extends Note {
                 this.parent.setContents(JSON.stringify(parentContents.ops), 'api');
                 this.parent.save();
             }
+
+            this.provider.destroy();
+            this.ydoc.destroy();
 
             delete this.noteEditor;
             delete window.state.deleteNote(this);
@@ -358,6 +371,7 @@ async function fetchNoteEdit(noteId, note) {
 
     if (!note) {
         let newNote = new window.Note(noteId);
+        await newNote.ready;
 
         return newNote;
     }
