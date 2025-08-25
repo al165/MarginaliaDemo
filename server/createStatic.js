@@ -99,6 +99,7 @@ export async function createStatic(db, roomId, baseURL) {
     const css = fs.readFileSync("./public/style.css").toString();
     const closeIcon = svgToBase64("./public/icons/close.svg");
     const dragIcon = svgToBase64("./public/icons/28_drag.svg");
+    const linkIcon = svgToBase64("./public/icons/10_links.svg");
     const unbreakIcon = svgToBase64("./public/icons/29_unbreak.svg");
     const logo = svgToBase64("./public/logo.svg");
 
@@ -115,7 +116,7 @@ export async function createStatic(db, roomId, baseURL) {
         room: row,
         notes: noteData,
         css,
-        icons: { close: closeIcon, unbreak: unbreakIcon, drag: dragIcon, logo },
+        icons: { close: closeIcon, unbreak: unbreakIcon, drag: dragIcon, logo, link: linkIcon },
         favicon: faviconHtml,
     }
 }

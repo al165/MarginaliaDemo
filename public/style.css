@@ -173,6 +173,7 @@ a:visited {
 .btn,
 .handle,
 .drag {
+    display: none;
     cursor: pointer;
     width: 1.5em;
     height: 1.5em;
@@ -323,4 +324,15 @@ input[type=text] {
 
 input[type=text]:focus {
     outline: 2px solid var(--text-color);
+}
+
+#copied-message {
+    position: absolute;
+    display: none;
+    background-color: var(--note-bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 0.4em;
+    z-index: 1100;
+    pointer-events: none;
 }

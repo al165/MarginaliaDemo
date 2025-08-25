@@ -1,24 +1,86 @@
+import { NoteOptions } from "./noteOptions.js";
+
 let lastVertical = false;
 
-const noteButtons = document.querySelector("#note-buttons");
+window.noteOptions = new NoteOptions();
 
-const closeBtn = noteButtons.querySelector("#close-note");
-const restoreBtn = noteButtons.querySelector("#restore-note");
+const closeBtn = document.querySelector("#close-note");
+const restoreBtn = document.querySelector("#restore-note");
 const dragHandle = document.querySelector("#drag-note");
+const linkNote = document.querySelector("#link-note");
 
-dragHandle.addEventListener('mousedown', (ev) => {
-    ev.preventDefault();
-    window.state.draggingFragment.noteContainer.classList.remove('slide');
-    window.state.draggingFragment.toFront();
 
-    const notePos = window.state.draggingFragment.getPosition();
-    let mouseOffset = {}; // relative to noteContainer
-    mouseOffset.left = ev.clientX - notePos.left + window.state.scrollX;
-    mouseOffset.top = ev.clientY - notePos.top + window.state.scrollY;
+if (closeBtn && window.noteOptions) {
+    window.noteOptions.addOption('close', closeBtn);
+    window.noteOptions.addEventListener('close', 'mousedown', (ev) => {
+        ev.preventDefault();
+        if (!window.noteOptions.noteId)
+            return;
 
-    window.state.dragging = mouseOffset;
-});
+        const note = window.state.notes[window.noteOptions.noteId];
+        if (!(note instanceof Fragment))
+            return;
 
+        note.close();
+        window.noteOptions.hide();
+    });
+}
+
+if (restoreBtn && window.noteOptions) {
+    window.noteOptions.addOption('restore', restoreBtn);
+    window.noteOptions.addEventListener('restore', 'mousedown', (ev) => {
+        ev.preventDefault();
+        if (!window.noteOptions.noteId)
+            return;
+
+        const note = window.state.notes[window.noteOptions.noteId];
+        if (!(note instanceof Fragment))
+            return;
+
+        note.restore();
+    });
+}
+
+if (dragHandle && window.noteOptions) {
+    window.noteOptions.addOption('move', dragHandle);
+    window.noteOptions.addEventListener('move', 'mousedown', (ev) => {
+        ev.preventDefault();
+        window.state.draggingFragment.noteContainer.classList.remove('slide');
+        window.state.draggingFragment.toFront();
+
+        const notePos = window.state.draggingFragment.getPosition();
+        let mouseOffset = {}; // relative to noteContainer
+        mouseOffset.left = ev.clientX - notePos.left + window.state.scrollX;
+        mouseOffset.top = ev.clientY - notePos.top + window.state.scrollY;
+
+        window.state.dragging = mouseOffset;
+    });
+}
+
+if (linkNote && window.noteOptions) {
+    window.noteOptions.addOption('link', linkNote, true);
+    window.noteOptions.addEventListener('link', 'mousedown', async (ev) => {
+        ev.preventDefault();
+        if (!window.noteOptions.noteId)
+            return;
+
+        try {
+            let directURL = `${window.location.href}#${window.noteOptions.noteId}`;
+            await navigator.clipboard.writeText(directURL);
+            let notification = document.querySelector("#copied-message");
+            if (notification) {
+                notification.style.left = ev.clientX + window.state.scrollX + 30 + "px";
+                notification.style.top = ev.clientY + window.state.scrollY - 20 + "px";
+                notification.style.display = "block";
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 1000);
+            }
+        } catch (error) {
+            console.error(error.message);
+        }
+    });
+}
 
 function split(fragment, vertical, newNote, hRect) {
     const lastScrollX = window.state.scrollX;
@@ -26,7 +88,6 @@ function split(fragment, vertical, newNote, hRect) {
 
     const pos = fragment.getPosition();
     const size = fragment.getSize();
-    console.log(`split, size ${size.width}`);
 
     const mainAxisN = vertical ? "left" : "top";
     const mainAxisP = vertical ? "right" : "bottom";
@@ -205,7 +266,9 @@ class Fragment {
         this.noteContainer.onmouseleave = (ev) => {
             if (window.state.dragging || window.state.resizing)
                 return;
-            noteButtons.style.visibility = "hidden";
+            // noteButtons.style.visibility = "hidden";
+            if (window.noteOptions)
+                window.noteOptions.hide();
         };
 
         this.noteContainer.onclick = () => {
@@ -219,23 +282,11 @@ class Fragment {
         if ((window.state.dragging && window.state.draggingFragment !== this) || window.state.resizing)
             return;
 
-        this.noteContainer.appendChild(noteButtons);
-        noteButtons.style.zIndex = this.noteContainer.style.zIndex;
-
-        noteButtons.dataset.noteid = this.noteId;
+        if (!window.noteOptions)
+            return;
 
         if (!window.state.dragging)
             window.state.draggingFragment = this;
-
-        closeBtn.onclick = () => {
-            this.close(true);
-        }
-
-        restoreBtn.onclick = () => {
-            this.restore();
-        };
-
-        noteButtons.style.visibility = "visible";
     }
 
     show(animate = true) {
@@ -348,18 +399,15 @@ class NoteStatic extends Fragment {
 
     onHover() {
         super.onHover();
-
-        if (window.state.resizing || window.state.dragging)
+        if (window.state.resizing || window.state.dragging || !window.noteOptions)
             return;
 
-        restoreBtn.style.display = "none";
-        if (this.closable) {
-            closeBtn.onclick = () => {
-                noteButtons.style.visibility = "hidden";
-                this.close();
-            }
-        }
-        closeBtn.style.display = this.closable ? "block" : "none";
+        if (this.closable)
+            window.noteOptions.onlyShow(['close', 'move', 'link']);
+        else
+            window.noteOptions.onlyShow(['move', 'link']);
+
+        window.noteOptions.show(this.noteContainer, this.noteId);
     }
 
     setCloseable(closable) {
@@ -487,12 +535,11 @@ class Split extends Fragment {
     onHover() {
         super.onHover();
 
-        if (window.state.dragging || window.state.resizing)
+        if (window.state.dragging || window.state.resizing || !window.noteOptions)
             return;
 
-        restoreBtn.onclick = () => this.restore();
-        restoreBtn.style.display = "block";
-        closeBtn.style.display = "none";
+        window.noteOptions.onlyShow(['restore', 'move']);
+        window.noteOptions.show(this.noteContainer, this.noteId);
     }
 
     close(recurse = false) {

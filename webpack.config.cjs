@@ -5,7 +5,8 @@ module.exports = {
         room: './public/js/room.js',
         noteEdit: './public/js/noteEdit.js',
         editButtons: './public/js/editButtons.js',
-        dialogs: './public/js/dialogs.js'
+        dialogs: './public/js/dialogs.js',
+        noteOptions: './public/js/noteOptions.js'
     },
     output: {
         filename: '[name].js',

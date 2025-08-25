@@ -268,20 +268,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmDeleteBtn = document.querySelector("#confirm-delete-btn");
 
     deleteBtn.addEventListener('click', function () {
-        const noteId = deleteBtn.dataset.noteid;
+        if (!window.noteOptions)
+            return;
+        const noteId = window.noteOptions.noteId;
         if (!noteId || !window.state.notes[noteId])
             return;
 
-        if (window.state.notes[noteId].parent.locked)
-            return;
-
         deleteNotePopup.showModal();
+        window.deletingNote = noteId;
     });
 
     confirmDeleteBtn.addEventListener('click', function () {
-        const noteId = deleteBtn.dataset.noteid;
+        const noteId = window.deletingNote;
         if (noteId && window.state.notes[noteId]) {
-            console.log("delete note " + noteId);
             window.state.notes[noteId].delete();
             deleteNotePopup.close();
         }

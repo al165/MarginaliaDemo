@@ -47,6 +47,9 @@ let BASE_URL = process.env.BASE_URL || "";
 if (BASE_URL && BASE_URL.slice(-1) === "/") BASE_URL = BASE_URL.slice(0, -1);
 console.log("BaseURL: " + BASE_URL);
 
+import { makeIconURLs } from "./server/resources.js";
+const ICON_URLS = makeIconURLs(BASE_URL);
+
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
@@ -122,7 +125,7 @@ app.get(
     row.canEdit = row.editToken == editToken;
     row.editToken = undefined;
     row.baseURL = BASE_URL;
-    res.render("room", { room: row });
+    res.render("room", { room: row, icons: ICON_URLS });
   }),
 );
 

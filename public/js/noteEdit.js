@@ -12,8 +12,7 @@ import Quill from 'quill';
 import QuillCursors from 'quill-cursors';
 Quill.register('modules/cursors', QuillCursors, true);
 
-let noteButtons = document.querySelector("#note-buttons");
-let removeBtn = noteButtons.querySelector("#remove-note");
+let deleteBtn = document.querySelector("#remove-note");
 let resizeHandle = document.querySelector("#resize-note");
 
 window.quillOptions.modules = {
@@ -29,27 +28,31 @@ if (canEdit && editToken) {
     localStorage.setItem('history', JSON.stringify(roomHistory));
 }
 
-if (resizeHandle) {
-    resizeHandle.addEventListener('mousedown', (ev) => {
+if (resizeHandle && window.noteOptions) {
+    window.noteOptions.addOption('resize', resizeHandle, false);
+    window.noteOptions.addEventListener('resize', 'mousedown', (ev) => {
         ev.preventDefault();
         console.log("resize start");
 
-        const noteId = noteButtons.dataset.noteid;
-        if (!noteId)
+        if (!window.noteOptions.noteId)
             return;
 
-        const note = window.state.notes[noteId];
+        const note = window.state.notes[window.noteOptions.noteId];
         if (!(note instanceof Note))
             return;
 
-        window.state.resizing = noteId;
+        window.state.resizing = note.noteId;
         window.state.resizeStartPosition = ev.clientX;
         note.noteWindow.classList.remove("grow");
         window.state.resizeStartWidth = note.width;
         note.toFront();
     });
 }
-// });
+
+if (deleteBtn && window.noteOptions) {
+    window.noteOptions.setExpandable(true);
+    window.noteOptions.addOption('delete', deleteBtn, true);
+}
 
 class EditableNote extends Note {
 
@@ -168,7 +171,7 @@ class EditableNote extends Note {
         });
 
         this.provider.on("connection-close", (event) => {
-            if (event.code == 4001) {
+            if (event && event.code == 4001) {
                 console.log(event.reason);
                 this.provider.shouldConnect = false;
                 this.noteEditor.setContents([
@@ -180,18 +183,15 @@ class EditableNote extends Note {
 
     onHover() {
         super.onHover();
-        if ((window.state.dragging) || window.state.resizing)
+        if ((window.state.dragging) || window.state.resizing || !window.noteOptions)
             return;
 
-        if (this.closable) {
-            removeBtn.style.display = "block";
-            removeBtn.dataset.noteid = this.noteId;
-        } else {
-            removeBtn.style.display = "none";
-        }
+        if (this.closable)
+            window.noteOptions.onlyShow(['close', 'resize', 'move', 'delete', 'link']);
+        else
+            window.noteOptions.onlyShow(['resize', 'move', 'link']);
 
-        resizeHandle.style.display = "block";
-        noteButtons.style.visibility = "visible";
+        window.noteOptions.show(this.noteContainer, this.noteId);
     }
 
     enterEditMode() {
@@ -299,10 +299,7 @@ class EditableNote extends Note {
             }
 
             this.provider.destroy();
-            this.ydoc.destroy();
-
-            delete this.noteEditor;
-            delete window.state.deleteNote(this);
+            window.state.deleteNote(this);
         });
 
     }
@@ -351,15 +348,6 @@ class EditableNote extends Note {
     }
 }
 
-class EditableSplit extends Split {
-    onHover() {
-        super.onHover();
-        if (window.state.dragging || window.state.resizing)
-            return;
-        removeBtn.style.display = "none";
-        resizeHandle.style.display = "none";
-    }
-}
 
 async function fetchNoteEdit(noteId, note) {
     console.log("fetchNoteEdit ", noteId);
@@ -379,7 +367,6 @@ async function fetchNoteEdit(noteId, note) {
 
 
 window.Note = EditableNote;
-window.Split = EditableSplit;
 window.fetchNote = fetchNoteEdit;
 
-export { EditableNote, EditableSplit };
+export { EditableNote };

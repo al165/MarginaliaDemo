@@ -1,5 +1,4 @@
 import { state } from './state.js';
-import { NoteStatic } from './noteStatic.js'
 import { getTargetedNote } from './utils.js';
 
 async function fetchNoteStatic(noteId, note) {
@@ -41,11 +40,15 @@ function fetchPathStatic(noteId) {
 }
 
 window.state = state;
-window.Note = NoteStatic;
-window.fetchNote = fetchNoteStatic;
-window.fetchPath = fetchPathStatic;
 
-window.addEventListener('load', () => {
+
+window.addEventListener('load', async () => {
+
+    const { NoteStatic } = await import('./noteStatic.js');
+
+    window.fetchNote = fetchNoteStatic;
+    window.fetchPath = fetchPathStatic;
+    window.Note = NoteStatic;
     window.state.roomId = roomId;
 
     // Clear any notes divs that might have been saved in the static HTML document
