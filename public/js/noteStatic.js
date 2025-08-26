@@ -275,6 +275,9 @@ class Fragment {
             this.toFront();
         }
 
+        this.noteControls = new Set();
+        this.noteControls.add('move');
+
         document.querySelector("#notes").appendChild(this.noteContainer);
     }
 
@@ -287,6 +290,9 @@ class Fragment {
 
         if (!window.state.dragging)
             window.state.draggingFragment = this;
+
+        window.noteOptions.onlyShow(this.noteControls);
+        window.noteOptions.show(this.noteContainer, this.noteId);
     }
 
     show(animate = true) {
@@ -391,27 +397,25 @@ class NoteStatic extends Fragment {
         this.closable = true;
         this.width = this.noteWindow.clientWidth;
 
+        this.noteControls.add('close');
+        this.noteControls.add('link');
+
         this.loaded = false;
         this.contentLoadedCallbacks = [];
 
         window.state.addNote(this);
     }
 
-    onHover() {
-        super.onHover();
-        if (window.state.resizing || window.state.dragging || !window.noteOptions)
-            return;
-
-        if (this.closable)
-            window.noteOptions.onlyShow(['close', 'move', 'link']);
-        else
-            window.noteOptions.onlyShow(['move', 'link']);
-
-        window.noteOptions.show(this.noteContainer, this.noteId);
-    }
-
     setCloseable(closable) {
+        console.log('NoteStatic setClosable');
         this.closable = closable;
+        if (this.closable) {
+            this.noteControls.add('close');
+            this.noteControls.add('link');
+        } else {
+            this.noteControls.delete('close');
+            this.noteControls.delete('link');
+        }
     }
 
     close(recurse = false) {
@@ -523,6 +527,8 @@ class Split extends Fragment {
         this.noteContents.classList.add('ql-editor');
         this.noteContents.classList.add('absolute');
 
+        this.noteControls.add('restore');
+
         this.note = note;
         this.html = html;
 
@@ -530,16 +536,6 @@ class Split extends Fragment {
         this.noteContents.style.width = note.noteContents.offsetWidth + "px";
         this.noteContents.style.height = note.noteContents.offsetHeight + "px";
         updateHighlights(this);
-    }
-
-    onHover() {
-        super.onHover();
-
-        if (window.state.dragging || window.state.resizing || !window.noteOptions)
-            return;
-
-        window.noteOptions.onlyShow(['restore', 'move']);
-        window.noteOptions.show(this.noteContainer, this.noteId);
     }
 
     close(recurse = false) {

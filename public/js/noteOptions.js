@@ -62,11 +62,11 @@ class NoteOptions {
         this.container.style.visibility = "hidden";
     }
 
-    onlyShow(options = []) {
+    onlyShow(options) {
         let showExtraButton = false;
         this.avaliableExtras = [];
         for (const [name, button] of Object.entries(this.options)) {
-            if (options.includes(name)) {
+            if (options.has(name)) {
                 if (button.extra && this.hide_extras)
                     showExtraButton = true;
 

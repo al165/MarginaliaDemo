@@ -62,6 +62,9 @@ class EditableNote extends Note {
         this.lastSelection;
         this.parentHighlight;
 
+        this.noteControls.add('resize');
+        this.noteControls.add('delete');
+
         this.notificationTimeout = null;
         this.notification = document.createElement('div');
         this.notification.classList.add('notification');
@@ -181,19 +184,6 @@ class EditableNote extends Note {
         });
     }
 
-    onHover() {
-        super.onHover();
-        if ((window.state.dragging) || window.state.resizing || !window.noteOptions)
-            return;
-
-        if (this.closable)
-            window.noteOptions.onlyShow(['close', 'resize', 'move', 'delete', 'link']);
-        else
-            window.noteOptions.onlyShow(['resize', 'move', 'link']);
-
-        window.noteOptions.show(this.noteContainer, this.noteId);
-    }
-
     enterEditMode() {
         console.log(`${this.noteId} enterEditMode()`);
 
@@ -246,6 +236,16 @@ class EditableNote extends Note {
         super.preSplit();
         this.noteEditor.blur();
         this.noteEditor.enable(false);
+    }
+
+    setCloseable(closeable) {
+        super.setCloseable(closeable);
+        console.log('EditableNote setClosable');
+        if (this.closable) {
+            this.noteControls.add('delete');
+        } else {
+            this.noteControls.delete('delete');
+        }
     }
 
     restore() {

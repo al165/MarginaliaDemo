@@ -52,7 +52,6 @@ const ICON_URLS = makeIconURLs(BASE_URL);
 
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
-import { updateUploadsXRefTable } from "./server/cleanup.js";
 
 const dbPromise = open({
   filename: "./db/marginalia.db",
