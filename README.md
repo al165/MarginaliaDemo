@@ -20,6 +20,7 @@ cd /somewhere/you/keep/projects/
 git clone git@github.com:al165/MarginaliaDemo.git
 cd MarginaliaDemo
 npm install
+npx webpack --config webpage.config.cjs
 echo PORT=3000 >> .env
 npm start
 ```
