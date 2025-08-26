@@ -409,7 +409,7 @@ app.get(
     row.canEdit = false;
     row.editToken = undefined;
     row.baseURL = BASE_URL;
-    res.render("room", { room: row });
+    res.render("room", { room: row, icons: ICON_URLS });
   }),
 );
 
