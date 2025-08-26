@@ -32,6 +32,9 @@ Create a file named `.env` in the root of the repo with the following content:
 PORT=3001
 BASE_URL=/
 UPLOADS_DIR=./uploads
+
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=secret123
 ```
 
 These are the default values.
@@ -40,6 +43,7 @@ The key/values are as follows:
 - `PORT`: which port to listen on
 - `BASE_URL`: is the root path of the URL, e.g. the api to get a room will become `<your_domain.com><BASE_URL>/<roomId>`. Must begin with a `/`, and if it ends in '/' it will be stripped.
 - `UPLOADS_DIR`: the destination that uploaded images are saved to and served from. It will be created if it does not already exist. Note that there will also be a `tmp/` folder created in here that is used as a working directory when converting images.
+- `ADMIN_USERNAME` and `ADMIN_PASSWORD`: credentials to access `/admin` for adminastrive tools. *Must be set!*
 
 ## Todo
 

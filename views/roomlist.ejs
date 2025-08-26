@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>welcome to margi-nalia</title>
+  <title>Marginalia Admin Panel</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
@@ -14,7 +14,7 @@
 
 <body>
   <div>
-    <h1>Welcome to Marginalia</h1>
+    <h1>Admin Panel</h1>
 
     <form action="<%= baseURL %>/newroom"><input type="text" name="roomname" style="margin: 0.5em 0.5em 0.5em 0em" placeholder="Name of your room">
       <input type="submit" value="Create a room">
@@ -25,10 +25,47 @@
       <% for(const room of rooms) { %>
       <li>
         <a href="<%= baseURL %>/room/<%= room.roomId %>"><%= room.name %></a> [<a href="<%= baseURL %>/room/<%= room.roomId %>?editToken=<%= room.editToken %>">edit</a>]
+        <% if(room.roomId === 'welcome') continue %>
+        [<button class="delete-btn" data-roomid="<%= room.roomId %>" data-edit-token="<%= room.editToken %>">delete</button>]
       </li>
       <% } %>
     </ul>
   </div>
+
+  <script>
+    const deleteBtns = document.querySelectorAll(".delete-btn");
+    for (const btn of deleteBtns) {
+      let roomId = btn.dataset.roomid;
+      let editToken = btn.dataset.editToken;
+      if (!roomId || !editToken)
+        continue;
+
+      btn.addEventListener('click', (ev) => {
+        const confirm = document.createElement('span');
+        confirm.innerText = 'Are you sure you want to delete this room? ';
+        const confirmDeleteBtn = document.createElement('button');
+        confirmDeleteBtn.innerText = 'yes';
+        confirm.appendChild(confirmDeleteBtn);
+
+        confirmDeleteBtn.addEventListener('click', () => {
+          console.log('Confirmed delete');
+          fetch(`<%= baseURL %>/room/${roomId}?editToken=${editToken}`, {
+            method: 'DELETE'
+          }).then(res => {
+            if (res.ok) {
+              alert(`Deleted room ${roomId}`);
+              confirm.parentElement.remove();
+            }
+          }).catch(reason => {
+            alert(`Failed to delete room ${roomId}, check console`);
+            console.log(reason);
+          });
+        });
+
+        btn.replaceWith(confirm);
+      });
+    }
+  </script>
 </body>
 
 </html>

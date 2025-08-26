@@ -52,6 +52,7 @@ const ICON_URLS = makeIconURLs(BASE_URL);
 
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
+import { updateUploadsXRefTable } from "./server/cleanup.js";
 
 const dbPromise = open({
   filename: "./db/marginalia.db",
@@ -108,6 +109,25 @@ async function checkEditToken(req, _res, next) {
   next();
 }
 
+function authenticateAdminPanel(req, res, next) {
+  const authHeader = req.headers.authorization || '';
+  const base64Credentials = authHeader.split(' ')[1] || '';
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="Marginalia Admin Panel"');
+    return res.status(500).send('Admin panel not configured on server');
+  }
+
+  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+    return next();
+  }
+
+  res.setHeader('WWW-Authenticate', 'Basic realm="Marginalia Admin Panel"');
+  res.status(401).send('Access denied');
+}
+
 app.get(
   BASE_URL + "/room/:roomId",
   asyncHandler(async (req, res) => {
@@ -137,7 +157,8 @@ app.get(
 );
 
 app.get(
-  BASE_URL + "/roomlist",
+  BASE_URL + "/admin",
+  authenticateAdminPanel,
   asyncHandler(async (_req, res) => {
     const rooms = await db.all(
       "SELECT id roomId, name, editToken FROM Rooms",
@@ -306,8 +327,8 @@ app.delete(
     await db.run("DELETE FROM Rooms WHERE id = ?", [roomId]);
 
     // TODO: delete all notes from Notes and Rooms_notes_XRef...
-
-    res.status(204);
+    console.log(`DELETED ROOM ${roomId}`);
+    return res.sendStatus(204);
   }),
 );
 
