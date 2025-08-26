@@ -2,6 +2,8 @@
 
 *The flat-hierarchy annotation platform*
 
+![Banner image of margi-nalia.site](banner.png)
+
 <p align="center">💫✨ <a href="https://margi-nalia.site"><b>LIVE DEMO</b></a> ✨💫</p>
 
 Developed by Senka and Arran.
@@ -44,14 +46,3 @@ The key/values are as follows:
 - `BASE_URL`: is the root path of the URL, e.g. the api to get a room will become `<your_domain.com><BASE_URL>/<roomId>`. Must begin with a `/`, and if it ends in '/' it will be stripped.
 - `UPLOADS_DIR`: the destination that uploaded images are saved to and served from. It will be created if it does not already exist. Note that there will also be a `tmp/` folder created in here that is used as a working directory when converting images.
 - `ADMIN_USERNAME` and `ADMIN_PASSWORD`: credentials to access `/admin` for adminastrive tools. *Must be set!*
-
-## Todo
-
-- [ ] documentation
-- [ ] contribution guidelines
-- [ ] improve accessibility (shortcuts, screen-reader)
-- [ ] rotation
-- [ ] image annotation
-- [ ] other embedded media
-- [x] dithered images
-- [ ] Room settings
