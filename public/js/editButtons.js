@@ -194,6 +194,17 @@ document.addEventListener('DOMContentLoaded', () => {
             window.state.highlightColour = hiColour;
             highlighterColour.style.backgroundColor = hiColour;
             highlighterPallette.style.maxWidth = '0em';
+
+            if (window.state.currentEditingNote && window.state.currentSelection && window.state.currentSelection.length > 1) {
+                const range = window.state.currentSelection;
+                const note = window.state.currentEditingNote;
+                const selectedFormat = note.noteEditor.getFormat(range);
+
+                if (selectedFormat['annotate']) {
+                    selectedFormat['annotate']['color'] = hiColour;
+                    note.noteEditor.formatText(range.index, range.length, 'annotate', selectedFormat['annotate']);
+                }
+            }
         });
     }
 
@@ -287,6 +298,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     length: 1
                 };
                 const highlightBounds = note.noteEditor.getBounds(startSelection);
+                const highlightFormat = note.noteEditor.getFormat(range);
+
+                if (highlightFormat['annotate']) {
+                    highlighterColour.style.backgroundColor = highlightFormat['annotate']['color'];
+                    window.state.highlightColour = highlightFormat['annotate']['color'];
+                }
 
                 hightlightToolbar.style.left = highlightBounds.left + note.getPosition().left + 'px';
                 hightlightToolbar.style.top = highlightBounds.top + note.getPosition().top - hightlightToolbar.clientHeight + 'px';

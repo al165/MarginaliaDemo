@@ -176,6 +176,7 @@ a:visited {
     display: none;
     cursor: pointer;
     width: 1.5em;
+    min-width: 1.5em;
     height: 1.5em;
     margin: 0.1em;
     user-select: none;

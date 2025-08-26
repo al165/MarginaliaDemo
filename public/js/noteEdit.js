@@ -1,7 +1,7 @@
 // This module adds editing functionality to noteReadOnly.js. Only imported if editToken is correct
 // assumes noteReadOnly.js is already imported!
 
-import { Split, updateHighlights } from './noteStatic.js';
+import { updateHighlights } from './noteStatic.js';
 import { Note } from './noteReadOnly.js';
 
 import * as Y from 'yjs';
