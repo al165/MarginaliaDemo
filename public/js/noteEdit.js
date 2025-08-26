@@ -32,7 +32,6 @@ if (resizeHandle && window.noteOptions) {
     window.noteOptions.addOption('resize', resizeHandle, false);
     window.noteOptions.addEventListener('resize', 'mousedown', (ev) => {
         ev.preventDefault();
-        console.log("resize start");
 
         if (!window.noteOptions.noteId)
             return;
@@ -160,7 +159,6 @@ class EditableNote extends Note {
         });
 
         this.provider.on("status", (event) => {
-            console.log("provider status " + event.status);
             if (event.status === 'disconnected') {
                 this.showNotification('Disconnected', false);
             } else if (event.status === 'connecting') {
@@ -185,7 +183,7 @@ class EditableNote extends Note {
     }
 
     enterEditMode() {
-        console.log(`${this.noteId} enterEditMode()`);
+        // console.log(`${this.noteId} enterEditMode()`);
 
         if (!canEdit) {
             console.log("enterEditMode: canEdit is false");
@@ -203,7 +201,7 @@ class EditableNote extends Note {
     }
 
     exitEditMode(skip_save = false) {
-        console.log(`${this.noteId} exitEditMode, skip_save: ${skip_save}`);
+        // console.log(`${this.noteId} exitEditMode, skip_save: ${skip_save}`);
         this.editing = false;
         this.noteWindow.classList.remove('note-editing');
 
@@ -240,7 +238,6 @@ class EditableNote extends Note {
 
     setCloseable(closeable) {
         super.setCloseable(closeable);
-        console.log('EditableNote setClosable');
         if (this.closable) {
             this.noteControls.add('delete');
         } else {
@@ -255,14 +252,14 @@ class EditableNote extends Note {
 
     getSize() {
         if (!this.loaded)
-            console.log("getSize() on EditableNote that is not ready yet...");
+            console.warn("getSize() on EditableNote that is not ready yet...");
 
         return super.getSize();
     }
 
     delete() {
         if (!canEdit || !editToken) {
-            console.log(`Cannot delete note (canEdit: ${canEdit}, editToken: ${editToken})`);
+            console.log("Cannot delete note");
             return;
         }
 
@@ -351,8 +348,6 @@ class EditableNote extends Note {
 
 
 async function fetchNoteEdit(noteId, note) {
-    console.log("fetchNoteEdit ", noteId);
-
     // check if note exists
     const res = await fetch(`${baseURL}/room/${window.state.roomId}/note/${noteId}`);
     if (!res.ok)

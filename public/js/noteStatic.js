@@ -407,7 +407,6 @@ class NoteStatic extends Fragment {
     }
 
     setCloseable(closable) {
-        console.log('NoteStatic setClosable');
         this.closable = closable;
         if (this.closable) {
             this.noteControls.add('close');
@@ -495,7 +494,6 @@ class NoteStatic extends Fragment {
                 if (mark.dataset.id !== noteId)
                     continue;
 
-                console.log(`Found and opening note ${noteId}`);
                 mark.click();
                 break;
             }
@@ -513,7 +511,6 @@ class NoteStatic extends Fragment {
     }
 
     setWidth(width) {
-        console.log(`NoteStatic setWidth: ${width}`);
         this.width = width;
         this.options.width = width;
         this.noteWindow.style.width = width + "px";

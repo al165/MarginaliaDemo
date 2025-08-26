@@ -7,7 +7,7 @@ class NoteOptions {
 
         this.container = document.querySelector("#note-buttons");
         if (!this.container) {
-            console.log("NoteOptions container not found");
+            console.warn("NoteOptions container not found");
             return;
         }
 

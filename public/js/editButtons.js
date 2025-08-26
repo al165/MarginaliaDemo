@@ -24,12 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentFormat = window.state.currentEditingNote.noteEditor.getFormat();
             if (!currentFormat || !currentFormat[format]) {
                 window.state.currentEditingNote.noteEditor.format(format, values[0], 'user');
-                console.log("Setting format " + format + " to " + values[0]);
             } else {
                 let nextIndex = values.indexOf(currentFormat[format]) + 1;
                 nextIndex = nextIndex % values.length;
                 window.state.currentEditingNote.noteEditor.format(format, values[nextIndex], 'user');
-                console.log("Setting format " + format + " to " + values[nextIndex]);
             }
         });
     }
@@ -91,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (colourTheme.name === theme)
             return;
 
-        console.log("updating theme...");
         fetch(`${baseURL}/room/${window.state.roomId}`, {
             method: 'PUT',
             body: JSON.stringify({
@@ -104,14 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }).then(res => {
             if (res.status != 200)
-                return res.json();
-            else
-                return {}
-        }).then(json => {
-            if (json.msg)
-                console.log(json.msg);
+                console.warn(`Error setting theme: ${res.statusText}`);
         }).catch(error => {
-            console.log("Error editing room: " + error);
+            console.error("Error editing room: " + error);
         });
     }
 

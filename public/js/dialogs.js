@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlTextInput = document.getElementById('link-editor-url');
 
     function addURL() {
-        console.log("addURL");
         if (!urlTextInput.value)
             return;
 
@@ -89,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         linkEditorPopup.style.left = noteEditorBounds.left + selectionBounds.left + window.state.scrollX + "px";
         linkEditorPopup.style.top = noteEditorBounds.top + selectionBounds.top + window.state.scrollY + selectionBounds.height + 2 + "px";
 
-        console.log("linkEditorPopup.showModal();");
         linkEditorPopup.showModal();
 
         urlTextInput.value = "";
@@ -168,9 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageUrlSubmitBtn = document.querySelector("#image-editor-submit");
 
     function addImage(url) {
-        console.log("addImage url: " + url);
         if (!url || !window.state.lastEditingNote) {
-            console.log("!url || !window.state.lastEditingNote");
+            console.warn('addImage: No URL or lastEditingNote');
             return;
         }
 

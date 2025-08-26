@@ -79,14 +79,13 @@ async function fetchNoteReadOnly(noteId, note) {
 
             return newNote;
         } else {
-            console.log(`fetchNote: updating note ${note.noteId}`);
             note.setOptions(JSON.parse(data.noteOptions));
             note.setContents(data.noteContent);
 
             return note;
         }
     } catch (error) {
-        console.log('Error fetching note:', error);
+        console.error('Error fetching note:', error);
     }
 }
 
