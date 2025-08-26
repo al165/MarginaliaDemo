@@ -298,6 +298,7 @@ class EditableNote extends Note {
                 this.parent.save();
             }
 
+            this.noteContainer.remove();
             this.provider.destroy();
             window.state.deleteNote(this);
         });
