@@ -1,14 +1,14 @@
 {
-  "name": "serverdatabase",
+  "name": "marginalia",
   "version": "1.0.0",
-  "description": "Experiemnts for Marginalia backend",
+  "description": "Marginalia platform",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "npx webpack build --no-watch --config webpack.config.cjs && nodemon index.js"
   },
-  "author": "",
+  "author": "Arran Lyon and Senka Miluntinović",
   "license": "ISC",
   "dependencies": {
     "@y/websocket-server": "^0.1.1",
