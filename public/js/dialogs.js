@@ -195,6 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
             imageAddPopup.showModal();
             document.activeElement.blur();
 
+            const uploadMessage = document.querySelector("#image-upload-msg");
+            if (uploadMessage)
+                uploadMessage.innerText = '';
+
             imageUrlInput.value = "";
         }
     });
@@ -207,14 +211,19 @@ document.addEventListener('DOMContentLoaded', () => {
     imageUploadInput.addEventListener('change', function (ev) {
         const allowed = ['image/webp', 'image/jpeg', 'image/png', 'image/gif'];
         const sizeLimit = 1024 * 1024 * 8; // 8 megabytes
+        const uploadMessage = document.querySelector("#image-upload-msg");
 
         for (const file of imageUploadInput.files) {
             if (!allowed.includes(file.type)) {
-                console.log("Invalid image type...");
+                console.log("Invalid image type");
+                if (uploadMessage)
+                    uploadMessage.innerText = "Unknown image type! Please select .jpg, .png, .gif or .webp";
                 return;
             }
             if (file.size > sizeLimit) {
                 console.log("Image too big");
+                if (uploadMessage)
+                    uploadMessage.innerText = "Filesize too large! (max size 8Mb)";
                 return;
             }
         }

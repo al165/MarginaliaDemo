@@ -497,7 +497,7 @@ class NoteStatic extends Fragment {
                 mark.click();
                 break;
             }
-        }, 400);
+        }, 1200);
     }
 
     setOptions(options) {
