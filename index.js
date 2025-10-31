@@ -6,8 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import util from "util";
-import { exec } from "child_process";
-const execPromise = util.promisify(exec);
+import { exec, execFile } from "child_process";
+const execFilePromise = util.promisify(execFile);
 
 import express from "express";
 import { createServer } from "http";
@@ -28,20 +28,36 @@ import { setupYjsServer } from "./server/collaboration.js";
 
 dotenv.configDotenv();
 
+// Setup image uploads
 const UPLOADS_DIR = process.env.UPLOADS_DIR ?? "./uploads";
+
+function fileFilter(req, file, cb) {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(new Error("Invalid file type. Only JPG, PNG, WEBP or GIF allowed."), false);
+  }
+
+  cb(null, true);
+}
+
 const storagePhoto = diskStorage({
   destination: path.join(UPLOADS_DIR, "tmp"),
   filename: (_req, file, cb) => {
     console.log("file: ");
     console.log(file);
 
-    if (!["image/webp", "image/jpeg", "image/png"].includes(file.mimetype))
-      cb(null, false);
-
     cb(null, generateId(8) + path.extname(file.originalname));
   },
 });
-const uploadPhoto = multer({ storage: storagePhoto });
+const uploadPhoto = multer({
+  storage: storagePhoto,
+  fileFilter,
+  limits: {
+    fileSize: 4 * 1024 * 1024
+  }
+});
+
 
 let BASE_URL = process.env.BASE_URL || "";
 if (BASE_URL && BASE_URL.slice(-1) === "/") BASE_URL = BASE_URL.slice(0, -1);
@@ -337,6 +353,9 @@ app.post(
   asyncHandler(async (req, res) => {
     // convert to new file
 
+    if (req.file == undefined)
+      return res.sendStatus(400);
+
     const id = path.parse(req.file.filename).name;
     let newFilename = id + ".png";
     let newFilePath = path.join(UPLOADS_DIR, newFilename);
@@ -344,29 +363,44 @@ app.post(
     console.log(newFilename);
 
     try {
-      let magickCommand = `convert ${req.file.path} -resize 512x512 -ordered-dither o2x2 ${newFilePath}`;
-      if (HAS_MAGICK) magickCommand = "magick " + magickCommand;
-      await execPromise(magickCommand);
+      const args = [req.file.path, '-resize', '512x512', '-ordered-dither', 'o2x2', newFilePath];
+      const cmd = HAS_MAGICK ? 'magick' : 'convert';
+      await execFilePromise(cmd, args);
+
+      // let magickCommand = `convert ${req.file.path} -resize 512x512 -ordered-dither o2x2 ${newFilePath}`;
+      // if (HAS_MAGICK) magickCommand = "magick " + magickCommand;
+      // await execPromise(magickCommand);
     } catch (err) {
-      throw new Error(err.message, { cause: "Converting image" });
+      console.error('Image conversion failed:', err);
+      return res.status(500).json({ error: 'Image conversion failed' });
     }
 
     // delete old file
     try {
       fs.unlinkSync(req.file.path);
     } catch (err) {
-      throw new Error(err.message, { cause: "Deleting tmp image" });
+      console.warn('Failed to delete temp file:', err);
     }
 
     // update Uploads table
     const createdOn = new Date();
-    await db.run(
-      "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
-      [id, createdOn, UPLOADS_DIR, newFilename, newFileURL, "png"],
-    );
+    // await db.run(
+    //   "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
+    //   [id, createdOn, UPLOADS_DIR, newFilename, newFileURL, "png"],
+    // );
+
+    try {
+      await db.run(
+        "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
+        [id, createdOn, UPLOADS_DIR, newFilename, newFileURL, "png"]
+      );
+    } catch (err) {
+      console.error('DB insert failed:', err);
+      return res.status(500).json({ error: 'Database insert failed' });
+    }
 
     // return new file name
-    res.json({ msg: { path: newFileURL } });
+    res.json({ success: true, fileUrl: newFileURL });
   }),
 );
 

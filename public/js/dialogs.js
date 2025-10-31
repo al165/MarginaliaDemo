@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     imageUploadInput.addEventListener('change', function (ev) {
         const allowed = ['image/webp', 'image/jpeg', 'image/png', 'image/gif'];
-        const sizeLimit = 1024 * 1024 * 8; // 8 megabytes
+        const sizeLimit = 1024 * 1024 * 4; // 4 megabytes
         const uploadMessage = document.querySelector("#image-upload-msg");
 
         for (const file of imageUploadInput.files) {
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (file.size > sizeLimit) {
                 console.log("Image too big");
                 if (uploadMessage)
-                    uploadMessage.innerText = "Filesize too large! (max size 8Mb)";
+                    uploadMessage.innerText = "Filesize too large! (max size 4Mb)";
                 return;
             }
         }
@@ -234,6 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
     imageUploadForm.addEventListener('submit', function (ev) {
         ev.preventDefault();
 
+        const uploadMessage = document.querySelector("#image-upload-msg");
+
         imageUploadBtn.innerText = 'Uploading...';
         imageUploadBtn.disabled = true;
 
@@ -243,14 +245,31 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             body: formData
         }).then(
-            res => res.json()
+            res => {
+                if (!res.ok)
+                    throw new Error(`Server returned status ${res.status} ${res.statusText}`);
+
+                return res.json()
+            }
         ).then(json => {
-            const { path } = json.msg;
+            const path = json.fileUrl;
+
+            if (!path) {
+                throw new Error('Response JSON missing expected "msg.path"');
+            }
 
             imageUploadBtn.innerText = 'Upload image';
             imageUploadBtn.disabled = false;
 
             addImage(baseURL + path);
+        }).catch(err => {
+            console.log(err);
+
+            imageUploadBtn.innerText = 'Upload failed';
+            imageUploadBtn.disabled = false;
+
+            uploadMessage.innerText = 'Unknown error';
+
         });
     });
 
