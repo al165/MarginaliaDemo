@@ -29,33 +29,34 @@ import { setupYjsServer } from "./server/collaboration.js";
 dotenv.configDotenv();
 
 // Setup image uploads
-const UPLOADS_DIR = process.env.UPLOADS_DIR ?? "./uploads";
+const UPLOADS_DIR = process.env.UPLOADS_DIR ?? path.join(__dirname, "uploads/");
+console.log(`UPLOADS_DIR: ${UPLOADS_DIR}`);
 
-function fileFilter(req, file, cb) {
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+function fileFilter(_req, file, cb) {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
-  if (!allowedTypes.includes(file.mimetype)) {
-    return cb(new Error("Invalid file type. Only JPG, PNG, WEBP or GIF allowed."), false);
-  }
+    if (!allowedTypes.includes(file.mimetype)) {
+        return cb(new Error("Invalid file type. Only JPG, PNG, WEBP or GIF allowed."), false);
+    }
 
-  cb(null, true);
+    cb(null, true);
 }
 
 const storagePhoto = diskStorage({
-  destination: path.join(UPLOADS_DIR, "tmp"),
-  filename: (_req, file, cb) => {
-    console.log("file: ");
-    console.log(file);
+    destination: path.join(UPLOADS_DIR, "tmp"),
+    filename: (_req, file, cb) => {
+        console.log("file: ");
+        console.log(file);
 
-    cb(null, generateId(8) + path.extname(file.originalname));
-  },
+        cb(null, generateId(8) + path.extname(file.originalname));
+    },
 });
 const uploadPhoto = multer({
-  storage: storagePhoto,
-  fileFilter,
-  limits: {
-    fileSize: 4 * 1024 * 1024
-  }
+    storage: storagePhoto,
+    fileFilter,
+    limits: {
+        fileSize: 4 * 1024 * 1024
+    }
 });
 
 
@@ -69,9 +70,12 @@ const ICON_URLS = makeIconURLs(BASE_URL);
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
+const DATABASE_DIR = process.env.DATABASE_DIR || './db';
+console.log(`DATABASE_DIR: ${DATABASE_DIR}`);
+
 const dbPromise = open({
-  filename: "./db/marginalia.db",
-  driver: sqlite3.Database,
+    filename: path.join(DATABASE_DIR, "marginalia.db"),
+    driver: sqlite3.Database,
 });
 
 const app = express();
@@ -86,453 +90,467 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
+    Promise.resolve(fn(req, res, next)).catch(next);
 };
 
 // Authentication middleware
 async function checkEditToken(req, _res, next) {
-  if (!req.body.editToken && !req.query.editToken)
-    return next(new Error("editToken missing!"));
+    if (!req.body.editToken && !req.query.editToken)
+        return next(new Error("editToken missing!"));
 
-  const { roomId, noteId } = req.params;
+    const { roomId, noteId } = req.params;
 
-  const editToken = req.body.editToken || req.query.editToken;
+    const editToken = req.body.editToken || req.query.editToken;
 
-  if (!editToken)
-    return next(new Error("editToken missing"));
+    if (!editToken)
+        return next(new Error("editToken missing"));
 
-  if (!roomId)
-    return next(new Error("roomId missing"));
+    if (!roomId)
+        return next(new Error("roomId missing"));
 
-  const row = await db.get("SELECT editToken FROM Rooms WHERE id = ?", [
-    roomId,
-  ]);
+    const row = await db.get("SELECT editToken FROM Rooms WHERE id = ?", [
+        roomId,
+    ]);
 
-  if (!row || !row.editToken)
-    return next(new Error(`Error: roomId ${roomId} not found.`));
+    if (!row || !row.editToken)
+        return next(new Error(`Error: roomId ${roomId} not found.`));
 
-  if (row.editToken != editToken)
-    return next(new Error("Incorrect editToken"));
+    if (row.editToken != editToken)
+        return next(new Error("Incorrect editToken"));
 
-  if (noteId) {
-    // check if note is in same room
-    const roomNotesRow = await db.get("SELECT * FROM Rooms_Notes_XRef WHERE noteId = ?", [noteId]);
-    if (!roomNotesRow || roomNotesRow.roomId !== roomId)
-      return next(new Error('Note in wrong room'));
-  }
+    if (noteId) {
+        // check if note is in same room
+        const roomNotesRow = await db.get("SELECT * FROM Rooms_Notes_XRef WHERE noteId = ?", [noteId]);
+        if (!roomNotesRow || roomNotesRow.roomId !== roomId)
+            return next(new Error('Note in wrong room'));
+    }
 
-  next();
+    next();
 }
 
 function authenticateAdminPanel(req, res, next) {
-  const authHeader = req.headers.authorization || '';
-  const base64Credentials = authHeader.split(' ')[1] || '';
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [username, password] = credentials.split(':');
+    const authHeader = req.headers.authorization || '';
+    const base64Credentials = authHeader.split(' ')[1] || '';
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+    const [username, password] = credentials.split(':');
 
-  if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+    if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="Marginalia Admin Panel"');
+        return res.status(500).send('Admin panel not configured on server');
+    }
+
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        return next();
+    }
+
     res.setHeader('WWW-Authenticate', 'Basic realm="Marginalia Admin Panel"');
-    return res.status(500).send('Admin panel not configured on server');
-  }
-
-  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    return next();
-  }
-
-  res.setHeader('WWW-Authenticate', 'Basic realm="Marginalia Admin Panel"');
-  res.status(401).send('Access denied');
+    res.status(401).send('Access denied');
 }
 
 app.get(
-  BASE_URL + "/room/:roomId",
-  asyncHandler(async (req, res) => {
-    const { roomId } = req.params;
-    const { editToken } = req.query;
+    BASE_URL + "/room/:roomId",
+    asyncHandler(async (req, res) => {
+        const { roomId } = req.params;
+        const { editToken } = req.query;
 
-    const row = await db.get(
-      "SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?",
-      [roomId],
-    );
+        const row = await db.get(
+            "SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?",
+            [roomId],
+        );
 
-    if (!row) throw new Error(`room ${roomId} not found`);
+        if (!row) throw new Error(`room ${roomId} not found`);
 
-    row.roomId = roomId;
-    row.canEdit = row.editToken == editToken;
-    row.editToken = undefined;
-    row.baseURL = BASE_URL;
-    res.render("room", { room: row, icons: ICON_URLS });
-  }),
+        row.roomId = roomId;
+        row.canEdit = row.editToken == editToken;
+        row.editToken = undefined;
+        row.baseURL = BASE_URL;
+        res.render("room", { room: row, icons: ICON_URLS });
+    }),
 );
 
 app.get(
-  BASE_URL + "/create",
-  asyncHandler(async (_req, res) => {
-    res.render("create", { baseURL: BASE_URL });
-  }),
+    BASE_URL + "/create",
+    asyncHandler(async (_req, res) => {
+        res.render("create", { baseURL: BASE_URL });
+    }),
 );
 
 app.get(
-  BASE_URL + "/admin",
-  authenticateAdminPanel,
-  asyncHandler(async (_req, res) => {
-    const rooms = await db.all(
-      "SELECT id roomId, name, editToken FROM Rooms",
-      [],
-    );
+    BASE_URL + "/admin",
+    authenticateAdminPanel,
+    asyncHandler(async (_req, res) => {
+        const rooms = await db.all(
+            "SELECT id roomId, name, editToken FROM Rooms",
+            [],
+        );
 
-    res.render("roomlist", { baseURL: BASE_URL, rooms });
-  }),
+        res.render("roomlist", { baseURL: BASE_URL, rooms });
+    }),
 );
 
 app.get(
-  BASE_URL + "/room/:roomId/note/:noteId",
-  asyncHandler(async (req, res) => {
-    const { noteId } = req.params;
+    BASE_URL + "/room/:roomId/note/:noteId",
+    asyncHandler(async (req, res) => {
+        const { noteId } = req.params;
 
-    const row = await db.get(
-      "SELECT noteContent, noteOptions, noteType, createdOn FROM Notes WHERE id = ?",
-      [noteId],
-    );
+        const row = await db.get(
+            "SELECT noteContent, noteOptions, noteType, createdOn FROM Notes WHERE id = ?",
+            [noteId],
+        );
 
-    if (!row || !row.noteContent)
-      throw new Error(`Note ${noteId} not found`);
+        if (!row || !row.noteContent)
+            throw new Error(`Note ${noteId} not found`);
 
-    res.json(row);
-  }),
+        res.json(row);
+    }),
 );
 
 app.get(
-  BASE_URL + "/export/:roomId/",
-  checkEditToken,
-  asyncHandler(async (req, res) => {
-    const { roomId } = req.params;
+    BASE_URL + "/export/:roomId/",
+    checkEditToken,
+    asyncHandler(async (req, res) => {
+        const { roomId } = req.params;
 
-    console.log("Exporting room " + roomId);
+        console.log("Exporting room " + roomId);
 
-    const notes = await db.all(
-      `
+        const notes = await db.all(
+            `
         SELECT Notes.* FROM Notes 
         JOIN Rooms_Notes_XRef ON Notes.id = Rooms_Notes_XRef.noteId 
         WHERE Rooms_Notes_XRef.roomId = ?`,
-      roomId,
-    );
+            roomId,
+        );
 
-    if (!notes) {
-      console.err(`No notes found in room ${roomId}`);
-      return res.sendStatus(404);
-    }
+        if (!notes) {
+            console.err(`No notes found in room ${roomId}`);
+            return res.sendStatus(404);
+        }
 
-    return res.json(notes);
-  }),
+        return res.json(notes);
+    }),
 );
 
 app.get(
-  BASE_URL + "/static/:roomId/",
-  asyncHandler(async (req, res) => {
-    const { roomId } = req.params;
+    BASE_URL + "/static/:roomId/",
+    asyncHandler(async (req, res) => {
+        const { roomId } = req.params;
 
-    const result = await createStatic(db, roomId, BASE_URL);
+        const result = await createStatic(db, roomId, BASE_URL);
 
-    return res.render("room", result);
-  }),
+        return res.render("room", result);
+    }),
 );
 
 app.get(
-  BASE_URL + "/newroom",
-  asyncHandler(async (req, res) => {
-    // app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
-    // Create new room
-    // TODO: tidy-up new rooms that are not edited after some timeout
+    BASE_URL + "/newroom",
+    asyncHandler(async (req, res) => {
+        // app.post(BASE_URL + '/room', asyncHandler(async (req, res) => {
+        // Create new room
+        // TODO: tidy-up new rooms that are not edited after some timeout
 
-    const roomId = generateId(8);
-    const editToken = generateId(16);
-    let { roomname } = req.query;
-    if (!roomname) roomname = "New room";
-    const createdOn = new Date();
+        const roomId = generateId(8);
+        const editToken = generateId(16);
+        let { roomname } = req.query;
+        if (!roomname) roomname = "New room";
+        const createdOn = new Date();
 
-    await db.run(
-      "INSERT INTO Rooms(id, name, editToken, createdOn) VALUES (?, ?, ?, ?)",
-      [roomId, roomname, editToken, createdOn],
-    );
+        await db.run(
+            "INSERT INTO Rooms(id, name, editToken, createdOn) VALUES (?, ?, ?, ?)",
+            [roomId, roomname, editToken, createdOn],
+        );
 
-    console.log(`NEW ROOM: id ${roomId} editToken ${editToken}`);
+        console.log(`NEW ROOM: id ${roomId} editToken ${editToken}`);
 
-    // Create a default note to get started:
-    const noteId = generateId(16);
+        // Create a default note to get started:
+        const noteId = generateId(16);
 
-    let newNoteOps = {
-      ops: [
-        { insert: roomname },
-        {
-          attributes: { header: 2 },
-          insert: "\n",
-        },
-        DEFAULT_NOTE,
-      ],
-    };
+        let newNoteOps = {
+            ops: [
+                { insert: roomname },
+                {
+                    attributes: { header: 2 },
+                    insert: "\n",
+                },
+                DEFAULT_NOTE,
+            ],
+        };
 
-    await db.run(
-      "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
-      [noteId, createdOn, JSON.stringify(newNoteOps), null],
-    );
-    await db.run(
-      "INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)",
-      [roomId, noteId],
-    );
+        await db.run(
+            "INSERT INTO Notes (id, createdOn, noteContent, noteOptions) VALUES (?, ?, ?, ?)",
+            [noteId, createdOn, JSON.stringify(newNoteOps), null],
+        );
+        await db.run(
+            "INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)",
+            [roomId, noteId],
+        );
 
-    await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [
-      noteId,
-      roomId,
-    ]);
+        await db.run("UPDATE Rooms SET rootNote = ? WHERE id = ?", [
+            noteId,
+            roomId,
+        ]);
 
-    // res.status(201).json({ roomId, editToken });
-    res.redirect(`${BASE_URL}/room/${roomId}?editToken=${editToken}`);
-  }),
+        // res.status(201).json({ roomId, editToken });
+        res.redirect(`${BASE_URL}/room/${roomId}?editToken=${editToken}`);
+    }),
 );
 
 app.get(
-  BASE_URL + "/room/:roomId/newnote",
-  checkEditToken,
-  asyncHandler(async (req, res) => {
-    const { roomId } = req.params;
+    BASE_URL + "/room/:roomId/newnote",
+    checkEditToken,
+    asyncHandler(async (req, res) => {
+        const { roomId } = req.params;
 
-    const noteId = generateId(16);
-    const createdOn = new Date();
+        const noteId = generateId(16);
+        const createdOn = new Date();
 
-    await db.run(
-      "INSERT INTO Notes (id, createdOn) VALUES (?, ?)",
-      [
-        noteId,
-        createdOn,
-      ],
-    );
+        await db.run(
+            "INSERT INTO Notes (id, createdOn) VALUES (?, ?)",
+            [
+                noteId,
+                createdOn,
+            ],
+        );
 
-    await db.run(
-      "INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)",
-      [roomId, noteId],
-    );
+        await db.run(
+            "INSERT OR IGNORE INTO Rooms_Notes_XRef (roomId, noteId) VALUES (?, ?)",
+            [roomId, noteId],
+        );
 
-    res.json({ noteId });
-  }),
+        res.json({ noteId });
+    }),
 );
 
 app.get(
-  BASE_URL + "/room/:roomId/path/:noteId",
-  asyncHandler(async (req, res) => {
-    const { roomId, noteId } = req.params;
+    BASE_URL + "/room/:roomId/path/:noteId",
+    asyncHandler(async (req, res) => {
+        const { roomId, noteId } = req.params;
 
-    const roomRow = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
+        const roomRow = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
 
-    if (!roomRow || !roomRow.rootNote)
-      return res.sendStatus(404);
+        if (!roomRow || !roomRow.rootNote)
+            return res.sendStatus(404);
 
-    const tree = await buildNoteTree(db, roomRow.rootNote);
-    const path = tree.path(noteId);
+        const tree = await buildNoteTree(db, roomRow.rootNote);
+        const path = tree.path(noteId);
 
-    return res.json(path);
-  }),
+        return res.json(path);
+    }),
 );
 
 app.delete(
-  BASE_URL + "/room/:roomId",
-  checkEditToken,
-  asyncHandler(async (req, res) => {
-    // Delete room
-    const { roomId } = req.params;
-    await db.run("DELETE FROM Rooms WHERE id = ?", [roomId]);
+    BASE_URL + "/room/:roomId",
+    checkEditToken,
+    asyncHandler(async (req, res) => {
+        // Delete room
+        const { roomId } = req.params;
+        await db.run("DELETE FROM Rooms WHERE id = ?", [roomId]);
 
-    // TODO: delete all notes from Notes and Rooms_notes_XRef...
-    console.log(`DELETED ROOM ${roomId}`);
-    return res.sendStatus(204);
-  }),
+        // TODO: delete all notes from Notes and Rooms_notes_XRef...
+        console.log(`DELETED ROOM ${roomId}`);
+        return res.sendStatus(204);
+    }),
 );
 
 app.post(
-  BASE_URL + "/upload",
-  uploadPhoto.single("file"),
-  asyncHandler(async (req, res) => {
-    // convert to new file
+    BASE_URL + "/upload",
+    uploadPhoto.single("file"),
+    asyncHandler(async (req, res) => {
+        // convert to new file
 
-    if (req.file == undefined)
-      return res.sendStatus(400);
+        if (req.file == undefined)
+            return res.sendStatus(400);
 
-    const id = path.parse(req.file.filename).name;
-    let newFilename = id + ".png";
-    let newFilePath = path.join(UPLOADS_DIR, newFilename);
-    let newFileURL = path.join("/uploads", newFilename);
-    console.log(newFilename);
+        const id = path.parse(req.file.filename).name;
+        let newFilename = id + ".png";
+        let newFilePath = path.join(UPLOADS_DIR, newFilename);
+        let newFileURL = path.join("/uploads", newFilename);
+        console.log(newFilename);
 
-    try {
-      const args = [req.file.path, '-resize', '512x512', '-ordered-dither', 'o2x2', newFilePath];
-      const cmd = HAS_MAGICK ? 'magick' : 'convert';
-      await execFilePromise(cmd, args);
+        try {
+            const args = [req.file.path, '-resize', '512x512', '-ordered-dither', 'o2x2', newFilePath];
+            const cmd = HAS_MAGICK ? 'magick' : 'convert';
+            await execFilePromise(cmd, args);
 
-      // let magickCommand = `convert ${req.file.path} -resize 512x512 -ordered-dither o2x2 ${newFilePath}`;
-      // if (HAS_MAGICK) magickCommand = "magick " + magickCommand;
-      // await execPromise(magickCommand);
-    } catch (err) {
-      console.error('Image conversion failed:', err);
-      return res.status(500).json({ error: 'Image conversion failed' });
-    }
+            // let magickCommand = `convert ${req.file.path} -resize 512x512 -ordered-dither o2x2 ${newFilePath}`;
+            // if (HAS_MAGICK) magickCommand = "magick " + magickCommand;
+            // await execPromise(magickCommand);
+        } catch (err) {
+            console.error('Image conversion failed:', err);
+            return res.status(500).json({ error: 'Image conversion failed' });
+        }
 
-    // delete old file
-    try {
-      fs.unlinkSync(req.file.path);
-    } catch (err) {
-      console.warn('Failed to delete temp file:', err);
-    }
+        // delete old file
+        try {
+            fs.unlinkSync(req.file.path);
+        } catch (err) {
+            console.warn('Failed to delete temp file:', err);
+        }
 
-    // update Uploads table
-    const createdOn = new Date();
-    // await db.run(
-    //   "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
-    //   [id, createdOn, UPLOADS_DIR, newFilename, newFileURL, "png"],
-    // );
+        // update Uploads table
+        const createdOn = new Date();
+        // await db.run(
+        //   "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
+        //   [id, createdOn, UPLOADS_DIR, newFilename, newFileURL, "png"],
+        // );
 
-    try {
-      await db.run(
-        "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
-        [id, createdOn, UPLOADS_DIR, newFilename, newFileURL, "png"]
-      );
-    } catch (err) {
-      console.error('DB insert failed:', err);
-      return res.status(500).json({ error: 'Database insert failed' });
-    }
+        try {
+            await db.run(
+                "INSERT INTO Uploads (id, createdOn, path, filename, fileUrl, mimetype) VALUES (?, ?, ?, ?, ?, ?)",
+                [id, createdOn, UPLOADS_DIR, newFilename, newFileURL, "png"]
+            );
+        } catch (err) {
+            console.error('DB insert failed:', err);
+            return res.status(500).json({ error: 'Database insert failed' });
+        }
 
-    // return new file name
-    res.json({ success: true, fileUrl: newFileURL });
-  }),
+        // return new file name
+        res.json({ success: true, fileUrl: newFileURL });
+    }),
 );
 
 app.delete(
-  BASE_URL + "/room/:roomId/note/:noteId",
-  checkEditToken,
-  asyncHandler(async (req, res) => {
-    // Delete note
-    const { noteId, roomId } = req.params;
-    console.log("Deleting note " + noteId);
+    BASE_URL + "/room/:roomId/note/:noteId",
+    checkEditToken,
+    asyncHandler(async (req, res) => {
+        // Delete note
+        const { noteId, roomId } = req.params;
+        console.log("Deleting note " + noteId);
 
-    // Check if not root note
-    const roomRow = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
+        // Check if not root note
+        const roomRow = await db.get("SELECT rootNote FROM Rooms WHERE id = ?", [roomId]);
 
-    if (!roomRow)
-      throw new Error(`Room ${roomId} not found`);
+        if (!roomRow)
+            throw new Error(`Room ${roomId} not found`);
 
-    if (roomRow.rootNote === noteId) {
-      return res.sendStatus(403);
-    }
+        if (roomRow.rootNote === noteId) {
+            return res.sendStatus(403);
+        }
 
-    await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
+        await db.run("DELETE FROM Notes WHERE id = ?", [noteId]);
 
-    res.sendStatus(204);
-  }),
+        res.sendStatus(204);
+    }),
 );
 
 app.put(
-  BASE_URL + "/room/:roomId",
-  checkEditToken,
-  asyncHandler(async (req, res) => {
-    const { roomId } = req.params;
-    console.log(`Updating room ${roomId}`);
+    BASE_URL + "/room/:roomId",
+    checkEditToken,
+    asyncHandler(async (req, res) => {
+        const { roomId } = req.params;
+        console.log(`Updating room ${roomId}`);
 
-    const { name, theme } = req.body;
+        const { name, theme } = req.body;
 
-    await db.run("UPDATE Rooms SET name = ?, theme = ? WHERE id = ?", [
-      name,
-      theme,
-      roomId,
-    ]);
+        await db.run("UPDATE Rooms SET name = ?, theme = ? WHERE id = ?", [
+            name,
+            theme,
+            roomId,
+        ]);
 
-    res.sendStatus(200);
-  }),
+        res.sendStatus(200);
+    }),
 );
 
 app.get(
-  BASE_URL + "/",
-  asyncHandler(async (_req, res) => {
-    const roomId = "welcome";
+    BASE_URL + "/",
+    asyncHandler(async (_req, res) => {
+        const roomId = "welcome";
 
-    const row = await db.get(
-      "SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?",
-      [roomId],
-    );
+        const row = await db.get(
+            "SELECT rootNote, createdOn, theme, name, editToken FROM Rooms WHERE id = ?",
+            [roomId],
+        );
 
-    if (!row) throw new Error(`room ${roomId} not found`);
+        if (!row) throw new Error(`room ${roomId} not found`);
 
-    row.roomId = roomId;
-    row.canEdit = false;
-    row.editToken = undefined;
-    row.baseURL = BASE_URL;
-    res.render("room", { room: row, icons: ICON_URLS });
-  }),
+        row.roomId = roomId;
+        row.canEdit = false;
+        row.editToken = undefined;
+        row.baseURL = BASE_URL;
+        res.render("room", { room: row, icons: ICON_URLS });
+    }),
 );
 
 app.use(BASE_URL, express.static(path.join(__dirname, "public")));
 
 app.use(
-  BASE_URL + "/uploads",
-  express.static(path.join(__dirname, UPLOADS_DIR)),
+    BASE_URL + "/uploads",
+    express.static(UPLOADS_DIR),
 );
 
 // Error handling middleware
 app.use((err, _req, res, _next) => {
-  console.error("Error caught by middleware:", err.message);
-  console.error("Stack trace:", err.stack);
-  res.status(500).render("error", {
-    message: err.message || "Internal Server Error",
-    rootURL: BASE_URL,
-  });
+    console.error("Error caught by middleware:", err.message);
+    console.error("Stack trace:", err.stack);
+    res.status(500).render("error", {
+        message: err.message || "Internal Server Error",
+        rootURL: BASE_URL,
+    });
 });
 
 let db;
 
 async function setup() {
-  // setup database
-  db = await dbPromise;
-  await db.migrate();
-  await db.run("PRAGMA foreign_keys = ON;");
-  await createHomeNote(db, BASE_URL);
-  const wss = setupYjsServer(db);
+    // setup database
+    db = await dbPromise;
+    await db.migrate();
+    await db.run("PRAGMA foreign_keys = ON;");
+    await db.run("PRAGMA journal_mode = ON");
+    await createHomeNote(db, BASE_URL);
+    const wss = setupYjsServer(db);
 
-  fs.mkdirSync(path.join(UPLOADS_DIR, "tmp"), { recursive: true });
+    fs.mkdirSync(path.join(UPLOADS_DIR, "tmp"), { recursive: true });
 
-  // check if `magick` command exists
-  exec("which magick", (error, _stdout) => {
-    if (error) HAS_MAGICK = false;
-    else HAS_MAGICK = true;
+    // check if `magick` command exists
+    exec("which magick", (error, _stdout) => {
+        if (error) HAS_MAGICK = false;
+        else HAS_MAGICK = true;
 
-    console.log(`HAS_MAGICK: ${HAS_MAGICK}`);
-  });
-
-  // build static site for export
-  esbuild
-    .build({
-      entryPoints: ["./public/js/roomStatic.js"],
-      bundle: true,
-      format: "esm",
-      platform: "browser",
-      write: false,
-    })
-    .then((result) => {
-      const bundledCode = result.outputFiles[0].text;
-      fs.mkdirSync("./views/partials/generated/", { recursive: true });
-      fs.writeFileSync(
-        "./views/partials/generated/roomStatic.ejs",
-        bundledCode,
-      );
-      console.log("JS bundled to roomStatic.ejs\n");
+        console.log(`HAS_MAGICK: ${HAS_MAGICK}`);
     });
 
-  server.on('upgrade', (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, ws => {
-      wss.emit('connection', ws, request)
-    })
-  });
+    // build static site for export
+    esbuild
+        .build({
+            entryPoints: ["./public/js/roomStatic.js"],
+            bundle: true,
+            format: "esm",
+            platform: "browser",
+            write: false,
+        })
+        .then((result) => {
+            const bundledCode = result.outputFiles[0].text;
+            fs.mkdirSync("./views/partials/generated/", { recursive: true });
+            fs.writeFileSync(
+                "./views/partials/generated/roomStatic.ejs",
+                bundledCode,
+            );
+            console.log("JS bundled to roomStatic.ejs\n");
+        });
 
-  server.listen(PORT, () => {
-    console.log("listening on http://localhost:" + PORT + BASE_URL);
-    console.log();
-  });
+    server.on('upgrade', (request, socket, head) => {
+        wss.handleUpgrade(request, socket, head, ws => {
+            wss.emit('connection', ws, request)
+        })
+    });
+
+    server.listen(PORT, () => {
+        console.log("listening on http://localhost:" + PORT + BASE_URL);
+        console.log();
+    });
 }
+
+async function shutdown() {
+    db = await dbPromise;
+    server.close(async () => {
+        await db.close();
+        process.exit(0);
+    });
+    server.closeAllConnections();
+    setTimeout(() => process.exit(1), 5000).unref();
+
+}
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 setup();

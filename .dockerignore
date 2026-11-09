@@ -1,0 +1,14 @@
+node_modules/
+
+/views/partials/generated/*
+
+.env
+*.db*
+*.backup
+
+uploads/
+dist/
+
+Dockerfile
+.dockerignore
+compose*.yaml

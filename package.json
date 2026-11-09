@@ -1,43 +1,43 @@
 {
-  "name": "marginalia",
-  "version": "1.0.0",
-  "description": "Marginalia platform",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx webpack build --no-watch --config webpack.config.cjs && nodemon index.js"
-  },
-  "author": "Arran Lyon and Senka Miluntinović",
-  "license": "ISC",
-  "dependencies": {
-    "@y/websocket-server": "^0.1.1",
-    "body-parser": "^1.20.2",
-    "dotenv": "^16.4.5",
-    "ejs": "^3.1.10",
-    "express": "^4.19.2",
-    "js-beautify": "^1.15.4",
-    "multer": "^2.0.1",
-    "quill": "^2.0.2",
-    "quill-cursors": "^4.0.4",
-    "quill-delta-to-html": "^0.12.1",
-    "socket.io": "^4.8.1",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^6.0.1",
-    "y-quill": "^1.0.0",
-    "y-websocket": "^3.0.0",
-    "yjs": "^13.6.27",
-    "yjs-server": "^0.2.3"
-  },
-  "devDependencies": {
-    "esbuild": "^0.25.3",
-    "nodemon": "^3.1.14",
-    "webpack": "^5.100.2",
-    "webpack-cli": "^6.0.1"
-  },
-  "allowScripts": {
-    "esbuild@0.25.3": true,
-    "leveldown@5.6.0": true,
-    "sqlite3@6.0.1": true
-  }
+    "name": "marginalia",
+    "version": "1.0.0",
+    "description": "Marginalia platform",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "npx webpack build --no-watch --config webpack.config.cjs && nodemon index.js"
+    },
+    "author": "Arran Lyon and Senka Miluntinović",
+    "license": "ISC",
+    "dependencies": {
+        "@y/websocket-server": "^0.1.1",
+        "body-parser": "^1.20.2",
+        "dotenv": "^16.4.5",
+        "ejs": "^3.1.10",
+        "esbuild": "^0.25.12",
+        "express": "^4.19.2",
+        "js-beautify": "^1.15.4",
+        "multer": "^2.0.1",
+        "quill": "^2.0.2",
+        "quill-cursors": "^4.0.4",
+        "quill-delta-to-html": "^0.12.1",
+        "socket.io": "^4.8.1",
+        "sqlite": "^5.1.1",
+        "sqlite3": "^6.0.1",
+        "y-quill": "^1.0.0",
+        "y-websocket": "^3.0.0",
+        "yjs": "^13.6.27",
+        "yjs-server": "^0.2.3"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.14",
+        "webpack": "^5.100.2",
+        "webpack-cli": "^6.0.1"
+    },
+    "allowScripts": {
+        "esbuild@0.25.3": true,
+        "leveldown@5.6.0": true,
+        "sqlite3@6.0.1": true
+    }
 }

@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_DIR: /data
+      UPLOADS_DIR: /uploads
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./db:/data
+      - uploads:/uploads
+
+volumes:
+  uploads:
