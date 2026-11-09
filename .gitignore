@@ -1,10 +1,11 @@
-/node_modules
+node_modules/
 
-/views/partials/generated/*
+views/partials/generated/*
 
 .env
 *.db
 *.backup
-/uploads
+uploads/
+backups/
 
 dist/

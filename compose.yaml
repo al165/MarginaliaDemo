@@ -12,5 +12,26 @@ services:
       - ./db:/data
       - uploads:/uploads
 
+  # create daily backup, keep last 14 days
+  backup:
+    image: alpine:3
+    volumes:
+      - ./db:/data
+      - ./backups:/backups
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        apk add --no-cache sqlite
+        while true; do
+          ts=$$(date +%F_%H%M)
+          sqlite3 /data/marginalia.db ".backup /backups/marginalia_$$ts.db" \
+            && gzip /backups/marginalia_$$ts.db
+          
+          find /backups -name "*.db.gz" -mtime +14 -delte
+          sleep 86400
+        done
+
+
 volumes:
   uploads:
